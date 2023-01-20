@@ -1,0 +1,44 @@
+[project]
+name = "physio"
+version = "0.0.1"
+authors = [
+  { name="Samuel Garcia", email="sam.garcia.die@gmail.com" },
+]
+description = "Simple python toolbox to analyse physio signals (respi and ECG)"
+readme = "README.md"
+requires-python = ">=3.8,<4.0"
+classifiers = [
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: OS Independent"
+]
+
+
+dependencies = [
+    "numpy",
+    "scipy",
+
+]
+
+[build-system]
+requires = ["setuptools>=62.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["physio*"]
+namespaces = false
+exclude = ["physio.*.tests"]
+
+
+[project.urls]
+homepage = "https://github.com/samuelgarcia/physio"
+repository = "https://github.com/samuelgarcia/physio"
