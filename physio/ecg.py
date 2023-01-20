@@ -11,6 +11,8 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
     
     """
     
+    # TODO clean plusbmalin avec le max des deux peak
+    
     peak_ms = (raw_peak_inds / srate * 1000.)
     bad_peak, = np.nonzero(np.diff(peak_ms) < min_interval_ms)
     bad_peak += 1
@@ -32,6 +34,9 @@ def compute_ecg(raw_ecg, srate):
 
     """
     clean_ecg = preprocess(traces, srate, band=[5., 45.], ftype='bessel', order=5, normalize=True)
+    
+    # TODO estimation du seuil
+    
     raw_ecg_peak = detect_peak(clean_ecg, srate, thresh=5, exclude_sweep_ms=4.0)
     
     ecg_peaks = clean_ecg_peak(ecg, srate, raw_ecg_peak)
@@ -78,3 +83,4 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=400., max_interval_ms=
     return pd.DataFrame(metrics)
     
 
+# compute HRV with resample

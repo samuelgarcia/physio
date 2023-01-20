@@ -27,3 +27,12 @@ import physio
 ```
 
 
+
+Authors from CMO team CRNL Lyon:
+
+Samuel Garcia
+Valentin Ghibaudo
+Jules Granget
+
+
+
