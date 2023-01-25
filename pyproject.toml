@@ -21,6 +21,8 @@ classifiers = [
 dependencies = [
     "numpy",
     "scipy",
+    "pandas",
+    "neo",
 
 ]
 
