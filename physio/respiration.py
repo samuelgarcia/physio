@@ -1,6 +1,29 @@
 import numpy as np
 from .tools import get_empirical_mode
 
+
+def compute_respiration(raw_resp, srate):
+    """
+    Function for respiration that:
+      * preprocess the signal
+      * detect cycle
+      * clean cycles
+      * compute metrics cycle by cycle
+    """
+
+    # filter and smooth : more or less 2 times a low pass
+    resp = physio.preprocess(raw_resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
+    resp = physio.smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=60.0)
+    
+    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None,  inspration_ajust_on_derivative=False)
+    
+    cycles = clean_respiration_cycles(resp, srate, cycles)
+    
+    
+    return resp, cycles
+
+
+
 def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None,  inspration_ajust_on_derivative=False):
     """
     Detect respiration cycles based on:
@@ -32,8 +55,6 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     mask = (ind_exp > ind_insp[0]) & (ind_exp < ind_insp[-1])
     ind_exp = ind_exp[mask]
 
-    print(ind_insp.size, ind_exp.size)
-    
     if inspration_ajust_on_derivative:
         # lets find local minima on second derivative
         # this can be slow
@@ -82,12 +103,38 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     return cycles
 
 
-    # return cycles
-
-
-
-def compute_respiration(raw_resp, srate):
+def clean_respiration_cycles(resp, srate, cycles):
     """
+    Remove outlier cycles.
+    This is done : 
+      * on cycle duration
+      * on resp/insp amplitudes
+    This can be done with:
+      * hard threshold
+      * median + K * mad
+    """
+    n = cycles.shape[0] - 1
+    insp_amplitudes = np.zeros(n)
+    exp_amplitudes = np.zeros(n)
+    for i in range(n):
+        i0, i1, i2 = cycles[i, 0], cycles[i, 1],cycles[i+1, 0]
+        insp_amplitudes[i] = np.abs(np.min(resp[i0:i1]))
+        exp_amplitudes[i] = np.abs(np.max(resp[i1:i2]))
+
+    cleaned_cycles = cycles
+    delta = np.diff(cycles[:, 0])
     
-    """
-    pass
+    import matplotlib.pyplot as plt
+    count, bins = np.histogram(insp_amplitudes, bins=100)
+    fig, ax = plt.subplots()
+    ax.plot(bins[:-1], count)
+
+    count, bins = np.histogram(exp_amplitudes, bins=100)
+    fig, ax = plt.subplots()
+    ax.plot(bins[:-1], count)
+    
+    
+    plt.show()
+    
+    
+    return cleaned_cycles
