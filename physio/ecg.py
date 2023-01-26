@@ -5,6 +5,28 @@ from .tools import detect_peak, compute_median_mad
 from .preprocess import preprocess
 
 
+def compute_ecg(raw_ecg, srate):
+    """
+    Function for ECG that:
+      * preprocess the ECG
+      * detect R peaks
+      * apply some cleaning to remove too small ECG interval
+      
+
+    """
+    clean_ecg = preprocess(raw_ecg, srate, band=[5., 45.], ftype='bessel', order=5, normalize=True)
+    
+    # TODO estimation du seuil
+    
+    raw_ecg_peak = detect_peak(clean_ecg, srate, thresh=5, exclude_sweep_ms=4.0)
+    
+    ecg_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak)
+    
+    return clean_ecg, ecg_peaks
+
+
+
+
 def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
     """
     Clean peak with ultra simple idea: remove short interval.
@@ -24,24 +46,6 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
     return peak_inds
 
 
-def compute_ecg(raw_ecg, srate):
-    """
-    Function for ECG that:
-      * preprocess the ECG
-      * detect R peaks
-      * apply some cleaning to remove too small ECG interval
-      
-
-    """
-    clean_ecg = preprocess(raw_ecg, srate, band=[5., 45.], ftype='bessel', order=5, normalize=True)
-    
-    # TODO estimation du seuil
-    
-    raw_ecg_peak = detect_peak(clean_ecg, srate, thresh=5, exclude_sweep_ms=4.0)
-    
-    ecg_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak)
-    
-    return clean_ecg, ecg_peaks
 
 
 def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=400., max_interval_ms=1500.):
