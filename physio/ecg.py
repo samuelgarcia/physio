@@ -91,6 +91,7 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=
     
     
     return pd.DataFrame(metrics).T
+
     
 
 # compute HRV with resample
