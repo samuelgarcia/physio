@@ -5,9 +5,7 @@ from .tools import detect_peak, compute_median_mad
 from .preprocess import preprocess
 
 
-<<<<<<< HEAD
-def clean_ecg_peak(raw_peak_inds, srate, min_interval_ms=500.):
-=======
+
 def compute_ecg(raw_ecg, srate):
     """
     Function for ECG that:
@@ -31,7 +29,7 @@ def compute_ecg(raw_ecg, srate):
 
 
 def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
->>>>>>> a9962537bfa331d70847b1ff63e5695711ae200b
+
     """
     Clean peak with ultra simple idea: remove short interval.
     
