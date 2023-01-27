@@ -5,6 +5,7 @@ from .tools import detect_peak, compute_median_mad
 from .preprocess import preprocess
 
 
+
 def compute_ecg(raw_ecg, srate):
     """
     Function for ECG that:
@@ -28,12 +29,13 @@ def compute_ecg(raw_ecg, srate):
 
 
 def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
+
     """
     Clean peak with ultra simple idea: remove short interval.
     
     """
     
-    # TODO clean plusbmalin avec le max des deux peak
+    # TODO clean plus malin avec le max des deux peak
     
     peak_ms = (raw_peak_inds / srate * 1000.)
     bad_peak, = np.nonzero(np.diff(peak_ms) < min_interval_ms)
@@ -48,7 +50,7 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
 
 
 
-def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=400., max_interval_ms=1500.):
+def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=2000., verbose = False):
     """
     Compute metrics on ecg peaks.
     
@@ -66,6 +68,10 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=400., max_interval_ms=
     remove[bad+1] = True
     
     peak_ms[remove] = np.nan
+
+    if verbose:
+        print(f'{sum(np.isnan(peak_ms))} peaks removed')
+
     
     delta_ms = np.diff(peak_ms)
     
@@ -74,17 +80,24 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=400., max_interval_ms=
     # delta_ms = delta_ms[keep]
     
     
-    metrics = pd.Series()
+    metrics = pd.Series(dtype = float)
     
-    metrics['HRV_MeanNN'] = np.nanmean(delta_ms)
-    metrics['HRV_SDNN'] = np.nanstd(delta_ms)
-    metrics['HRV_MedianNN'], metrics['HRV_MadNN'] = compute_median_mad(delta_ms[~np.isnan(delta_ms)])
+    metrics['HRV_Mean'] = np.nanmean(delta_ms)
+    metrics['HRV_SD'] = np.nanstd(delta_ms)
+    metrics['HRV_Median'], metrics['HRV_Mad'] = compute_median_mad(delta_ms[~np.isnan(delta_ms)])
+    metrics['HRV_CV'] = metrics['HRV_SD'] / metrics['HRV_Mean']
+    metrics['HRV_MCV'] = metrics['HRV_Mad'] / metrics['HRV_Median']
+    metrics['HRV_Asymmetry'] = metrics['HRV_Median'] - metrics['HRV_Mean']
+
     
     # TODO
     metrics['HRV_RMSSD'] = np.sqrt(np.nanmean(np.diff(delta_ms)**2))
+
+
     
     
-    return pd.DataFrame(metrics)
+    return pd.DataFrame(metrics).T
+
     
 
 # compute HRV with resample
