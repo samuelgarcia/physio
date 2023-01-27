@@ -33,6 +33,29 @@ def detect_peak(traces, srate, thresh=5, exclude_sweep_ms=4.0):
     
     return inds
 
+def get_empirical_mode(traces):
+    """
+    Get the emprical mode of a distribution
+    """
+    
+    q0 = np.quantile(traces, 0.25)
+    q1 = np.quantile(traces, 0.75)
+
+
+    mask = (traces > q0)  & (traces < q1)
+    traces = traces[mask]
+    count, bins = np.histogram(traces, bins=np.arange(q0, q1, (q1 - q0)/200.))
+
+    ind_max = np.argmax(count)
+
+    mode = bins[ind_max]
+
+    return mode
+    
+
+
+    
+
 
 
 
