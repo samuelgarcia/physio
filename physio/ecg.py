@@ -98,6 +98,29 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=
     
     return pd.DataFrame(metrics).T
 
-    
+def compute_RSA(fci):
+    """
+    Compute respiratory sinusal arrythmia from instantaneous cardiac frequency signal
+
+    ----------
+    Input =
+    - fci : instantaneous cardiac frequency signal, ideally in beats per minute = 1D np vector
+
+    Output =
+    - median of peaks - throughs values of respiratory induced variations of the fci signal = float
+    """
+
+    derivative = np.gradient(fci) # get derivative of signal
+
+    rises, = np.where((derivative[:-1] <=0) & (derivative[1:] >0)) # detect where sign inversion from - to +
+    decays, = np.where((derivative[:-1] >=0) & (derivative[1:] <0)) # detect where sign inversion from + to -
+
+    if rises[0] > decays[0]: # first point detected has to be a rise
+        decays = decays[1:] # so remove the first decay if is before first rise
+    if rises[-1] > decays[-1]: # last point detected has to be a decay
+        rises = rises[:-1] # so remove the last rise if is after last decay
+
+    amplitudes_rsa = fci[decays] - fci[rises]
+    return np.median(amplitudes_rsa)
 
 # compute HRV with resample
