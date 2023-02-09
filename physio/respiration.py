@@ -1,8 +1,9 @@
 import numpy as np
 from .tools import get_empirical_mode
+from .preprocess import preprocess, smooth_signal
 
 
-def compute_respiration(raw_resp, srate):
+def compute_respiration(raw_resp, srate, show = False):
     """
     Function for respiration that:
       * preprocess the signal
@@ -12,19 +13,19 @@ def compute_respiration(raw_resp, srate):
     """
 
     # filter and smooth : more or less 2 times a low pass
-    resp = physio.preprocess(raw_resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
-    resp = physio.smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=60.0)
+    resp = preprocess(raw_resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
+    resp = smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=60.0)
     
-    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None,  inspration_ajust_on_derivative=False)
+    cycles = detect_respiration_cycles(resp, srate, baseline_mode='median', baseline=None,  inspiration_adjust_on_derivative=False)
     
-    cycles = clean_respiration_cycles(resp, srate, cycles)
+    cycles = clean_respiration_cycles(resp, srate, cycles, show = show)
     
     
     return resp, cycles
 
 
 
-def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None,  inspration_ajust_on_derivative=False):
+def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None,  inspiration_adjust_on_derivative=False):
     """
     Detect respiration cycles based on:
       * crossing zeros (or crossing baseline)
@@ -55,7 +56,7 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     mask = (ind_exp > ind_insp[0]) & (ind_exp < ind_insp[-1])
     ind_exp = ind_exp[mask]
 
-    if inspration_ajust_on_derivative:
+    if inspiration_adjust_on_derivative:
         # lets find local minima on second derivative
         # this can be slow
         delta_ms = 10.
@@ -103,7 +104,7 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     return cycles
 
 
-def clean_respiration_cycles(resp, srate, cycles):
+def clean_respiration_cycles(resp, srate, cycles, show = False):
     """
     Remove outlier cycles.
     This is done : 
@@ -124,17 +125,50 @@ def clean_respiration_cycles(resp, srate, cycles):
     cleaned_cycles = cycles
     delta = np.diff(cycles[:, 0])
     
-    import matplotlib.pyplot as plt
-    count, bins = np.histogram(insp_amplitudes, bins=100)
-    fig, ax = plt.subplots()
-    ax.plot(bins[:-1], count)
+    if show:
+        import matplotlib.pyplot as plt
+        count, bins = np.histogram(insp_amplitudes, bins=100)
+        fig, ax = plt.subplots()
+        ax.plot(bins[:-1], count)
 
-    count, bins = np.histogram(exp_amplitudes, bins=100)
-    fig, ax = plt.subplots()
-    ax.plot(bins[:-1], count)
-    
-    
-    plt.show()
-    
+        count, bins = np.histogram(exp_amplitudes, bins=100)
+        fig, ax = plt.subplots()
+        ax.plot(bins[:-1], count)
+
+
+        plt.show()
+
     
     return cleaned_cycles
+
+
+def compute_resp_features(resp, cycles, srate):
+    features = []
+    for i in range(cycles.shape[0] - 1):
+        start = cycles[i,0]
+        transition = cycles[i,1]
+        stop = cycles[i+1,0]
+        start_t = start / srate
+        transition_t = transition / srate
+        stop_t = stop / srate
+        cycle_duration = stop_t - start_t
+        inspi_duration = transition_t - start_t
+        expi_duration = stop_t - transition_t
+        cycle_freq = 1 / cycle_duration
+        cycle_ratio = inspi_duration / cycle_duration
+        inspi_amplitude = np.max(np.abs(sig[start:transition]))
+        expi_amplitude = np.max(np.abs(sig[transition:stop]))
+        cycle_amplitude = inspi_amplitude + expi_amplitude
+        inspi_volume = np.trapz(np.abs(sig[start:transition]))
+        expi_volume = np.trapz(np.abs(sig[transition:stop]))
+        cycle_volume = inspi_volume + expi_volume
+
+        features.append([start, transition , stop, start_t, transition_t, stop_t, cycle_duration,
+                            inspi_duration, expi_duration, cycle_freq, cycle_ratio, inspi_amplitude,
+                            expi_amplitude,cycle_amplitude, inspi_volume, expi_volume, cycle_volume])
+
+    df_features = pd.DataFrame(features, columns = ['start','transition','stop','start_time','transition_time',
+                                                    'stop_time','cycle_duration','inspi_duration','expi_duration','cycle_freq','cycle_ratio',
+                                                    'inspi_amplitude','expi_amplitude','cycle_amplitude','inspi_volume','expi_volume','cycle_volume'])
+    return df_features
+

@@ -100,7 +100,7 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=
 
 def compute_RSA(fci):
     """
-    Compute respiratory sinusal arrythmia from instantaneous cardiac frequency signal
+    Compute respiratory sinus arrythmia from instantaneous cardiac frequency signal
 
     ----------
     Input =
