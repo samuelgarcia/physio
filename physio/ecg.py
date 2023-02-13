@@ -35,11 +35,12 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
     
     """
     
-    # TODO clean plus malin avec le max des deux peak
-    
+    # when two peaks are too close :  remove the smaller peaks in amplitude
     peak_ms = (raw_peak_inds / srate * 1000.)
     bad_peak, = np.nonzero(np.diff(peak_ms) < min_interval_ms)
-    bad_peak += 1
+    bad_ampl  = ecg[raw_peak_inds[bad_peak]]
+    bad_ampl_next  = ecg[raw_peak_inds[bad_peak + 1]]
+    bad_peak +=(bad_ampl > bad_ampl_next).astype(int)
     
     keep = np.ones(raw_peak_inds.size, dtype='bool')
     keep[bad_peak] = False

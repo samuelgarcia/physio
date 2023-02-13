@@ -5,6 +5,12 @@ import numpy as np
 def read_one_channel(filename, format, channel_name, scaled=True):
     """
     Simple function on top of neo that read one channel from file in supported format.
+    
+    Parameters
+    ----------
+
+    Returns
+    -------
 
     
     """

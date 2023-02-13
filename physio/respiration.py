@@ -1,26 +1,56 @@
 import numpy as np
+import pandas as pd
+
 from .tools import get_empirical_mode
 
+from .preprocess import preprocess, smooth_signal
 
-def compute_respiration(raw_resp, srate):
+def compute_respiration(raw_resp, srate, t_start=0.):
     """
     Function for respiration that:
       * preprocess the signal
       * detect cycle
       * clean cycles
       * compute metrics cycle by cycle
+
+
+    Parameters
+    ----------
+    raw_resp
+
+    srate
+
+    Returns
+    -------
+
+    resp
+    
+    cycles
+
     """
 
     # filter and smooth : more or less 2 times a low pass
-    resp = physio.preprocess(raw_resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
-    resp = physio.smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=60.0)
+    center = np.mean(raw_resp)
+    resp = raw_resp - center
+    resp = preprocess(resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
+    resp = smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=60.0)
+    resp += center
     
-    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None,  inspration_ajust_on_derivative=False)
+    baseline = np.median(resp)
+
+    espilon = (np.quantile(resp, 0.75) - np.quantile(resp, 0.25)) / 100.
+    baseline_detect = baseline - espilon * 5.
+
+
+    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=baseline_detect,
+                                       inspration_ajust_on_derivative=False)
     
     cycles = clean_respiration_cycles(resp, srate, cycles)
+
+    cycle_features = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, t_start=0.)
     
     
-    return resp, cycles
+    return resp, cycle_features
 
 
 
@@ -29,6 +59,12 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     Detect respiration cycles based on:
       * crossing zeros (or crossing baseline)
       * some cleanning with euristicts
+
+    Parameters
+    ----------
+
+    Returns
+    -------
 
     
     """
@@ -112,6 +148,15 @@ def clean_respiration_cycles(resp, srate, cycles):
     This can be done with:
       * hard threshold
       * median + K * mad
+
+
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     n = cycles.shape[0] - 1
     insp_amplitudes = np.zeros(n)
@@ -124,17 +169,99 @@ def clean_respiration_cycles(resp, srate, cycles):
     cleaned_cycles = cycles
     delta = np.diff(cycles[:, 0])
     
-    import matplotlib.pyplot as plt
-    count, bins = np.histogram(insp_amplitudes, bins=100)
-    fig, ax = plt.subplots()
-    ax.plot(bins[:-1], count)
+    # import matplotlib.pyplot as plt
+    # count, bins = np.histogram(insp_amplitudes, bins=100)
+    # fig, ax = plt.subplots()
+    # ax.plot(bins[:-1], count)
 
-    count, bins = np.histogram(exp_amplitudes, bins=100)
-    fig, ax = plt.subplots()
-    ax.plot(bins[:-1], count)
+    # count, bins = np.histogram(exp_amplitudes, bins=100)
+    # fig, ax = plt.subplots()
+    # ax.plot(bins[:-1], count)
     
     
-    plt.show()
+    # plt.show()
     
     
     return cleaned_cycles
+
+
+
+def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, t_start=0.):
+    """
+    Compute respiration features cycle by cycle
+
+    Parameters
+    ----------
+    resp
+
+    srate
+
+    cycles
+
+    baseline
+
+    t_start
+
+    Returns
+    -------
+    cycle_features: pd.Dataframe
+        Features of all cycles.
+    """
+
+    if baseline is not None:
+        resp = resp - baseline
+
+    times = np.arange(resp.size) / srate + t_start
+
+    assert cycles.dtype.kind == 'i'
+    assert cycles.ndim == 2
+    assert cycles.shape[1] == 2
+    
+    n = cycles.shape[0] - 1
+    
+    index = np.arange(n, dtype = 'int64')
+    df = cycle_features = pd.DataFrame(index=index)
+    
+
+    ix1 = cycles[:-1, 0]
+    ix2 = cycles[:-1, 1]
+    ix3 = cycles[1:, 0]
+
+    t1 = times[ix1]
+    t2 = times[ix2]
+    t3 = times[ix3]
+
+    df['start_index'] = pd.Series(ix1 , dtype='int64')
+    df['stop_index'] = pd.Series(ix3 , dtype='int64')
+    df['start_time'] = pd.Series(t1 , dtype='float64')
+    df['stop_time'] = pd.Series(t3 , dtype='float64')
+
+    df['inspi_index'] = pd.Series(ix1 , dtype='int64')
+    df['expi_index'] = pd.Series(ix2, dtype='int64')
+    df['inspi_time'] = pd.Series(t1, dtype='float64')
+    df['expi_time'] = pd.Series(t2, dtype='float64')
+    df['cycle_duration'] = pd.Series(t3 - t1, dtype='float64')
+    df['inspi_duration'] = pd.Series(t2 - t1, dtype='float64')
+    df['expi_duration'] = pd.Series(t3- t2, dtype='float64')
+    df['cycle_freq'] = 1. / df['cycle_duration']
+    for k in ('inspi_volume', 'expi_volume', 'total_amplitude', 'inspi_amplitude', 'expi_amplitude'):
+        df[k] = pd.Series(dtype='float64')
+    
+    #missing cycle
+    mask = (ix2 == -1)
+    df.loc[mask, ['expi_time', 'cycle_duration', 'inspi_duration', 'expi_duration', 'cycle_freq']] = np.nan
+    
+    for c in range(n):
+        i1, i2, i3 = ix1[c], ix2[c], ix3[c]
+        if i2 == -1:
+            #this is a missing cycle in the middle
+            continue
+        
+        df.at[c, 'insp_volume'] = np.sum(resp[i1:i2]) / srate
+        df.at[c, 'exp_volume'] = np.sum(resp[i2:i3]) / srate
+        df.at[c, 'insp_amplitude'] = np.max(np.abs(resp[i1:i2]))
+        df.at[c, 'exp_amplitude'] = np.max(np.abs(resp[i2:i3]))
+    
+    df['total_amplitude'] = df['insp_amplitude'] + df['exp_amplitude']
+    
+    return cycle_features

@@ -3,6 +3,13 @@ import numpy as np
 def compute_median_mad(data, axis=0):
     """
     Compute median and mad
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     med = np.median(data, axis=axis)
     mad = np.median(np.abs(data - med), axis=axis) / 0.6744897501960817
@@ -12,6 +19,13 @@ def compute_median_mad(data, axis=0):
 def detect_peak(traces, srate, thresh=5, exclude_sweep_ms=4.0):
     """
     Simple peak detector.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     
     exclude_sweep_size = int(exclude_sweep_ms / 1000. * srate)
@@ -36,6 +50,13 @@ def detect_peak(traces, srate, thresh=5, exclude_sweep_ms=4.0):
 def get_empirical_mode(traces):
     """
     Get the emprical mode of a distribution
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
     """
     
     q0 = np.quantile(traces, 0.25)
