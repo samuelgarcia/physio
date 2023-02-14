@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+import scipy.interpolate
+
 from .tools import detect_peak, compute_median_mad
 from .preprocess import preprocess
 
@@ -12,7 +14,13 @@ def compute_ecg(raw_ecg, srate):
       * preprocess the ECG
       * detect R peaks
       * apply some cleaning to remove too small ECG interval
-      
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
 
     """
     clean_ecg = preprocess(raw_ecg, srate, band=[5., 45.], ftype='bessel', order=5, normalize=True)
@@ -32,14 +40,23 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
 
     """
     Clean peak with ultra simple idea: remove short interval.
-    
+
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+
     """
     
-    # TODO clean plus malin avec le max des deux peak
-    
+    # when two peaks are too close :  remove the smaller peaks in amplitude
     peak_ms = (raw_peak_inds / srate * 1000.)
     bad_peak, = np.nonzero(np.diff(peak_ms) < min_interval_ms)
-    bad_peak += 1
+    bad_ampl  = ecg[raw_peak_inds[bad_peak]]
+    bad_ampl_next  = ecg[raw_peak_inds[bad_peak + 1]]
+    bad_peak +=(bad_ampl > bad_ampl_next).astype(int)
     
     keep = np.ones(raw_peak_inds.size, dtype='bool')
     keep[bad_peak] = False
@@ -56,7 +73,14 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=
     
     This metrics are a bit more robust that neurokit2 ones because strange interval
     are skiped from the analysis.
-    
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+
     """
     
     peak_ms = ecg_peaks / srate * 1000.
@@ -93,11 +117,27 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=
     # TODO
     metrics['HRV_RMSSD'] = np.sqrt(np.nanmean(np.diff(delta_ms)**2))
 
-
-    
-    
     return pd.DataFrame(metrics).T
 
     
 
 # compute HRV with resample
+def compute_hrv_resampled(ecg_peaks, srate, hrv_times):
+    """
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+
+    """
+    peak_times = ecg_peaks / srate
+
+    interp = scipy.interpolate.interp1d(peak_times[:-1], np.diff(peak_times), kind='linear', axis=0,
+                                        bounds_error=False, fill_value='extrapolate')
+    
+    hrv = interp(hrv_times)
+
+    return hrv

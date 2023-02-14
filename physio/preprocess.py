@@ -8,6 +8,15 @@ def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', 
     Apply simple filter using scipy
     
     For ECG bessel 5-50Hz and order 5 is maybe a good choice.
+
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+
     """
     
     if np.isscalar(band):
@@ -26,6 +35,17 @@ def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', 
 
 
 def smooth_signal(trace, srate, win_shape='gaussian', sigma_ms=5.0):
+    """
+
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    
+    """
 
     size = int(srate * sigma_ms / 1000.)
     if win_shape == 'gaussian':

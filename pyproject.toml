@@ -23,7 +23,6 @@ dependencies = [
     "scipy",
     "pandas",
     "neo",
-
 ]
 
 [build-system]
@@ -44,3 +43,17 @@ exclude = ["physio.*.tests"]
 [project.urls]
 homepage = "https://github.com/samuelgarcia/physio"
 repository = "https://github.com/samuelgarcia/physio"
+
+[project.optional-dependencies]
+
+test = [
+    "pytest",
+    "matplotlib",
+]
+
+docs = [
+    "matplotlib",
+    "sphinx-gallery",
+    "numpydoc",
+]
+
