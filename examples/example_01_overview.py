@@ -74,9 +74,6 @@ print(cycle_features.columns)
 columns = ['cycle_duration', 'inspi_volume', 'expi_volume', 'total_amplitude' ]
 cycle_features[columns].plot(kind='hist', subplots=True, sharex=False, layout=(2, 2), bins=50)
 
-plt.show()
-
-
 cycle_features
 
 
