@@ -41,7 +41,7 @@ exclude = ["physio.*.tests"]
 
 
 [project.urls]
-homepage = "https://github.com/samuelgarcia/physio"
+homepage = "https://physio.readthedocs.io"
 repository = "https://github.com/samuelgarcia/physio"
 
 [project.optional-dependencies]

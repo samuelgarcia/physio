@@ -257,11 +257,11 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, t_sta
             #this is a missing cycle in the middle
             continue
         
-        df.at[c, 'insp_volume'] = np.sum(resp[i1:i2]) / srate
-        df.at[c, 'exp_volume'] = np.sum(resp[i2:i3]) / srate
-        df.at[c, 'insp_amplitude'] = np.max(np.abs(resp[i1:i2]))
-        df.at[c, 'exp_amplitude'] = np.max(np.abs(resp[i2:i3]))
+        df.at[c, 'inspi_volume'] = np.abs(np.sum(resp[i1:i2])) / srate
+        df.at[c, 'expi_volume'] = np.abs(np.sum(resp[i2:i3])) / srate
+        df.at[c, 'inspi_amplitude'] = np.max(np.abs(resp[i1:i2]))
+        df.at[c, 'expi_amplitude'] = np.max(np.abs(resp[i2:i3]))
     
-    df['total_amplitude'] = df['insp_amplitude'] + df['exp_amplitude']
+    df['total_amplitude'] = df['inspi_amplitude'] + df['expi_amplitude']
     
     return cycle_features
