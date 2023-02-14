@@ -1,8 +1,3 @@
-.. physio documentation master file, created by
-   sphinx-quickstart on Tue Feb 14 15:27:04 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 documentation of physio 
 =======================
 
@@ -11,7 +6,18 @@ documentation of physio
 
 Author : Samuel Garcia with the help of Valentin Ghibaudo and Jules Granget.
 
-This toolbox is used byt the CMO team in the **Lyon Centre de recherche en Neurosciences**
+This toolbox is used by the CMO team in the **Centre de recherche en Neurosciences de Lyon (CRNL)**
+
+
+**Features** :
+
+  * respiration cycle detection
+  * respiration cycle features (amplitude, duration, volumns ...)
+  * simple preprocess on signal : filter using scipy and smoothing
+  * ecg peak detection
+  * ecg metrics
+  * cyclic deformation machinery : a simple strecher of any signal to cycle template
+  * simple reader of micromed and brainvision using neo
 
 
 
@@ -20,6 +26,12 @@ This toolbox is used byt the CMO team in the **Lyon Centre de recherche en Neuro
 
 Installation
 ------------
+
+Installation from pypi:
+
+.. code-block:: bash
+
+   pip install physio
 
 
 Installation from sources:
@@ -44,7 +56,7 @@ Update from source:
    :caption: Contents:
 
    api
-   changelog
+   release_notes
 
 
 
