@@ -4,8 +4,8 @@ from pathlib import Path
 from physio import compute_ecg, compute_ecg_metrics, compute_hrv_resampled
 
 # read signals
-test_folder = Path(__file__).parent
-raw_ecg = np.load(test_folder / 'ecg1.npy')
+example_folder = Path(__file__).parents[1] / 'examples'
+raw_ecg = np.load(example_folder / 'ecg1.npy')
 srate = 1000.
 
 
