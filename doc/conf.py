@@ -35,19 +35,21 @@ html_static_path = ['_static']
 # for sphinx gallery plugin
 
 # from sphinx_gallery.sorting import ExplicitOrder
-# from sphinx_gallery.sorting import FileNameSortKey
+from sphinx_gallery.sorting import FileNameSortKey
 
 sphinx_gallery_conf = {
     'only_warn_on_example_error': True,
     'examples_dirs': ['../examples/'],
     'gallery_dirs': ['examples', ],
     # 'subsection_order': ExplicitOrder([
-    #                                    '../examples/modules_gallery/core/',
+    #                                    '../examples/example_01_overview.py',
+    #                                    '../examples/example_02_respiration.py',
     #                                    ]),
-    # 'within_subsection_order': FileNameSortKey,
+    'within_subsection_order': FileNameSortKey,
     'filename_pattern' : '/example_',
 
     'ignore_pattern': '/generate_',
+    'download_all_examples': False,
 }
 
 try:
