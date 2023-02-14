@@ -4,8 +4,8 @@ from pathlib import Path
 from physio import compute_respiration, detect_respiration_cycles, preprocess
 
 # read signals
-test_folder = Path(__file__).parent
-raw_resp = np.load(test_folder / 'resp1.npy')
+example_folder = Path(__file__).parents[1] / 'examples'
+raw_resp = np.load(example_folder / 'resp1.npy')
 srate = 1000.
 
 
