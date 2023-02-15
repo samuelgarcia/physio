@@ -6,10 +6,16 @@ def compute_median_mad(data, axis=0):
 
     Parameters
     ----------
-
+    data: np.array
+        An array
+    axis: int (default 0)
+        The axis 
     Returns
     -------
-
+    med: 
+        The median
+    mad: 
+        The mad
     """
     med = np.median(data, axis=axis)
     mad = np.median(np.abs(data - med), axis=axis) / 0.6744897501960817
@@ -18,14 +24,24 @@ def compute_median_mad(data, axis=0):
 
 def detect_peak(traces, srate, thresh=5, exclude_sweep_ms=4.0):
     """
-    Simple peak detector.
+    Simple positive peak detector.
 
     Parameters
     ----------
-
+    traces: np.array
+        An array
+    srate: float
+        Sampling rate of the traces
+    thresh: float (default 5)
+        The threhold as mad factor
+        abs_threholds = med + thresh * mad
+    exclude_sweep_ms: float
+        Zone to exclude multiple peak detection when noisy.
+        If several peaks or detected in the same sweep the best is the winner.
     Returns
     -------
-
+    inds: np.array
+        Indices on the peaks
     """
     
     exclude_sweep_size = int(exclude_sweep_ms / 1000. * srate)
@@ -47,16 +63,23 @@ def detect_peak(traces, srate, thresh=5, exclude_sweep_ms=4.0):
     
     return inds
 
-def get_empirical_mode(traces):
+def get_empirical_mode(traces, nbins=200):
     """
-    Get the emprical mode of a distribution
+    Get the emprical mode of a distribution.
+    This is a really lazy implementation that make an histogram
+    of the traces inside quantile [0.25, 0.75] and make an histogram
+    of 200 bins and take the max.
 
     Parameters
     ----------
-
+    traces: np.array
+        The traces
+    nbins: int (default 200)
+        Number of bins for the histogram
     Returns
     -------
-
+    mode: float
+        The empirical mode.
     """
     
     q0 = np.quantile(traces, 0.25)
@@ -65,7 +88,7 @@ def get_empirical_mode(traces):
 
     mask = (traces > q0)  & (traces < q1)
     traces = traces[mask]
-    count, bins = np.histogram(traces, bins=np.arange(q0, q1, (q1 - q0)/200.))
+    count, bins = np.histogram(traces, bins=np.arange(q0, q1, (q1 - q0) / nbins))
 
     ind_max = np.argmax(count)
 
@@ -73,10 +96,6 @@ def get_empirical_mode(traces):
 
     return mode
     
-
-
-    
-
 
 
 

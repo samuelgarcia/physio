@@ -6,13 +6,26 @@ def read_one_channel(filename, format, channel_name, scaled=True):
     """
     Simple function on top of neo that read one channel from file in supported format.
     
+    >>>  ecg, srate = physio.read_one_channel('/path/to/micromed_file.TRC', 'micromed', 'p7+', scaled=True)
+
+
     Parameters
     ----------
+    filename: str or Path
+        The file
+    format: str
+        The foormat of the file 'micromed' or 'brainvision'
+    channel_name: str
+        The channel names.
+    scaled: bool (default True)
+        Return traces scaled to unit or unscaled (int16)
 
     Returns
     -------
-
-    
+    trace: np.array
+        The trace of the channel as a numpy 1d array.
+    srate: float
+        The sampling rate.
     """
 
     import neo
