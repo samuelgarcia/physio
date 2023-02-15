@@ -17,11 +17,16 @@ def compute_ecg(raw_ecg, srate):
 
     Parameters
     ----------
-
+    raw_ecg: np.array
+        Raw traces of ECG signal
+    srate: float
+        Sampling rate
     Returns
     -------
-
-
+    clean_ecg: np.array
+        preprocess and normalized ecg traces
+    ecg_R_peaks: np.array
+        Indices of R peaks
     """
     clean_ecg = preprocess(raw_ecg, srate, band=[5., 45.], ftype='bessel', order=5, normalize=True)
     
@@ -29,26 +34,32 @@ def compute_ecg(raw_ecg, srate):
     
     raw_ecg_peak = detect_peak(clean_ecg, srate, thresh=5, exclude_sweep_ms=4.0)
     
-    ecg_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak)
+    ecg_R_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak)
     
-    return clean_ecg, ecg_peaks
+    return clean_ecg, ecg_R_peaks
 
 
 
 
 def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
-
     """
     Clean peak with ultra simple idea: remove short interval.
 
 
     Parameters
     ----------
-
+    ecg: np.array
+        preprocess traces of ECG signal
+    srate: float
+        Sampling rate
+    raw_peak_inds: np.array
+        Array of peaks indices to be cleaned
+    min_interval_ms: float (dfault 400ms)
+        Minimum interval for cleaning
     Returns
     -------
-
-
+    peak_inds: np.array
+        Cleaned array of peaks indices 
     """
     
     # when two peaks are too close :  remove the smaller peaks in amplitude
@@ -67,23 +78,32 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
 
 
 
-def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=2000., verbose = False):
+def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_ms=2000., verbose = False):
     """
-    Compute metrics on ecg peaks.
+    Compute metrics on ecg peaks: HRV_Mean, HRV_SD, HRV_Median, ...
     
     This metrics are a bit more robust that neurokit2 ones because strange interval
     are skiped from the analysis.
 
     Parameters
     ----------
-
+    ecg_R_peaks: np.array
+        Indices of R peaks
+    srate: float
+        Sampling rate
+    min_interval_ms: float (default 500ms)
+        Minimum interval inter R peak
+    max_interval_ms: float (default 2000ms)
+        Maximum interval inter R peak
+    verbose: bool (default False)
+        Control verbosity
     Returns
     -------
-
-
+    metrics: pd.Series
+        A table contaning metrics
     """
     
-    peak_ms = ecg_peaks / srate * 1000.
+    peak_ms = ecg_R_peaks / srate * 1000.
     
     remove = np.zeros(peak_ms.size, dtype='bool')
     d = np.diff(peak_ms) 
@@ -122,22 +142,31 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=
     
 
 # compute HRV with resample
-def compute_hrv_resampled(ecg_peaks, srate, hrv_times):
+def compute_hrv_resampled(ecg_R_peaks, srate, hrv_times):
     """
+    Compute the "hrv" signals on a given time vector.
+    This represent the R peak interval on a regularly sample vector.
 
     Parameters
     ----------
-
+    ecg_R_peaks: np.array
+        Indices of R peaks
+    srate: float
+        Sampling rate
+    hrv_times: np.array
+        The time vector used for interpolation
     Returns
     -------
-
-
+    hrv: np.array
+        The "hrv" signal
     """
-    peak_times = ecg_peaks / srate
+    peak_times = ecg_R_peaks / srate
 
     interp = scipy.interpolate.interp1d(peak_times[:-1], np.diff(peak_times), kind='linear', axis=0,
                                         bounds_error=False, fill_value='extrapolate')
     
+    # TODO put nan for bad R peak interval
+
     hrv = interp(hrv_times)
 
     return hrv

@@ -24,25 +24,31 @@ def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=4
         make deformation with 2 segments.
         If the cycle_times is 1D then it is converted to shape (size-1, 2).
         The end of every cycles must match the start of the next cycle.
-    points_per_cycle:
+    points_per_cycle: int (default 40)
         number of respi phase per cycle
-    segment_ratios:
-    
-    output_mode:
-
+    segment_ratios: None or float or list of float
+        If multi segment deformation then a list of segmetn ratio must provived.
+    output_mode: 'stacked' / 'unstacked' / 'unstacked_full'
 
     Returns
     -------
-    clipped_times
+    If mode == 'stacked'
     
-    times_to_cycles
-    
-    cycles_inds
-    
-    cycle_points
-    
-    deformed_data
+    deformed_data_stacked: 
+        A 2d array of stacked cycles. Shape = (num_cycles, points_per_cycle)
 
+    If mode == 'unstacked'
+
+    deformed_data: 
+        A 1d array of deformed cycles. Shape = (num_cycles * points_per_cycle)
+    cycle_points: 
+        The cycle vector
+
+    If mode == 'unstacked':
+    clipped_times: 
+        The clipped time vector
+    times_to_cycles:
+        The vector times to cycle
     """
 
     if cycle_times.ndim == 1:

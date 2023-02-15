@@ -16,17 +16,19 @@ def compute_respiration(raw_resp, srate, t_start=0.):
 
     Parameters
     ----------
-    raw_resp
-
-    srate
-
+    raw_resp: np.array
+        Raw traces of respiratory signal
+    srate: float
+        Sampling rate
+    t_start: float (default 0.)
+        Eventualy t_start is used to shift the time vector.
     Returns
     -------
-
-    resp
-    
-    cycles
-
+    resp: np.array
+        A preprocess traces
+    cycles: pd.Dataframe
+        Table that contain all  cycle information : inspiration/expiration indexes, 
+        amplitudes, volumes, durations, ...
     """
 
     # filter and smooth : more or less 2 times a low pass
@@ -47,14 +49,14 @@ def compute_respiration(raw_resp, srate, t_start=0.):
     
     cycles = clean_respiration_cycles(resp, srate, cycles)
 
-    cycle_features = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, t_start=0.)
+    cycle_features = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, t_start=t_start)
     
     
     return resp, cycle_features
 
 
 
-def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None,  inspration_ajust_on_derivative=False):
+def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None, inspration_ajust_on_derivative=False):
     """
     Detect respiration cycles based on:
       * crossing zeros (or crossing baseline)
@@ -62,11 +64,22 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
 
     Parameters
     ----------
-
+    resp: np.array
+        Preprocess traces of respiratory signal.
+    srate: float
+        Sampling rate
+    baseline_mode: 'manual' / 'zero' / 'median' / 'mode'
+        How to compute the baseline for zero crossings.
+    baseline: float or None
+        External baseline when baseline_mode='manual'
+    inspration_ajust_on_derivative: bool (default False)
+        For the inspiration detection, the zero crossing can be refined to auto detect the inflection point.
+        This can be usefull when expiration ends with a long plateau.
     Returns
     -------
-
-    
+    cycles: np.array
+        Indices of inspiration and expiration. shape=(num_cycle + 1, 2)
+        The last row is contain only the inspiration for closing the last cycle.
     """
 
     if baseline_mode == 'manual':
@@ -113,23 +126,7 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
                     mask = (d2[:-1] >=0) & (d2[1:] < 0)
                     if np.any(mask):
                         ind_insp[i] = i0 + np.nonzero(mask)[0][-1]
-                
-            
-            #~ import matplotlib.pyplot as plt
-            #~ fig, axs = plt.subplots(nrows=3, sharex=True)
-            #~ i1 = ind_exp[i]
-            #~ axs[0].plot(resp[i0: i1])
-            #~ l = ind_insp[i] - i0
-            #~ axs[0].axvline(l)
-            #~ axs[1].plot(derivate1[i0:i1])
-            #~ axs[1].plot(d1)
-            #~ axs[1].axvline(l)
-            #~ axs[2].plot(derivate2[i0:i1])
-            #~ axs[2].plot(d2)
-            #~ axs[2].axvline(l)
-            #~ axs[2].axhline(0)
-            #~ plt.show()
-
+    
     cycles = np.zeros((ind_insp.size, 2), dtype='int64')
     cycles[:, 0] = ind_insp
     cycles[:-1, 1] = ind_exp
@@ -149,14 +146,18 @@ def clean_respiration_cycles(resp, srate, cycles):
       * hard threshold
       * median + K * mad
 
-
-
     Parameters
     ----------
-
+    resp: np.array
+        Preprocess traces of respiratory signal.
+    srate: float
+        Sampling rate
+    cycles: np.array
+        Indices of inspiration and expiration. shape=(num_cycle + 1, 2)
     Returns
     -------
-
+    cleaned_cycles: 
+        Clean version of cycles.
     """
     n = cycles.shape[0] - 1
     insp_amplitudes = np.zeros(n)
@@ -192,16 +193,16 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, t_sta
 
     Parameters
     ----------
-    resp
-
-    srate
-
-    cycles
-
-    baseline
-
-    t_start
-
+    resp: np.array
+        Preprocess traces of respiratory signal.
+    srate: float
+        Sampling rate
+    cycles: np.array
+        Indices of inspiration and expiration. shape=(num_cycle + 1, 2)
+    baseline: float or None
+        If not None then the baseline is substracted to resp to compute amplitudes and volumes.
+    t_start: float
+        Optionaly the time of the first sample to generate the time vector.
     Returns
     -------
     cycle_features: pd.Dataframe
