@@ -277,22 +277,25 @@ def clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_lo
     new_cycles[:-1, 2] = new_cycles[1:, 0]
     # recompute new volumes and amplitudes
     cycle_features = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
-
-
+    
     # remove small expi volumes: remove the next cycle
     log_vol = np.log(cycle_features['expi_volume'].values)
     med, mad = compute_median_mad(log_vol)
     limit = med - mad * low_limit_log_ratio
     bad_cycle, = np.nonzero(log_vol < limit)
+    
+    # last cycle cannot be removed
+    bad_cycle = bad_cycle[bad_cycle < (cycle_features.shape[0] -1) ]
 
     # find next good cycle to take expi_index
     for c in bad_cycle:
         next_cycle = c + 1
         while next in bad_cycle:
             next_cycle = c + 1
-        if next_cycle < cycle_features.shape[0]:
-            cycle_features['expi_index'].iat[c] = cycle_features['expi_index'].iat[next_cycle]
-            cycle_features['next_inspi_index'].iat[c] = cycle_features['next_inspi_index'].iat[next_cycle]
+        #~ if next_cycle < cycle_features.shape[0]:
+        cycle_features['expi_index'].iat[c] = cycle_features['expi_index'].iat[next_cycle]
+        cycle_features['next_inspi_index'].iat[c] = cycle_features['next_inspi_index'].iat[next_cycle]
+
     bad_cycle += 1
     keep = np.ones(cycle_features.shape[0], dtype=bool)
     keep[bad_cycle] = False

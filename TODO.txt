@@ -5,3 +5,4 @@
 * [ ] ecg threshold auto estimate
 * [ ] clean resp cycle
 * [ ] write motivation on doc
+* [ ] clean ECG peak on log amplitude
