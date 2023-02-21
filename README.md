@@ -4,6 +4,8 @@ Simple python toolbox to analyse physio signals (respi and ECG)
 
 This toolbox is used in the CMO team from the CRNL.
 
+See doc here https://physio.readthedocs.io/
+
 
 
 Installation:
@@ -20,19 +22,4 @@ cd physio
 git pull origin main
 ```
 
-Example:
-```python
-import physio
-
-```
-
-
-
-Authors from CMO team CRNL Lyon:
-
-Samuel Garcia
-Valentin Ghibaudo
-Jules Granget
-
-
-
+Authors : Samuel Garcia with the help of Valentin Ghibaudo and Jules Granget

@@ -1,0 +1,8 @@
+* [ ] test ECG R peak detector using ECG database
+  https://www.biorxiv.org/content/10.1101/722397v3.full.pdf
+  https://www.physionet.org/content/apnea-ecg/1.0.0/
+* [ ] params preset
+* [ ] ecg threshold auto estimate
+* [ ] clean resp cycle
+* [ ] write motivation on doc
+* [ ] clean ECG peak on log amplitude

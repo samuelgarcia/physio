@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+import scipy.interpolate
+
 from .tools import detect_peak, compute_median_mad
 from .preprocess import preprocess
 
@@ -12,8 +14,19 @@ def compute_ecg(raw_ecg, srate):
       * preprocess the ECG
       * detect R peaks
       * apply some cleaning to remove too small ECG interval
-      
 
+    Parameters
+    ----------
+    raw_ecg: np.array
+        Raw traces of ECG signal
+    srate: float
+        Sampling rate
+    Returns
+    -------
+    clean_ecg: np.array
+        preprocess and normalized ecg traces
+    ecg_R_peaks: np.array
+        Indices of R peaks
     """
     clean_ecg = preprocess(raw_ecg, srate, band=[5., 45.], ftype='bessel', order=5, normalize=True)
     
@@ -21,25 +34,40 @@ def compute_ecg(raw_ecg, srate):
     
     raw_ecg_peak = detect_peak(clean_ecg, srate, thresh=5, exclude_sweep_ms=4.0)
     
-    ecg_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak)
+    ecg_R_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak)
     
-    return clean_ecg, ecg_peaks
+    return clean_ecg, ecg_R_peaks
 
 
 
 
 def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
-
     """
     Clean peak with ultra simple idea: remove short interval.
-    
+
+
+    Parameters
+    ----------
+    ecg: np.array
+        preprocess traces of ECG signal
+    srate: float
+        Sampling rate
+    raw_peak_inds: np.array
+        Array of peaks indices to be cleaned
+    min_interval_ms: float (dfault 400ms)
+        Minimum interval for cleaning
+    Returns
+    -------
+    peak_inds: np.array
+        Cleaned array of peaks indices 
     """
     
-    # TODO clean plus malin avec le max des deux peak
-    
+    # when two peaks are too close :  remove the smaller peaks in amplitude
     peak_ms = (raw_peak_inds / srate * 1000.)
     bad_peak, = np.nonzero(np.diff(peak_ms) < min_interval_ms)
-    bad_peak += 1
+    bad_ampl  = ecg[raw_peak_inds[bad_peak]]
+    bad_ampl_next  = ecg[raw_peak_inds[bad_peak + 1]]
+    bad_peak +=(bad_ampl > bad_ampl_next).astype(int)
     
     keep = np.ones(raw_peak_inds.size, dtype='bool')
     keep[bad_peak] = False
@@ -50,16 +78,32 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
 
 
 
-def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=2000., verbose = False):
+def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_ms=2000., verbose = False):
     """
-    Compute metrics on ecg peaks.
+    Compute metrics on ecg peaks: HRV_Mean, HRV_SD, HRV_Median, ...
     
     This metrics are a bit more robust that neurokit2 ones because strange interval
     are skiped from the analysis.
-    
+
+    Parameters
+    ----------
+    ecg_R_peaks: np.array
+        Indices of R peaks
+    srate: float
+        Sampling rate
+    min_interval_ms: float (default 500ms)
+        Minimum interval inter R peak
+    max_interval_ms: float (default 2000ms)
+        Maximum interval inter R peak
+    verbose: bool (default False)
+        Control verbosity
+    Returns
+    -------
+    metrics: pd.Series
+        A table contaning metrics
     """
     
-    peak_ms = ecg_peaks / srate * 1000.
+    peak_ms = ecg_R_peaks / srate * 1000.
     
     remove = np.zeros(peak_ms.size, dtype='bool')
     d = np.diff(peak_ms) 
@@ -94,33 +138,52 @@ def compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=
     metrics['HRV_RMSSD'] = np.sqrt(np.nanmean(np.diff(delta_ms)**2))
 
 
-    
-    
-    return pd.DataFrame(metrics).T
-
-def compute_RSA(fci):
+def compute_instantaneous_rr_interval(ecg_R_peaks, srate, times, min_interval_ms=500., max_interval_ms=2000.,
+                                      units='ms', interpolation_kind='linear'):
     """
-    Compute respiratory sinus arrythmia from instantaneous cardiac frequency signal
+    Compute the instantaneous RR interval "hrv" signals on a given time vector.
+    The output can be interval in units='ms' or frequency in units='bpm'
 
+    Parameters
     ----------
-    Input =
-    - fci : instantaneous cardiac frequency signal, ideally in beats per minute = 1D np vector
-
-    Output =
-    - median of peaks - throughs values of respiratory induced variations of the fci signal = float
+    ecg_R_peaks: np.array
+        Indices of R peaks
+    srate: float
+        Sampling rate
+    times: np.array
+        The time vector used for interpolation
+    max_interval_ms:  float (default 2000.)
+        Max RR interval.
+    units: 'ms' / 'bpm'
+        The units of the interpolated vector.
+    interpolation_kind: 'linear' / 'cubic'
+        how to interpolate
+    Returns
+    -------
+    hrv: np.array
+        The "hrv" signal
     """
+    peak_ms = ecg_R_peaks / srate * 1000.
 
-    derivative = np.gradient(fci) # get derivative of signal
+    delta_ms = np.diff(peak_ms)
+    keep,  = np.nonzero((delta_ms < max_interval_ms) & (delta_ms > min_interval_ms))
 
-    rises, = np.where((derivative[:-1] <=0) & (derivative[1:] >0)) # detect where sign inversion from - to +
-    decays, = np.where((derivative[:-1] >=0) & (derivative[1:] <0)) # detect where sign inversion from + to -
+    peak_ms = peak_ms[keep]
+    delta_ms = delta_ms[keep]
 
-    if rises[0] > decays[0]: # first point detected has to be a rise
-        decays = decays[1:] # so remove the first decay if is before first rise
-    if rises[-1] > decays[-1]: # last point detected has to be a decay
-        rises = rises[:-1] # so remove the last rise if is after last decay
+    peak_s = peak_ms / 1000
 
-    amplitudes_rsa = fci[decays] - fci[rises]
-    return np.median(amplitudes_rsa)
+    if units == 'ms':
+        delta = delta_ms
+    elif units == 'bpm':
+        delta = 60  / (delta_ms / 1000.)
+    else:
+        raise ValueError(f'Bad units {units}')
 
-# compute HRV with resample
+
+    interp = scipy.interpolate.interp1d(peak_s, delta, kind=interpolation_kind, axis=0,
+                                        bounds_error=False, fill_value='extrapolate')
+    
+    rr_interval = interp(times)
+
+    return rr_interval
