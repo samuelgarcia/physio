@@ -1,9 +1,10 @@
 import numpy as np
 from .tools import get_empirical_mode
 from .preprocess import preprocess, smooth_signal
+import pandas as pd
 
 
-def compute_respiration(raw_resp, srate, show = False):
+def compute_respiration(raw_resp, srate, baseline_mode = 'median', sigma_ms=60.0, show = False):
     """
     Function for respiration that:
       * preprocess the signal
@@ -14,14 +15,15 @@ def compute_respiration(raw_resp, srate, show = False):
 
     # filter and smooth : more or less 2 times a low pass
     resp = preprocess(raw_resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
-    resp = smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=60.0)
+    resp = smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=sigma_ms)
     
     cycles = detect_respiration_cycles(resp, srate, baseline_mode='median', baseline=None,  inspiration_adjust_on_derivative=False)
     
     cycles = clean_respiration_cycles(resp, srate, cycles, show = show)
+
+    features = compute_resp_features(resp, cycles, srate)
     
-    
-    return resp, cycles
+    return resp, cycles, features
 
 
 
@@ -156,11 +158,11 @@ def compute_resp_features(resp, cycles, srate):
         expi_duration = stop_t - transition_t
         cycle_freq = 1 / cycle_duration
         cycle_ratio = inspi_duration / cycle_duration
-        inspi_amplitude = np.max(np.abs(sig[start:transition]))
-        expi_amplitude = np.max(np.abs(sig[transition:stop]))
+        inspi_amplitude = np.max(np.abs(resp[start:transition]))
+        expi_amplitude = np.max(np.abs(resp[transition:stop]))
         cycle_amplitude = inspi_amplitude + expi_amplitude
-        inspi_volume = np.trapz(np.abs(sig[start:transition]))
-        expi_volume = np.trapz(np.abs(sig[transition:stop]))
+        inspi_volume = np.trapz(np.abs(resp[start:transition]))
+        expi_volume = np.trapz(np.abs(resp[transition:stop]))
         cycle_volume = inspi_volume + expi_volume
 
         features.append([start, transition , stop, start_t, transition_t, stop_t, cycle_duration,
