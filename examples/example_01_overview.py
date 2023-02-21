@@ -156,14 +156,14 @@ print(ecg_metrics)
 # Importantly this can be done using one or several segment inside the cycle.
 
 # here we have 3 time per cycle so 2 segments
-cycle_times = cycle_features[['start_time', 'expi_time', 'stop_time']].values
+cycle_times = cycle_features[['inspi_time', 'expi_time', 'next_inspi_time']].values
 deformed_resp_1seg = physio.deform_traces_to_cycle_template(resp, times, cycle_times,
                                                 points_per_cycle=40, segment_ratios=0.4,
                                                 output_mode='stacked')
 print(deformed_resp_1seg.shape, cycle_times.shape)
 
 # here we have 2 time per cycle so 1 segment
-cycle_times = cycle_features[['start_time', 'stop_time']].values
+cycle_times = cycle_features[['inspi_time', 'next_inspi_time']].values
 deformed_resp_2seg = physio.deform_traces_to_cycle_template(resp, times, cycle_times,
                                                 points_per_cycle=40, segment_ratios=None,
                                                 output_mode='stacked')

@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 
-from physio import compute_ecg, compute_ecg_metrics, compute_hrv_resampled
+from physio import compute_ecg, compute_ecg_metrics, compute_instantaneous_rr_interval
 
 # read signals
 example_folder = Path(__file__).parents[1] / 'examples'
@@ -18,9 +18,10 @@ def test_ecg():
 
 
     # hrv sampled at 10Hz
-    hrv_times = np.arange(0, raw_ecg.size / srate, 0.01)
-    hrv = compute_hrv_resampled(ecg_peaks, srate, hrv_times)
-    print(hrv)
+    times = np.arange(0, raw_ecg.size / srate, 0.01)
+    
+    rr_interval = compute_instantaneous_rr_interval(ecg_peaks, srate, times)
+    print(rr_interval)
 
 if __name__ == '__main__':
     test_ecg()

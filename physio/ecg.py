@@ -141,11 +141,11 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
     return metrics
     
 
-# compute HRV with resample
-def compute_hrv_resampled(ecg_R_peaks, srate, hrv_times):
+def compute_instantaneous_rr_interval(ecg_R_peaks, srate, times, min_interval_ms=500., max_interval_ms=2000.,
+                                      units='ms', interpolation_kind='linear'):
     """
-    Compute the "hrv" signals on a given time vector.
-    This represent the R peak interval on a regularly sample vector.
+    Compute the instantaneous RR interval "hrv" signals on a given time vector.
+    The output can be interval in units='ms' or frequency in units='bpm'
 
     Parameters
     ----------
@@ -153,20 +153,40 @@ def compute_hrv_resampled(ecg_R_peaks, srate, hrv_times):
         Indices of R peaks
     srate: float
         Sampling rate
-    hrv_times: np.array
+    times: np.array
         The time vector used for interpolation
+    max_interval_ms:  float (default 2000.)
+        Max RR interval.
+    units: 'ms' / 'bpm'
+        The units of the interpolated vector.
+    interpolation_kind: 'linear' / 'cubic'
+        how to interpolate
     Returns
     -------
     hrv: np.array
         The "hrv" signal
     """
-    peak_times = ecg_R_peaks / srate
+    peak_ms = ecg_R_peaks / srate * 1000.
 
-    interp = scipy.interpolate.interp1d(peak_times[:-1], np.diff(peak_times), kind='linear', axis=0,
+    delta_ms = np.diff(peak_ms)
+    keep,  = np.nonzero((delta_ms < max_interval_ms) & (delta_ms > min_interval_ms))
+
+    peak_ms = peak_ms[keep]
+    delta_ms = delta_ms[keep]
+
+    peak_s = peak_ms / 1000
+
+    if units == 'ms':
+        delta = delta_ms
+    elif units == 'bpm':
+        delta = 60  / (delta_ms / 1000.)
+    else:
+        raise ValueError(f'Bad units {units}')
+
+
+    interp = scipy.interpolate.interp1d(peak_s, delta, kind=interpolation_kind, axis=0,
                                         bounds_error=False, fill_value='extrapolate')
     
-    # TODO put nan for bad R peak interval
+    rr_interval = interp(times)
 
-    hrv = interp(hrv_times)
-
-    return hrv
+    return rr_interval
