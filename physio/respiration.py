@@ -55,7 +55,7 @@ def compute_respiration(raw_resp, srate):
 
 
 
-def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None, inspration_ajust_on_derivative=False):
+def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None, inspiration_adjust_on_derivative=False):
     """
     Detect respiration cycles based on:
       * crossing zeros (or crossing baseline)
@@ -103,7 +103,7 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     mask = (ind_exp > ind_insp[0]) & (ind_exp < ind_insp[-1])
     ind_exp = ind_exp[mask]
 
-    if inspration_ajust_on_derivative:
+    if inspiration_adjust_on_derivative:
         # lets find local minima on second derivative
         # this can be slow
         delta_ms = 10.
