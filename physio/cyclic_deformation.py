@@ -1,10 +1,11 @@
 import numpy as np
 import scipy.interpolate
 
+from tqdm.auto import tqdm
 
 
 def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=40,
-                                    segment_ratios=None, output_mode='stacked'):
+                                    segment_ratios=None, output_mode='stacked', progress_bar=False):
     """
 
     Deform a signal a 1D signal (or also ND) to a 'cycle template'.
@@ -91,10 +92,20 @@ def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=4
     # construct cycle_step
     times_to_cycles = np.full(clipped_times.shape, np.nan)
     times_to_cycles = np.full(clipped_times.shape, np.nan)
-    for c in range(cycle_times.shape[0]):
+    loop = range(cycle_times.shape[0])
+    if progress_bar:
+        loop = tqdm(loop)
+
+    for c in loop:
         for s in range(num_seg_phase):
-            mask_times = (clipped_times >= cycle_times[c, s]) & (clipped_times < cycle_times[c, s+1])
-            times_to_cycles[mask_times] = (clipped_times[mask_times] - cycle_times[c, s]) / \
+            # mask_times = (clipped_times >= cycle_times[c, s]) & (clipped_times < cycle_times[c, s+1])
+            # inds, = np.nonzero(mask_times)
+            
+            i0 = np.searchsorted(clipped_times, cycle_times[c, s])
+            i1 = np.searchsorted(clipped_times, cycle_times[c, s+1])
+            # print(inds[0], inds[-1], i0, i1)
+
+            times_to_cycles[i0:i1] = (clipped_times[i0:i1] - cycle_times[c, s]) / \
                                           (cycle_times[c, s + 1] - cycle_times[c, s]) * (ratios[s + 1] - ratios[s]) + \
                                           c + ratios[s]
 

@@ -190,3 +190,50 @@ def compute_instantaneous_rr_interval(ecg_R_peaks, srate, times, min_interval_ms
     rr_interval = interp(times)
 
     return rr_interval
+
+
+def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', interpolation_kind='linear'):
+    """
+    
+
+    Parameters
+    ----------
+    peak_times : np.array
+        Peak times in seconds
+    new_times : np.array
+        New vector times
+    limits : list or None
+        Limits for removing outliers.
+    units : 'bpm' / 'Hz' / 'ms' / 's'
+        Units of the rate. can be interval or rate.
+    interpolation_kind : 'linear'/ 'cubic'
+
+    """
+    delta = np.diff(peak_times)
+
+    if units == 's':
+        delta = delta
+    elif units == 'ms':
+        delta = delta * 1000.
+    elif units == 'Hz':
+        delta = 1.  / delta
+    elif units == 'bpm':
+        delta = 60.  / delta
+    else:
+        raise ValueError(f'Bad units {units}')
+
+    if limits is not None:
+        lim0, lim1 = limits
+        keep,  = np.nonzero((delta > lim0) & (delta < lim1))
+        peak_times = peak_times[keep]
+        delta = delta[keep]
+    else:
+        peak_times = peak_times[:-1]
+
+
+    interp = scipy.interpolate.interp1d(peak_times, delta, kind=interpolation_kind, axis=0,
+                                        bounds_error=False, fill_value='extrapolate')
+    
+    instantaneous_rate = interp(new_times)
+
+    return instantaneous_rate
