@@ -43,7 +43,7 @@ def compute_respiration(raw_resp, srate):
 
 
     cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=baseline_detect,
-                                       inspration_ajust_on_derivative=False)
+                                       inspiration_adjust_on_derivative=False)
 
 
     cycle_features = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline)
