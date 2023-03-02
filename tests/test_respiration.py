@@ -24,7 +24,7 @@ def test_detect_respiration_cycles():
 
 
     cycles = detect_respiration_cycles(resp, srate, baseline_mode='median',
-                              inspration_ajust_on_derivative=False)
+                              inspiration_adjust_on_derivative=False)
 
 
 
