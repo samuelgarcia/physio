@@ -23,6 +23,7 @@ dependencies = [
     "scipy",
     "pandas",
     "neo",
+    "tqdm",
 ]
 
 [build-system]
