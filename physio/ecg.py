@@ -141,52 +141,47 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
     return metrics
     
 
-def compute_instantaneous_rr_interval(ecg_R_peaks, srate, times, min_interval_ms=500., max_interval_ms=2000.,
-                                      units='ms', interpolation_kind='linear'):
+def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', interpolation_kind='linear'):
     """
-    Compute the instantaneous RR interval "hrv" signals on a given time vector.
-    The output can be interval in units='ms' or frequency in units='bpm'
+    
 
     Parameters
     ----------
-    ecg_R_peaks: np.array
-        Indices of R peaks
-    srate: float
-        Sampling rate
-    times: np.array
-        The time vector used for interpolation
-    max_interval_ms:  float (default 2000.)
-        Max RR interval.
-    units: 'ms' / 'bpm'
-        The units of the interpolated vector.
-    interpolation_kind: 'linear' / 'cubic'
-        how to interpolate
-    Returns
-    -------
-    hrv: np.array
-        The "hrv" signal
+    peak_times : np.array
+        Peak times in seconds
+    new_times : np.array
+        New vector times
+    limits : list or None
+        Limits for removing outliers.
+    units : 'bpm' / 'Hz' / 'ms' / 's'
+        Units of the rate. can be interval or rate.
+    interpolation_kind : 'linear'/ 'cubic'
+
     """
-    peak_ms = ecg_R_peaks / srate * 1000.
+    delta = np.diff(peak_times)
 
-    delta_ms = np.diff(peak_ms)
-    keep,  = np.nonzero((delta_ms < max_interval_ms) & (delta_ms > min_interval_ms))
-
-    peak_ms = peak_ms[keep]
-    delta_ms = delta_ms[keep]
-
-    peak_s = peak_ms / 1000
-
-    if units == 'ms':
-        delta = delta_ms
+    if units == 's':
+        delta = delta
+    elif units == 'ms':
+        delta = delta * 1000.
+    elif units == 'Hz':
+        delta = 1.  / delta
     elif units == 'bpm':
-        delta = 60  / (delta_ms / 1000.)
+        delta = 60.  / delta
     else:
         raise ValueError(f'Bad units {units}')
 
+    if limits is not None:
+        lim0, lim1 = limits
+        keep,  = np.nonzero((delta > lim0) & (delta < lim1))
+        peak_times = peak_times[keep]
+        delta = delta[keep]
+    else:
+        peak_times = peak_times[:-1]
 
-    interp = scipy.interpolate.interp1d(peak_s, delta, kind=interpolation_kind, axis=0,
+    interp = scipy.interpolate.interp1d(peak_times, delta, kind=interpolation_kind, axis=0,
                                         bounds_error=False, fill_value='extrapolate')
     
-    rr_interval = interp(times)
+    instantaneous_rate = interp(new_times)
 
-    return rr_interval
+    return instantaneous_rate

@@ -240,12 +240,14 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
 def clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_log_ratio=3):
     """
     Remove outlier cycles.
+    
     This is done : 
-      * on cycle duration
-      * on resp/insp amplitudes
+        * on cycle duration
+        * on resp/insp amplitudes
+      
     This can be done with:
-      * hard threshold
-      * median + K * mad
+        * hard threshold
+        * median + K * mad
 
     Parameters
     ----------
@@ -257,10 +259,12 @@ def clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_lo
         Features of all cycles given by compute_respiration_cycle_features before clean.
     baseline: 
         The baseline used to recompute cycle_features
+
     Returns
     -------
     cleaned_cycles: 
         Clean version of cycles.
+
     """
 
     cols = ['inspi_index', 'expi_index', 'next_inspi_index']
