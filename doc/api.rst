@@ -20,7 +20,7 @@ ECG
     .. autofunction:: compute_ecg
     .. autofunction:: clean_ecg_peak
     .. autofunction:: compute_ecg_metrics
-    .. autofunction:: compute_hrv_resampled
+    .. autofunction:: compute_instantaneous_rate
 
 
 reader
