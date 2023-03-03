@@ -230,7 +230,6 @@ def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', 
     else:
         peak_times = peak_times[:-1]
 
-
     interp = scipy.interpolate.interp1d(peak_times, delta, kind=interpolation_kind, axis=0,
                                         bounds_error=False, fill_value='extrapolate')
     
