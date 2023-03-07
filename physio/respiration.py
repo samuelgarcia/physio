@@ -213,7 +213,9 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
     df['cycle_duration'] = pd.Series(t3 - t1, dtype='float64')
     df['inspi_duration'] = pd.Series(t2 - t1, dtype='float64')
     df['expi_duration'] = pd.Series(t3- t2, dtype='float64')
+
     df['cycle_freq'] = 1. / df['cycle_duration']
+    df['cycle_ratio'] = df['inspi_duration'] / df['cycle_duration']
     for k in ('inspi_volume', 'expi_volume', 'total_amplitude', 'inspi_amplitude', 'expi_amplitude'):
         df[k] = pd.Series(dtype='float64')
     
@@ -233,6 +235,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
         df.at[c, 'expi_amplitude'] = np.max(np.abs(resp[i2:i3]))
     
     df['total_amplitude'] = df['inspi_amplitude'] + df['expi_amplitude']
+    df['total_volume'] = df['inspi_volume'] + df['expi_volume']
     
     return cycle_features
 
