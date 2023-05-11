@@ -20,7 +20,15 @@ ECG
     .. autofunction:: compute_ecg
     .. autofunction:: clean_ecg_peak
     .. autofunction:: compute_ecg_metrics
-    .. autofunction:: compute_hrv_resampled
+    .. autofunction:: compute_instantaneous_rate
+    .. autofunction:: compute_hrv_psd
+
+Cylic tools
+-----------
+
+.. automodule:: physio.cylic_deformation
+
+    .. autofunction:: deform_traces_to_cycle_template
 
 
 reader
