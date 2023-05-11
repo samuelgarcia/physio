@@ -6,6 +6,8 @@ import scipy.interpolate
 from .tools import detect_peak, compute_median_mad
 from .preprocess import preprocess
 
+import warnings
+
 
 
 def compute_ecg(raw_ecg, srate):
@@ -124,7 +126,7 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
     # delta_ms = delta_ms[keep]
     
     
-    metrics = pd.Series(dtype = float)
+    metrics = pd.Series(dtype=float)
     
     metrics['HRV_Mean'] = np.nanmean(delta_ms)
     metrics['HRV_SD'] = np.nanstd(delta_ms)
@@ -139,7 +141,9 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
 
     # return pd.DataFrame(metrics).T
     return metrics
-    
+
+
+
 
 def compute_instantaneous_rr_interval(ecg_R_peaks, srate, times, min_interval_ms=500., max_interval_ms=2000.,
                                       units='ms', interpolation_kind='linear'):
@@ -236,3 +240,83 @@ def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', 
     instantaneous_rate = interp(new_times)
 
     return instantaneous_rate
+    
+
+def compute_hrv_psd(peak_times, ecg_duration_s,  sample_rate=100., limits=None, units='bpm',
+                                        freqency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)},
+                                        window_s=250., interpolation_kind='cubic'):
+    """
+    Compute hrv power spectrum density and extract some metrics:
+      * lf power
+      * hf power
+    
+    Please note:
+        1. The duration of the signal and the window are important parameters to estimate low frequencies
+           in a spectrum. Some warnings or errors should popup if they are too short.
+        2. Given that the hrv is mainly driven by the respiration the frequency boudaries are often innacurate!
+           For instance a slow respiration at 0.1Hz is moving out from the 'hf' band wheras this band should capture
+           the respiratory part of the hrv.
+        3. The instataneous rate is computed by interpolating eccg peak interval, the interpolation method
+           'linear' or 'cubic' are a real impact of the dynamic and signal smoothness and so the spectrum should differ
+           because of the wieight of the harmonics
+        4. The units of the instantaneous hrv (bpm, interval in second, interval in ms) have a high impact on the
+           magnitude of metrics. Many toolboxes (neurokit2, ) differ a lot on this important detail.
+        5. Here we choose the classical welch method for spectrum density estimation. Some parameters have also small
+           impact on the results : dentend, windowing, overlap.
+    
+    
+    Parameters
+    ----------
+    peak_times
+    
+    ecg_duration_s
+    
+    sample_rate=100.
+    
+    limits=None
+    
+    units='bpm'
+
+    interpolation_kind
+    
+    """
+    
+
+    # See https://github.com/scipy/scipy/issues/8368 about density vs spectrum
+    
+    
+    times = np.arange(0, ecg_duration_s, 1 / sample_rate)
+    
+    instantaneous_rate = compute_instantaneous_rate(peak_times, times, limits=limits, units=units,
+                                                    interpolation_kind=interpolation_kind)
+    
+    # some check on the window
+    min_freq = min(freqs[0] for freqs in freqency_bands.values())
+    if window_s <  (1 / min_freq) * 5:
+        raise ValueError(f'The window is too short {window_s}s compared to the lowest frequency {min_freq}Hz')
+    if ecg_duration_s <  (1 / min_freq) * 5:
+        raise ValueError(f'The duration is too short {ecg_duration_s}s compared to the lowest frequency {min_freq}Hz')
+
+    if window_s <  (1 / min_freq) * 10 or (1 / min_freq) * 10:
+        warnings.warn(f'The window is not optimal {window_s}s compared to the lowest frequency {min_freq}Hz')
+    if ecg_duration_s <  (1 / min_freq) * 10 or (1 / min_freq) * 10:
+        warnings.warn(f'The duration is not optimal {ecg_duration_s}s compared to the lowest frequency {min_freq}Hz')
+
+    
+    # important note : when using welch with scaling='density'
+    # then the integrale (trapz) must be aware of the dx to take in account
+    # so the metrics scale is invariant given against sampling rate and also sample_rate
+    nperseg = int(window_s * sample_rate)
+    nfft = nperseg
+    psd_freqs, psd = scipy.signal.welch(instantaneous_rate, detrend='constant', fs=sample_rate, window='hann',
+                                                            scaling='density', nperseg=nperseg, noverlap=0, nfft=nfft)
+
+    metrics = pd.Series(dtype=float)
+    delta_freq = np.mean(np.diff(psd_freqs))
+    for name, freq_band in freqency_bands.items():
+        f0, f1 = freq_band
+        area = np.trapz(psd[(psd_freqs >= f0) & (psd_freqs < f1)], dx=delta_freq)
+        metrics[name] = area
+
+    return psd_freqs, psd, metrics
+
