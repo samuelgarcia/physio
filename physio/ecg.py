@@ -142,8 +142,6 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
     # return pd.DataFrame(metrics).T
     return metrics
 
-
-
 def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', interpolation_kind='linear'):
     """
     

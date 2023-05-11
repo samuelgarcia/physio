@@ -213,7 +213,9 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
     df['cycle_duration'] = pd.Series(t3 - t1, dtype='float64')
     df['inspi_duration'] = pd.Series(t2 - t1, dtype='float64')
     df['expi_duration'] = pd.Series(t3- t2, dtype='float64')
+
     df['cycle_freq'] = 1. / df['cycle_duration']
+    df['cycle_ratio'] = df['inspi_duration'] / df['cycle_duration']
     for k in ('inspi_volume', 'expi_volume', 'total_amplitude', 'inspi_amplitude', 'expi_amplitude'):
         df[k] = pd.Series(dtype='float64')
     
@@ -233,6 +235,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
         df.at[c, 'expi_amplitude'] = np.max(np.abs(resp[i2:i3]))
     
     df['total_amplitude'] = df['inspi_amplitude'] + df['expi_amplitude']
+    df['total_volume'] = df['inspi_volume'] + df['expi_volume']
     
     return cycle_features
 
@@ -240,12 +243,14 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
 def clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_log_ratio=3):
     """
     Remove outlier cycles.
+    
     This is done : 
-      * on cycle duration
-      * on resp/insp amplitudes
+        * on cycle duration
+        * on resp/insp amplitudes
+      
     This can be done with:
-      * hard threshold
-      * median + K * mad
+        * hard threshold
+        * median + K * mad
 
     Parameters
     ----------
@@ -257,10 +262,12 @@ def clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_lo
         Features of all cycles given by compute_respiration_cycle_features before clean.
     baseline: 
         The baseline used to recompute cycle_features
+
     Returns
     -------
     cleaned_cycles: 
         Clean version of cycles.
+
     """
 
     cols = ['inspi_index', 'expi_index', 'next_inspi_index']
