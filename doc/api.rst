@@ -21,6 +21,14 @@ ECG
     .. autofunction:: clean_ecg_peak
     .. autofunction:: compute_ecg_metrics
     .. autofunction:: compute_instantaneous_rate
+    .. autofunction:: compute_hrv_psd
+
+Cylic tools
+-----------
+
+.. automodule:: physio.cylic_deformation
+
+    .. autofunction:: deform_traces_to_cycle_template
 
 
 reader
@@ -54,3 +62,11 @@ tools
     .. autofunction:: compute_median_mad
     .. autofunction:: detect_peak
     .. autofunction:: get_empirical_mode
+
+parameters
+----------
+
+.. automodule:: physio.parameters
+
+    .. autofunction:: get_respiration_parameters
+    .. autofunction:: get_ecg_parameters

@@ -15,7 +15,7 @@ import physio
 # 
 # physio module overview
 # ----------------------
-#
+# 
 # :py:mod:`physio` have a util function for reading some format like:
 #  
 #    * micromed
@@ -44,7 +44,7 @@ ax.set_xlim(185, 225)
 # 
 # Analyse resp
 # ------------
-#  
+# 
 # :py:func:`~physio.compute_respiration` is an easy function to:
 #
 #    * preprocess the respiration signal

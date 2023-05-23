@@ -2,17 +2,18 @@ import numpy as np
 import pandas as pd
 
 from .tools import get_empirical_mode, compute_median_mad
-
 from .preprocess import preprocess, smooth_signal
+from .parameters import get_respiration_parameters, recursive_update
 
-def compute_respiration(raw_resp, srate):
+def compute_respiration(raw_resp, srate, parameter_set='human_airflow', parameters=None, ):
     """
     Function for respiration that:
       * preprocess the signal
       * detect cycle
       * clean cycles
       * compute metrics cycle by cycle
-
+    
+    
 
     Parameters
     ----------
@@ -20,6 +21,12 @@ def compute_respiration(raw_resp, srate):
         Raw traces of respiratory signal
     srate: float
         Sampling rate
+    parameter_set: str or None
+        Name of parameters set 'human_airflow'
+        This use the automatic parameters you can also have with get_respiration_parameters('human')
+    parameters : dict or None
+        When not None this overwrite the parameter set.
+
     Returns
     -------
     resp: np.array
@@ -28,32 +35,77 @@ def compute_respiration(raw_resp, srate):
         Table that contain all  cycle information : inspiration/expiration indexes, 
         amplitudes, volumes, durations, ...
     """
+    
+    if parameter_set is None:
+        params = {}
+    else:
+        params = get_respiration_parameters(parameter_set)
+    if parameters is not None:
+        recursive_update(params, parameters)
 
     # filter and smooth : more or less 2 times a low pass
     center = np.mean(raw_resp)
     resp = raw_resp - center
-    resp = preprocess(resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
-    resp = smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=60.0)
+    resp = preprocess(resp, srate, **params['preprocess'])
+    if params['smooth'] is not None:
+        resp = smooth_signal(resp, srate, **params['smooth'])
     resp += center
+
+    baseline = get_respiration_baseline(resp, srate, **params['baseline'])
     
-    baseline = np.median(resp)
+    baseline_detect = get_respiration_baseline(resp, srate, baseline=baseline, **params['baseline_detect'])
 
-    espilon = (np.quantile(resp, 0.75) - np.quantile(resp, 0.25)) / 100.
-    baseline_detect = baseline - espilon * 5.
-
-
-    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=baseline_detect,
-                                       inspiration_adjust_on_derivative=False)
-
+    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=baseline_detect, **params['cycle_detection'])
 
     cycle_features = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline)
 
-    cycle_features = clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_log_ratio=3)
-    
+    cycle_features = clean_respiration_cycles(resp, srate, cycle_features, baseline, **params['cycle_clean'])
     
     return resp, cycle_features
 
 
+def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None):
+    """
+    Get respiration baseline = respiration mid point.
+    This used for:
+      * detect_respiration_cycles() for corssing zero
+      * compute_respiration_cycle_features() for volume integration
+    Parameters
+    ----------
+
+    resp: np.array
+        Preprocess traces of respiratory signal.
+    srate: float
+        Sampling rate
+    baseline_mode: 'manual' / 'zero' / 'median' / 'mode'
+        How to compute the baseline for zero crossings.
+    baseline: float or None
+        External baseline when baseline_mode='manual'
+    Returns
+    -------
+    
+    
+    """
+    if baseline_mode == 'manual':
+        assert baseline is not None
+    elif baseline_mode == 'zero':
+        baseline = 0.
+    elif baseline_mode == 'median':
+        baseline = np.median(resp)
+    elif baseline_mode == 'mode':
+        baseline = get_empirical_mode(resp)
+    elif baseline_mode == 'median - epsilon':
+        epsilon = (np.quantile(resp, 0.75) - np.quantile(resp, 0.25)) / 100.
+        if baseline is not None:
+            baseline = baseline - epsilon * 5.
+        else:
+            baseline = np.median(resp) - epsilon * 5.
+    else:
+        raise ValueError(f'get_respiration_baseline wring baseline_mode {baseline_mode}')
+
+    return baseline
+
+    
 
 def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None, inspiration_adjust_on_derivative=False):
     """
@@ -81,14 +133,7 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
         with [index_inspi, index_expi, index_next_inspi]
     """
 
-    if baseline_mode == 'manual':
-        assert baseline is not None
-    elif baseline_mode == 'zero':
-        baseline = 0.
-    elif baseline_mode == 'median':
-        baseline = np.median(resp)
-    elif baseline_mode == 'mode':
-        baseline = get_empirical_mode(resp)
+    baseline = get_respiration_baseline(resp, srate, baseline_mode=baseline_mode, baseline=baseline)
 
     resp0 = resp[:-1]
     resp1 = resp[1:]
