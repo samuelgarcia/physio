@@ -5,12 +5,13 @@ import scipy.interpolate
 
 from .tools import detect_peak, compute_median_mad
 from .preprocess import preprocess
+from .parameters import get_ecg_parameters, recursive_update
 
 import warnings
 
 
 
-def compute_ecg(raw_ecg, srate):
+def compute_ecg(raw_ecg, srate, parameter_set='simple_ecg', parameters=None):
     """
     Function for ECG that:
       * preprocess the ECG
@@ -23,6 +24,12 @@ def compute_ecg(raw_ecg, srate):
         Raw traces of ECG signal
     srate: float
         Sampling rate
+    parameter_set: str or None
+        Name of parameters set like 'simple_ecg'
+        This use the automatic parameters you can also have with get_ecg_parameters('simple_ecg')
+    parameters : dict or None
+        When not None this overwrite the parameter set.
+        
     Returns
     -------
     clean_ecg: np.array
@@ -30,13 +37,21 @@ def compute_ecg(raw_ecg, srate):
     ecg_R_peaks: np.array
         Indices of R peaks
     """
-    clean_ecg = preprocess(raw_ecg, srate, band=[5., 45.], ftype='bessel', order=5, normalize=True)
+    if parameter_set is None:
+        params = {}
+    else:
+        params = get_ecg_parameters(parameter_set)
+    if parameters is not None:
+        recursive_update(params, parameters)
+
     
+    clean_ecg = preprocess(raw_ecg, srate, **params['preprocess'])
+
     # TODO estimation du seuil
     
-    raw_ecg_peak = detect_peak(clean_ecg, srate, thresh=5, exclude_sweep_ms=4.0)
-    
-    ecg_R_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak)
+    raw_ecg_peak = detect_peak(clean_ecg, srate, **params['peak_detection'])
+
+    ecg_R_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak, **params['peak_clean'])
     
     return clean_ecg, ecg_R_peaks
 
@@ -141,6 +156,8 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
 
     # return pd.DataFrame(metrics).T
     return metrics
+
+
 
 def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', interpolation_kind='linear'):
     """

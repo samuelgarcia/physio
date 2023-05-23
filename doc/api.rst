@@ -62,3 +62,11 @@ tools
     .. autofunction:: compute_median_mad
     .. autofunction:: detect_peak
     .. autofunction:: get_empirical_mode
+
+parameters
+----------
+
+.. automodule:: physio.parameters
+
+    .. autofunction:: get_respiration_parameters
+    .. autofunction:: get_ecg_parameters
