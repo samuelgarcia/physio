@@ -30,6 +30,13 @@ Cylic tools
 
     .. autofunction:: deform_traces_to_cycle_template
 
+RSA
+---
+
+.. automodule:: physio.rsa
+
+    .. autofunction:: compute_rsa
+
 
 reader
 ------

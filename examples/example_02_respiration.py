@@ -37,13 +37,13 @@ srate = 1000.
 times = np.arange(raw_resp.size) / srate
 
 # the easiest way is to use predefined parameters
-resp, cycle_features = physio.compute_respiration(raw_resp, srate, parameter_set='human_airflow')
+resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_set='human_airflow')
 
-# cycle_features is a dataframe containing all cycles and related fetaures (duration, amplitude, volume, timing)
-print(cycle_features)
+# resp_cycles is a dataframe containing all cycles and related fetaures (duration, amplitude, volume, timing)
+print(resp_cycles)
 
-inspi_index = cycle_features['inspi_index'].values
-expi_index = cycle_features['expi_index'].values
+inspi_index = resp_cycles['inspi_index'].values
+expi_index = resp_cycles['expi_index'].values
 
 fig, ax = plt.subplots()
 ax.plot(times, raw_resp)
@@ -52,7 +52,7 @@ ax.scatter(times[inspi_index], resp[inspi_index], marker='o', color='green')
 ax.scatter(times[expi_index], resp[expi_index], marker='o', color='red')
 ax.set_ylabel('resp')
 
-ax.set_xlim(350, 450)
+ax.set_xlim(110, 170)
 
 
 ##############################################################################
@@ -67,10 +67,10 @@ ax.set_xlim(350, 450)
 # this is a nested dict of parameter of every step
 parameters = physio.get_respiration_parameters('human_airflow')
 # lets change on parameter in the structure
-parameters['smooth']['sigma_ms'] = 50.
+parameters['smooth']['sigma_ms'] = 100.
 pprint(parameters)
 
-resp, cycle_features = physio.compute_respiration(raw_resp, srate, parameters=parameters)
+resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameters=parameters)
 
 
 
@@ -93,15 +93,15 @@ cycles = physio.detect_respiration_cycles(resp, srate, baseline_mode='manual', b
 print(cycles[:10])
 
 # this will return a dataframe with all cycles and fetaure before cleaning
-cycle_features = physio.compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline)
+resp_cycles = physio.compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline)
 
 # this will remove outliers cycles based on log ratio distribution
-cycle_features = physio.clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_log_ratio=3)
-print(cycle_features.head(10))
+resp_cycles = physio.clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_ratio=3)
+print(resp_cycles.head(10))
 
 
-inspi_index = cycle_features['inspi_index'].values
-expi_index = cycle_features['expi_index'].values
+inspi_index = resp_cycles['inspi_index'].values
+expi_index = resp_cycles['expi_index'].values
 
 fig, ax = plt.subplots()
 ax.plot(times, resp)
@@ -110,7 +110,7 @@ ax.scatter(times[expi_index], resp[expi_index], marker='o', color='red')
 ax.set_ylabel('resp')
 ax.axhline(baseline, color='Coral')
 
-ax.set_xlim(350, 450)
+ax.set_xlim(110, 170)
 
 
 plt.show()

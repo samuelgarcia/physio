@@ -57,11 +57,11 @@ def compute_respiration(raw_resp, srate, parameter_set='human_airflow', paramete
 
     cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=baseline_detect, **params['cycle_detection'])
 
-    cycle_features = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline)
+    resp_cycles = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline)
 
-    cycle_features = clean_respiration_cycles(resp, srate, cycle_features, baseline, **params['cycle_clean'])
+    resp_cycles = clean_respiration_cycles(resp, srate, resp_cycles, baseline, **params['cycle_clean'])
     
-    return resp, cycle_features
+    return resp, resp_cycles
 
 
 def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None):
@@ -205,7 +205,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
         If not None then the baseline is substracted to resp to compute amplitudes and volumes.
     Returns
     -------
-    cycle_features: pd.Dataframe
+    resp_cycles: pd.Dataframe
         Features of all cycles.
     """
 
@@ -222,7 +222,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
     n = cycles.shape[0]
     
     index = np.arange(n, dtype = 'int64')
-    df = cycle_features = pd.DataFrame(index=index)
+    df = resp_cycles = pd.DataFrame(index=index)
     
 
     # ix1 = cycles[:-1, 0]
@@ -282,10 +282,10 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
     df['total_amplitude'] = df['inspi_amplitude'] + df['expi_amplitude']
     df['total_volume'] = df['inspi_volume'] + df['expi_volume']
     
-    return cycle_features
+    return resp_cycles
 
 
-def clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_log_ratio=3):
+def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_ratio=3):
     """
     Remove outlier cycles.
     
@@ -303,10 +303,10 @@ def clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_lo
         Preprocess traces of respiratory signal.
     srate: float
         Sampling rate
-    cycle_features: pd.Dataframe
+    resp_cycles: pd.Dataframe
         Features of all cycles given by compute_respiration_cycle_features before clean.
     baseline: 
-        The baseline used to recompute cycle_features
+        The baseline used to recompute resp_cycles
 
     Returns
     -------
@@ -319,41 +319,41 @@ def clean_respiration_cycles(resp, srate, cycle_features, baseline, low_limit_lo
 
 
     # remove small inspi volumes: remove the current cycle
-    log_vol = np.log(cycle_features['inspi_volume'].values)
+    log_vol = np.log(resp_cycles['inspi_volume'].values)
     med, mad = compute_median_mad(log_vol)
     limit = med - mad * low_limit_log_ratio
     bad_cycle, = np.nonzero(log_vol < limit)
-    keep = np.ones(cycle_features.shape[0], dtype=bool)
+    keep = np.ones(resp_cycles.shape[0], dtype=bool)
     keep[bad_cycle] = False
-    new_cycles = cycle_features.iloc[keep, :].loc[:, cols].values
+    new_cycles = resp_cycles.iloc[keep, :].loc[:, cols].values
     new_cycles[:-1, 2] = new_cycles[1:, 0]
     # recompute new volumes and amplitudes
-    cycle_features = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
+    resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
     
     # remove small expi volumes: remove the next cycle
-    log_vol = np.log(cycle_features['expi_volume'].values)
+    log_vol = np.log(resp_cycles['expi_volume'].values)
     med, mad = compute_median_mad(log_vol)
     limit = med - mad * low_limit_log_ratio
     bad_cycle, = np.nonzero(log_vol < limit)
     
     # last cycle cannot be removed
-    bad_cycle = bad_cycle[bad_cycle < (cycle_features.shape[0] -1) ]
+    bad_cycle = bad_cycle[bad_cycle < (resp_cycles.shape[0] -1) ]
 
     # find next good cycle to take expi_index
     for c in bad_cycle:
         next_cycle = c + 1
         while next in bad_cycle:
             next_cycle = c + 1
-        #~ if next_cycle < cycle_features.shape[0]:
-        cycle_features['expi_index'].iat[c] = cycle_features['expi_index'].iat[next_cycle]
-        cycle_features['next_inspi_index'].iat[c] = cycle_features['next_inspi_index'].iat[next_cycle]
+        #~ if next_cycle < resp_cycles.shape[0]:
+        resp_cycles['expi_index'].iat[c] = resp_cycles['expi_index'].iat[next_cycle]
+        resp_cycles['next_inspi_index'].iat[c] = resp_cycles['next_inspi_index'].iat[next_cycle]
 
     bad_cycle += 1
-    keep = np.ones(cycle_features.shape[0], dtype=bool)
+    keep = np.ones(resp_cycles.shape[0], dtype=bool)
     keep[bad_cycle] = False
-    new_cycles = cycle_features.iloc[keep, :].loc[:, cols].values
+    new_cycles = resp_cycles.iloc[keep, :].loc[:, cols].values
     new_cycles[:-1, 2] = new_cycles[1:, 0]
     # recompute new volumes and amplitudes
-    cycle_features = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
+    resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
 
-    return cycle_features
+    return resp_cycles

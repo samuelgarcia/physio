@@ -16,10 +16,18 @@ This toolbox is used by the CMO team in the **Centre de recherche en Neuroscienc
   * simple preprocess on signal : filter using scipy and smoothing
   * ecg peak detection
   * ecg metrics
+  * rsa
   * cyclic deformation machinery : a simple strecher of any signal to cycle template
   * simple reader of micromed and brainvision using neo
 
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+
+   overview
+   api
+   release_notes
 
 .. include:: examples/index.rst
 
@@ -51,12 +59,7 @@ Update from source:
 
 
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents:
 
-   api
-   release_notes
 
 
 

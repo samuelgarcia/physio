@@ -38,15 +38,18 @@ times = np.arange(raw_ecg.size) / srate
 
 ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_set='simple_ecg')
 
+
+r_peak_ind = ecg_peaks['peak_index'].values
+
 fig, axs = plt.subplots(nrows=2, sharex=True)
 ax = axs[0]
 ax.plot(times, raw_ecg)
-ax.scatter(times[ecg_peaks], raw_ecg[ecg_peaks], marker='o', color='magenta')
+ax.scatter(times[r_peak_ind], raw_ecg[r_peak_ind], marker='o', color='magenta')
 ax.set_ylabel('raw ecg')
 
 ax = axs[1]
 ax.plot(times, ecg)
-ax.scatter(times[ecg_peaks], ecg[ecg_peaks], marker='o', color='magenta')
+ax.scatter(times[r_peak_ind], ecg[r_peak_ind], marker='o', color='magenta')
 ax.set_ylabel('ecg')
 
 ax.set_xlim(95, 125)
@@ -72,9 +75,11 @@ pprint(parameters)
 
 ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameters=parameters)
 
+r_peak_ind = ecg_peaks['peak_index'].values
+
 fig, ax = plt.subplots()
 ax.plot(times, ecg)
-ax.scatter(times[ecg_peaks], ecg[ecg_peaks], marker='o', color='magenta')
+ax.scatter(times[r_peak_ind], ecg[r_peak_ind], marker='o', color='magenta')
 ax.set_ylabel('ecg')
 ax.set_xlim(95, 125)
 
@@ -88,7 +93,7 @@ ax.set_xlim(95, 125)
 #
 
 
-metrics = physio.compute_ecg_metrics(ecg_peaks, srate, min_interval_ms=500., max_interval_ms=2000.)
+metrics = physio.compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000.)
 print(metrics)
 
 ##############################################################################
@@ -101,8 +106,7 @@ print(metrics)
 
 
 rate_times = times[::10]
-peak_times = ecg_peaks / srate
-instantaneous_rate = physio.compute_instantaneous_rate(peak_times, rate_times, limits=None, units='bpm', interpolation_kind='linear')
+instantaneous_rate = physio.compute_instantaneous_rate(ecg_peaks, rate_times, limits=None, units='bpm', interpolation_kind='linear')
 
 fig, ax = plt.subplots()
 ax.plot(rate_times, instantaneous_rate)
@@ -116,9 +120,8 @@ ax.set_ylabel('hrv [bpm]')
 #
 # 
 
-ecg_duration_s = times[-1]
 freqency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)}
-psd_freqs, psd, psd_metrics = physio.compute_hrv_psd(peak_times, ecg_duration_s,  sample_rate=100., limits=None, units='bpm',
+psd_freqs, psd, psd_metrics = physio.compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
                                         freqency_bands=freqency_bands,
                                         window_s=250., interpolation_kind='cubic')
 
