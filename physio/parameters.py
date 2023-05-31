@@ -10,7 +10,7 @@ _resp_parameters = {}
 
 # this parameters works with airflow sensor for a human
 _resp_parameters['human_airflow'] = dict(
-    preprocess=dict(band=25., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    preprocess=dict(band=7., btype='lowpass', ftype='bessel', order=5, normalize=False),
     smooth=dict(win_shape='gaussian', sigma_ms=60.0),
     cycle_detection=dict(inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='median'),
