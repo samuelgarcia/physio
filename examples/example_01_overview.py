@@ -104,14 +104,16 @@ ax.set_xlim(185, 225)
 
 ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate)
 
+r_peak_ind = ecg_peaks['peak_index'].values
+
 fig, axs = plt.subplots(nrows=2, sharex=True)
 ax = axs[0]
 ax.plot(times, raw_ecg)
-ax.scatter(times[ecg_peaks], raw_ecg[ecg_peaks], color='#A8AE27')
+ax.scatter(times[r_peak_ind], raw_ecg[r_peak_ind], color='#A8AE27')
 
 ax = axs[1]
 ax.plot(times, ecg)
-ax.scatter(times[ecg_peaks], ecg[ecg_peaks], color='#A8AE27')
+ax.scatter(times[r_peak_ind], ecg[r_peak_ind], color='#A8AE27')
 ax.set_xlim(185, 225)
 
 
@@ -186,7 +188,7 @@ axs[1].set_title('Deformation 1 segment')
 # We can also use a simple vector in this case it is converted a a 1 segment case.
 
 # This is 1 segment
-cycle_times = times[ecg_peaks]
+cycle_times = ecg_peaks['peak_time'].values
 deformed_ecg = physio.deform_traces_to_cycle_template(ecg, times, cycle_times,
                                                 points_per_cycle=300, segment_ratios=None,
                                                 output_mode='stacked')

@@ -34,8 +34,8 @@ def compute_ecg(raw_ecg, srate, parameter_set='simple_ecg', parameters=None):
     -------
     clean_ecg: np.array
         preprocess and normalized ecg traces
-    ecg_R_peaks: np.array
-        Indices of R peaks
+    ecg_peaks: pd.DataFrame
+        dataframe with indices of R peaks, times of R peaks.
     """
     if parameter_set is None:
         params = {}
@@ -51,9 +51,14 @@ def compute_ecg(raw_ecg, srate, parameter_set='simple_ecg', parameters=None):
     
     raw_ecg_peak = detect_peak(clean_ecg, srate, **params['peak_detection'])
 
+
     ecg_R_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak, **params['peak_clean'])
-    
-    return clean_ecg, ecg_R_peaks
+
+    ecg_peaks = pd.DataFrame()
+    ecg_peaks['peak_index'] = ecg_R_peaks
+    ecg_peaks['peak_time'] = ecg_R_peaks / srate
+
+    return clean_ecg, ecg_peaks
 
 
 
@@ -95,7 +100,7 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
 
 
 
-def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_ms=2000., verbose = False):
+def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., verbose = False):
     """
     Compute metrics on ecg peaks: HRV_Mean, HRV_SD, HRV_Median, ...
     
@@ -104,10 +109,8 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
 
     Parameters
     ----------
-    ecg_R_peaks: np.array
-        Indices of R peaks
-    srate: float
-        Sampling rate
+    ecg_peaks: pr.DataFrame
+        Datfarame containing ecg R peaks.
     min_interval_ms: float (default 500ms)
         Minimum interval inter R peak
     max_interval_ms: float (default 2000ms)
@@ -120,7 +123,7 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
         A table contaning metrics
     """
     
-    peak_ms = ecg_R_peaks / srate * 1000.
+    peak_ms = ecg_peaks['peak_time'].values * 1000.
     
     remove = np.zeros(peak_ms.size, dtype='bool')
     d = np.diff(peak_ms) 
@@ -159,16 +162,16 @@ def compute_ecg_metrics(ecg_R_peaks, srate, min_interval_ms=500., max_interval_m
 
 
 
-def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', interpolation_kind='linear'):
+def compute_instantaneous_rate(ecg_peaks, new_times, limits=None, units='bpm', interpolation_kind='linear'):
     """
     
 
     Parameters
     ----------
-    peak_times : np.array
-        Peak times in seconds
+    ecg_peaks: pr.DataFrame
+        Datfarame containing ecg R peaks.
     new_times : np.array
-        New vector times
+        Time vector for interpolating the instanteneous rate.
     limits : list or None
         Limits for removing outliers.
     units : 'bpm' / 'Hz' / 'ms' / 's'
@@ -176,6 +179,8 @@ def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', 
     interpolation_kind : 'linear'/ 'cubic'
 
     """
+    peak_times = ecg_peaks['peak_time'].values
+
     delta = np.diff(peak_times)
 
     if units == 's':
@@ -205,7 +210,7 @@ def compute_instantaneous_rate(peak_times, new_times, limits=None, units='bpm', 
     return instantaneous_rate
     
 
-def compute_hrv_psd(peak_times, ecg_duration_s,  sample_rate=100., limits=None, units='bpm',
+def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
                                         freqency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)},
                                         window_s=250., interpolation_kind='cubic'):
     """
@@ -230,9 +235,9 @@ def compute_hrv_psd(peak_times, ecg_duration_s,  sample_rate=100., limits=None, 
     
     Parameters
     ----------
-    peak_times
-    
-    ecg_duration_s
+    ecg_peaks: pr.DataFrame
+        Datfarame containing ecg R peaks.
+
     
     sample_rate=100.
     
@@ -244,13 +249,12 @@ def compute_hrv_psd(peak_times, ecg_duration_s,  sample_rate=100., limits=None, 
     
     """
     
-
-    # See https://github.com/scipy/scipy/issues/8368 about density vs spectrum
+    ecg_duration_s = ecg_peaks['peak_time'].values[-1]
     
     
     times = np.arange(0, ecg_duration_s, 1 / sample_rate)
     
-    instantaneous_rate = compute_instantaneous_rate(peak_times, times, limits=limits, units=units,
+    instantaneous_rate = compute_instantaneous_rate(ecg_peaks, times, limits=limits, units=units,
                                                     interpolation_kind=interpolation_kind)
     
     # some check on the window
@@ -266,6 +270,8 @@ def compute_hrv_psd(peak_times, ecg_duration_s,  sample_rate=100., limits=None, 
         warnings.warn(f'The duration is not optimal {ecg_duration_s}s compared to the lowest frequency {min_freq}Hz')
 
     
+    # See https://github.com/scipy/scipy/issues/8368 about density vs spectrum
+
     # important note : when using welch with scaling='density'
     # then the integrale (trapz) must be aware of the dx to take in account
     # so the metrics scale is invariant given against sampling rate and also sample_rate

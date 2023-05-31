@@ -3,22 +3,6 @@ Overview
 
 
 
-Why another python toolbox for ecg and respiration ?
-----------------------------------------------------
-
-physio python toolbox has been develop in the CMO team of Centre de Recherche en Neuroscience de Lyon (CRNL).
-
-The [**CMO**](https://www.crnl.fr/fr/equipe/cmo) (Codage Olfaction Mémoire) team has a long term experience in analysing respiration and neural events.
-See this 2006 paper
-[Respiratory cycle as time basis: {An} improved method for averaging olfactory neural events](https://pubmed.ncbi.nlm.nih.gov/16246424/)
-
-Many piece of our codes for analysing respiration were never published and released properly as open source despite
-the fact we are higly contributing to many open source projects.
-
-Also some methods (cyclic deformation on respiratory signal) is some kind of home made signature of many analyses from
-the team, having a public tool could be usefull for others.
-
-
 What can be done with physio toolbox ?
 --------------------------------------
 
@@ -33,6 +17,27 @@ What can be done with physio toolbox ?
   * cyclic deformation machinery : a simple strecher of any signal to cycle template
   * simple reader of micromed and brainvision using neo
   * "automagic" parameters for differents species
+
+
+
+Why another python toolbox for ecg and respiration ?
+----------------------------------------------------
+
+physio python toolbox has been develop in the CMO team of Centre de Recherche en Neuroscience de Lyon (CRNL).
+
+The [**CMO**](https://www.crnl.fr/fr/equipe/cmo) (Codage Olfaction Mémoire) team has a long term experience in analysing respiration and neural events.
+See this 2006 paper
+[Respiratory cycle as time basis: An improved method for averaging olfactory neural events](https://pubmed.ncbi.nlm.nih.gov/16246424/)
+
+Many piece of our codes for analysing respiration were never published and released properly as open source despite
+the fact we are higly contributing to many open source projects.
+
+Also some methods (cyclic deformation on respiratory signal) is some kind of home made signature of many analyses from
+the team, having a public tool could be usefull for others.
+
+We truely believe that respiration and ecg must be analysed jointly
+
+
 
 Parameters handling
 -------------------
@@ -73,6 +78,21 @@ Comparison to other toolboxes
   of many R peak detector. But this package do not handle respiration. And many the proposed algorithms do not detect_peak
   the extact position of the R peaks, this inherents to methods.
 
+
+* [**biospy**](https://biosppy.readthedocs.io/)
+
+* [**pyhrv**](https://pyhrv.readthedocs.io/en/latest/)
+
+
+Cite
+----
+
+We are wrtting a short paper to describe this toolbox here : TODO put URL
+
+If you use this toolbox a citation would be appreciated for sure.
+
+You can also check some notebook used to benchmark and test this toolbox
+[here](https://github.com/samuelgarcia/physio_benchmark)
 
 
 Authors
