@@ -20,13 +20,10 @@ def test_compute_rsa():
     
     
 
-    rsa_cycles, cyclic_cardiac_rate = compute_rsa(resp_cycles, ecg_peaks, srate=50., two_segment=True)
-
+    rsa_cycles, cyclic_cardiac_rate = compute_rsa(resp_cycles, ecg_peaks, srate=10., two_segment=True)
     print(rsa_cycles)
 
-    rsa_cycles, cyclic_cardiac_rate_1seg = compute_rsa(resp_cycles, ecg_peaks, srate=50., two_segment=False)
-
-    print(rsa_cycles)
+    rsa_cycles, cyclic_cardiac_rate_1seg = compute_rsa(resp_cycles, ecg_peaks, srate=5., two_segment=False)
 
 
     # import matplotlib.pyplot as plt
