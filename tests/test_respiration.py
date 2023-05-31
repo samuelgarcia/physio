@@ -16,6 +16,7 @@ def test_compute_respiration():
     # print(resp.shape)
     # print(resp_cycles.shape)
     # print(resp_cycles)
+    # print(resp_cycles.dtypes)
 
 
 
