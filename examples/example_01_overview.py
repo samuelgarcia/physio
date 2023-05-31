@@ -52,7 +52,7 @@ ax.set_xlim(185, 225)
 #    * compute cycle features
 
 
-resp, cycle_features = physio.compute_respiration(raw_resp, srate)
+resp, resp_cycles = physio.compute_respiration(raw_resp, srate)
 
 fig, ax = plt.subplots()
 ax.plot(times, raw_resp)
@@ -64,24 +64,24 @@ ax.set_xlim(185, 225)
 # repiration cycles and features
 # ------------------------------
 #  
-# cycle_features is a dataframe containing all respiration cycles as rows and columns
+# resp_cycles is a dataframe containing all respiration cycles as rows and columns
 # contain features like duration, amplitudes, durations
 # 
 
-print(cycle_features.shape)
-print(cycle_features.columns)
+print(resp_cycles.shape)
+print(resp_cycles.columns)
 
 columns = ['cycle_duration', 'inspi_volume', 'expi_volume', 'total_amplitude' ]
-cycle_features[columns].plot(kind='hist', subplots=True, sharex=False, layout=(2, 2), bins=50)
+resp_cycles[columns].plot(kind='hist', subplots=True, sharex=False, layout=(2, 2), bins=50)
 
-cycle_features
+resp_cycles
 
 
 ##############################################################################
 # 
 
-inspi_ind = cycle_features['inspi_index'].values
-expi_ind = cycle_features['expi_index'].values
+inspi_ind = resp_cycles['inspi_index'].values
+expi_ind = resp_cycles['expi_index'].values
 
 fig, ax = plt.subplots()
 ax.plot(times, resp)
@@ -156,14 +156,14 @@ print(ecg_metrics)
 # Importantly this can be done using one or several segment inside the cycle.
 
 # here we have 3 time per cycle so 2 segments
-cycle_times = cycle_features[['inspi_time', 'expi_time', 'next_inspi_time']].values
+cycle_times = resp_cycles[['inspi_time', 'expi_time', 'next_inspi_time']].values
 deformed_resp_1seg = physio.deform_traces_to_cycle_template(resp, times, cycle_times,
                                                 points_per_cycle=40, segment_ratios=0.4,
                                                 output_mode='stacked')
 print(deformed_resp_1seg.shape, cycle_times.shape)
 
 # here we have 2 time per cycle so 1 segment
-cycle_times = cycle_features[['inspi_time', 'next_inspi_time']].values
+cycle_times = resp_cycles[['inspi_time', 'next_inspi_time']].values
 deformed_resp_2seg = physio.deform_traces_to_cycle_template(resp, times, cycle_times,
                                                 points_per_cycle=40, segment_ratios=None,
                                                 output_mode='stacked')
