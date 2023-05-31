@@ -1,14 +1,20 @@
 # physio
 
-Simple python toolbox to analyse physio signals (respi and ECG)
+Simple python toolbox to analyse physio signals (Respiration, ECG, and RSA)
 
 This toolbox is used in the CMO team from the CRNL.
 
 See doc here https://physio.readthedocs.io/
 
 
+Installation from PyPi:
 
-Installation:
+```bash
+pip install physio
+```
+
+
+Installation from source:
 
 ```bash
 git clone https://github.com/samuelgarcia/physio.git
