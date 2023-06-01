@@ -63,8 +63,12 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=10., units='bpm', two_segment=True
     rsa_cycles['peak_index'] = pd.Series(np.zeros(n), dtype='int64')
     rsa_cycles['trough_index'] = pd.Series(np.zeros(n), dtype='int64')
 
-    columns=['amplitude', 'peak_value', 'trough_value', 
-             'peak_time', 'trough_time', 'rising_duration', 'decay_duration']
+    columns=['peak_time', 'trough_time',
+             'peak_value', 'trough_value',
+             'rising_amplitude', 'decay_amplitude',
+             'rising_duration', 'decay_duration',
+             'rising_slope', 'decay_slope',
+             ]
     for col in columns:
         rsa_cycles[col] = pd.Series(dtype='float64')
     
@@ -83,10 +87,15 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=10., units='bpm', two_segment=True
 
     rsa_cycles['peak_value'] = instantaneous_cardiac_rate[rsa_cycles['peak_index'].values]
     rsa_cycles['trough_value'] = instantaneous_cardiac_rate[rsa_cycles['trough_index'].values]
-    rsa_cycles['amplitude'] = rsa_cycles['peak_value'] - rsa_cycles['trough_value']
+
+    rsa_cycles['decay_amplitude'] = rsa_cycles['peak_value'] - rsa_cycles['trough_value']
+    rsa_cycles['rising_amplitude'].values[1:] = rsa_cycles['peak_value'].values[1:] - rsa_cycles['trough_value'].values[:-1]
 
     rsa_cycles['rising_duration'].values[1:] = rsa_cycles['peak_time'].values[1:] - rsa_cycles['trough_time'].values[:-1]
     rsa_cycles['decay_duration'] = rsa_cycles['trough_time'] - rsa_cycles['peak_time']
+
+    rsa_cycles['rising_slope'] = rsa_cycles['rising_amplitude'] / rsa_cycles['rising_duration']
+    rsa_cycles['decay_slope'] = rsa_cycles['decay_amplitude'] / rsa_cycles['decay_duration']
 
     
     return rsa_cycles, cyclic_cardiac_rate
