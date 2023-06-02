@@ -47,10 +47,11 @@ _resp_parameters['human_airflow'] = dict(
 
 
 _resp_parameters['rat_plethysmo'] = dict(
-    preprocess=dict(band=25., btype='lowpass', ftype='bessel', order=5, normalize=False),
-    smooth=dict(win_shape='gaussian', sigma_ms=10.0),
+    preprocess=dict(band=50., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    # smooth=dict(win_shape='gaussian', sigma_ms=5.0),
+    smooth=None,
     cycle_detection=dict(inspiration_adjust_on_derivative=False),
-    baseline=0.,
+    baseline=dict(baseline_mode='manual', baseline=0.),
     cycle_clean=dict(low_limit_log_ratio=5.),
 )
 
@@ -67,6 +68,11 @@ _ecg_parameters['human_ecg'] = dict(
     peak_clean=dict(min_interval_ms=400.),
 )
 
+_ecg_parameters['rat_ecg'] = dict(
+    preprocess=dict(band=[5., 200.], ftype='bessel', order=5, normalize=True),
+    peak_detection=dict(thresh='auto', exclude_sweep_ms=4.0),
+    peak_clean=dict(min_interval_ms=50.),
+)
 
 
 
