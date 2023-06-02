@@ -15,8 +15,10 @@ _resp_parameters['human_airflow'] = dict(
     cycle_detection=dict(inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='median'),
     baseline_detect=dict(baseline_mode='median - epsilon'),
-    cycle_clean=dict(low_limit_log_ratio=3),
+    cycle_clean=dict(low_limit_log_ratio=3.5),
 )
+
+
 
 
 def get_respiration_parameters(param_set):
@@ -43,9 +45,9 @@ def recursive_update(d, u):
 _ecg_parameters = {}
 
 # this parameters works well with simple ecg signal with positive peaks
-_ecg_parameters['simple_ecg'] = dict(
+_ecg_parameters['human_ecg'] = dict(
     preprocess=dict(band=[5., 45.], ftype='bessel', order=5, normalize=True),
-    peak_detection=dict(thresh=5, exclude_sweep_ms=4.0),
+    peak_detection=dict(thresh='auto', exclude_sweep_ms=4.0),
     peak_clean=dict(min_interval_ms=400.),
 )
 
