@@ -2,19 +2,18 @@
 RSA tutorial
 ============
 
-Respiratory sinus arrhythmia (RSA) can be analysed with physio toolbox with
-an innovative method.
-This methid allow to extract parameters of the heart rate dynamic on a respiratory cycle-to-cycle
-basis.
+Respiratory sinus arrhythmia (RSA) can be analysed with the physio toolbox with
+an innovative method to extract parameters of the heart rate dynamic on a respiratory
+cycle-to-cycle basis.
 
-The method constist in:
+The method consists of:
   * detect respiratory cycle
-  * detect ecg peaks
-  * compute instanteneous heart rate in bpm
+  * detect ECG peaks
+  * compute instanteneous heart rate in BPM
   * extract parameters in this heart timeseries for each respiratory cycle
-  * use cyclic deformation of this heart rate signal and stack all cycle.
+  * use cyclic deformation of this heart rate signal and stack all cycles.
 
-This method have 2 important avanatges:
+This method has 2 important advantages:
   * the dynamic of th RSA can be finely analysed
   * features of RSA can be analyse at respiratory cycle basis
 
@@ -59,15 +58,20 @@ ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg'
 # Compute RSA
 # -----------
 #  
-# This done with one unique function that return:
+# This is done with one unique function that returns:
 #   
 #   * One dataframe with all RAS features
-#   * the cyclic deformed cardic rate
+#   * The cyclic deformed cardic rate
 
 points_per_cycle = 50
 
-rsa_cycles, cyclic_cardiac_rate = physio.compute_rsa(resp_cycles, ecg_peaks, srate=10.,
-                                                     two_segment=True, points_per_cycle=points_per_cycle)
+rsa_cycles, cyclic_cardiac_rate = physio.compute_rsa(
+    resp_cycles,
+     ecg_peaks,
+     srate=10.,
+     two_segment=True,
+     points_per_cycle=points_per_cycle,
+)
 
 some_features = ['rising_amplitude', 'decay_amplitude', 'rising_duration', 'decay_duration', 'rising_slope', 'decay_slope']
 print(rsa_cycles[some_features].head(9))
@@ -78,7 +82,7 @@ print(rsa_cycles[some_features].head(9))
 # Plot RSA cycle dynamic
 # ----------------------
 # 
-# Here we also plot the average ratio inspiration duration cycle duration
+# Here we also plot the average ratio of inspiration duration to cycle duration
 
 # this is the average ratio
 inspi_expi_ratio = np.mean(resp_cycles['inspi_duration'] / resp_cycles['cycle_duration'])
