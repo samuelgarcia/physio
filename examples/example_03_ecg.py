@@ -4,7 +4,6 @@ ECG tutorial
 
 '''
 
-
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -13,23 +12,20 @@ from pprint import pprint
 import physio
 
 
-
 ##############################################################################
 # 
-# Detect ECG R peaks : quick way
-# ------------------------------
+# Detect ECG R peaks: quick way
+# -----------------------------
 #
-#  The fastest way is to use compute_ecg() using predefine parameters set
-#  here a simple example
+#  The fastest way is to use compute_ecg() using a predefine parameter set.
+#  Here is a simple example.
 
 
 raw_ecg = np.load('ecg1.npy')
 srate = 1000.
 times = np.arange(raw_ecg.size) / srate
 
-
 ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg')
-
 
 r_peak_ind = ecg_peaks['peak_index'].values
 
@@ -48,11 +44,11 @@ ax.set_xlim(95, 125)
 
 ##############################################################################
 # 
-# Detect ECG R peaks : Parameters tuning
-# --------------------------------------
+# Detect ECG R peaks: Parameters tuning
+# -------------------------------------
 # 
-# Here a simple recipe to change some predefined parameters
-# We change here some filtering parameters
+# Here is a simple recipe to change some predefined parameters.
+# We change here some filtering parameters.
 
 # get paramseters predefined set for 'human_ecg'
 # this is a nested dict of parameter of every step
@@ -78,8 +74,8 @@ ax.set_xlim(95, 125)
 
 ##############################################################################
 # 
-# ECG : compute metrics
-# ---------------------
+# ECG: compute metrics
+# --------------------
 #
 
 
@@ -92,7 +88,7 @@ print(metrics)
 # ----------------------------------------
 #
 # The RR-interval (aka rri) time series is a common tools to analyse the heart rate variability (hrv).
-# This is equivalent to compute the instantaneous hear rate.
+# This is equivalent to computing the instantaneous hear rate.
 # Heart rate [bpm] = 1 / rri * 60
 #
 # Most people use rri in ms, we feel that use heart rate in bpm is more intuitive.
@@ -102,11 +98,20 @@ print(metrics)
 # feel free to use the units you prefer (bpm or ms)
 
 new_times = times[::10]
-instantaneous_rate = physio.compute_instantaneous_rate(ecg_peaks, new_times, limits=None,
-                                                       units='bpm', interpolation_kind='linear')
-rri = physio.compute_instantaneous_rate(ecg_peaks, new_times, limits=None,
-                                                       units='ms', interpolation_kind='linear')
-
+instantaneous_rate = physio.compute_instantaneous_rate(
+    ecg_peaks,
+    new_times,
+    limits=None,
+    units='bpm',
+    interpolation_kind='linear',
+)
+rri = physio.compute_instantaneous_rate(
+    ecg_peaks,
+    new_times,
+    limits=None,
+    units='ms',
+    interpolation_kind='linear',
+)
 
 fig, axs = plt.subplots(nrows=2, sharex=True)
 ax = axs[0]
@@ -120,15 +125,21 @@ ax.set_xlim(100, 150)
 
 ##############################################################################
 # 
-# ECG : compute hrv spectrum
-# --------------------------
+# ECG: compute hrv spectrum
+# -------------------------
 #
 # 
 
 freqency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)}
-psd_freqs, psd, psd_metrics = physio.compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
-                                        freqency_bands=freqency_bands,
-                                        window_s=250., interpolation_kind='cubic')
+psd_freqs, psd, psd_metrics = physio.compute_hrv_psd(
+    ecg_peaks,
+    sample_rate=100.,
+    limits=None,
+    units='bpm',
+    freqency_bands=freqency_bands,
+    window_s=250.,
+    interpolation_kind='cubic',
+)
 
 print(psd_metrics)
 fig, ax = plt.subplots()
