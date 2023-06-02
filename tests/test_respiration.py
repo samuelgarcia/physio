@@ -12,7 +12,7 @@ srate = 1000.
 
 def test_compute_respiration():
     
-    resp, resp_cycles = compute_respiration(raw_resp, srate, parameter_set='human_airflow')
+    resp, resp_cycles = compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
     # print(resp.shape)
     # print(resp_cycles.shape)
     # print(resp_cycles)

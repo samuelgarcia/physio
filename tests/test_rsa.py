@@ -15,8 +15,8 @@ srate = 1000.
 
 def test_compute_rsa():
     
-    resp, resp_cycles = compute_respiration(raw_resp, srate, parameter_set='human_airflow')
-    ecg, ecg_peaks = compute_ecg(raw_ecg, srate, parameter_set='simple_ecg')
+    resp, resp_cycles = compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
+    ecg, ecg_peaks = compute_ecg(raw_ecg, srate, parameter_preset='human_ecg')
     
     
 

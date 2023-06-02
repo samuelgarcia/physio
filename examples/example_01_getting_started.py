@@ -1,6 +1,6 @@
 '''
-physio overview
-===============
+Getting started tutorial
+========================
 
 Here a quick overview of the :py:mod:`physio`
 '''
@@ -122,16 +122,16 @@ ax.set_xlim(185, 225)
 # ECG metrics
 # -----------
 # 
-# :py:func:`~physio.compute_ecg_metrics` is a simple function to compute metrics
-# around ECG
+# :py:func:`~physio.compute_ecg_metrics` is a simple function to compute tempral based metrics around ECG
+# 
 #
-# We can check the
+# We can check the this metrics on top of the dstribution.
 
 
-ecg_metrics = physio.compute_ecg_metrics(ecg_peaks, srate)
+ecg_metrics = physio.compute_ecg_metrics(ecg_peaks)
 
 fig, ax = plt.subplots()
-ax.hist(np.diff(ecg_peaks / srate * 1000.), bins=np.arange(0, 1400, 10), alpha=0.5)
+ax.hist(np.diff(ecg_peaks['peak_time']) * 1000., bins=np.arange(0, 1400, 10), alpha=0.5)
 ax.axvline(ecg_metrics['HRV_Mean'], color='orange', label='HRV_Mean')
 ax.axvline(ecg_metrics['HRV_Median'], color='violet', label='HRV_Median')
 ax.set_xlabel('HRV [ms]')

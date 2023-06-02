@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import pandas as pd
 
@@ -11,7 +12,7 @@ import warnings
 
 
 
-def compute_ecg(raw_ecg, srate, parameter_set='simple_ecg', parameters=None):
+def compute_ecg(raw_ecg, srate, parameter_preset='human_ecg', parameters=None):
     """
     Function for ECG that:
       * preprocess the ECG
@@ -24,9 +25,9 @@ def compute_ecg(raw_ecg, srate, parameter_set='simple_ecg', parameters=None):
         Raw traces of ECG signal
     srate: float
         Sampling rate
-    parameter_set: str or None
-        Name of parameters set like 'simple_ecg'
-        This use the automatic parameters you can also have with get_ecg_parameters('simple_ecg')
+    parameter_preset: str or None
+        Name of parameters set like 'human_ecg'
+        This use the automatic parameters you can also have with get_ecg_parameters('human_ecg')
     parameters : dict or None
         When not None this overwrite the parameter set.
         
@@ -37,19 +38,28 @@ def compute_ecg(raw_ecg, srate, parameter_set='simple_ecg', parameters=None):
     ecg_peaks: pd.DataFrame
         dataframe with indices of R peaks, times of R peaks.
     """
-    if parameter_set is None:
+    if parameter_preset is None:
         params = {}
     else:
-        params = get_ecg_parameters(parameter_set)
+        params = get_ecg_parameters(parameter_preset)
     if parameters is not None:
         recursive_update(params, parameters)
 
     
     clean_ecg = preprocess(raw_ecg, srate, **params['preprocess'])
 
-    # TODO estimation du seuil
+    params_detection = params['peak_detection']
+    if params_detection.get('thresh', None) == 'auto':
+        # automatic threhold = half of the 99 pecentile (=max less artifcat)
+        # empirical and naive but work more or less
+        params_detection = copy.copy(params_detection)
+        thresh = np.quantile(clean_ecg, 0.99) / 2.
+        if thresh < 4:
+            print(f'Automatic threshold for ECG is too low {thresh:0.2f} setting to 4')
+            thresh = 4
+        params_detection['thresh'] = thresh
     
-    raw_ecg_peak = detect_peak(clean_ecg, srate, **params['peak_detection'])
+    raw_ecg_peak = detect_peak(clean_ecg, srate, **params_detection)
 
 
     ecg_R_peaks = clean_ecg_peak(clean_ecg, srate, raw_ecg_peak, **params['peak_clean'])
@@ -62,8 +72,7 @@ def compute_ecg(raw_ecg, srate, parameter_set='simple_ecg', parameters=None):
 
 
 
-
-def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
+def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400., max_clean_loop=4):
     """
     Clean peak with ultra simple idea: remove short interval.
 
@@ -83,17 +92,22 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400.):
     peak_inds: np.array
         Cleaned array of peaks indices 
     """
-    
-    # when two peaks are too close :  remove the smaller peaks in amplitude
-    peak_ms = (raw_peak_inds / srate * 1000.)
-    bad_peak, = np.nonzero(np.diff(peak_ms) < min_interval_ms)
-    bad_ampl  = ecg[raw_peak_inds[bad_peak]]
-    bad_ampl_next  = ecg[raw_peak_inds[bad_peak + 1]]
-    bad_peak +=(bad_ampl > bad_ampl_next).astype(int)
-    
-    keep = np.ones(raw_peak_inds.size, dtype='bool')
-    keep[bad_peak] = False
-    peak_inds = raw_peak_inds[keep]
+    peak_inds = raw_peak_inds.copy()
+
+    for i in range(max_clean_loop):
+        # when two peaks are too close :  remove the smaller peaks in amplitude
+        peak_ms = (peak_inds / srate * 1000.)
+        bad_peak, = np.nonzero(np.diff(peak_ms) < min_interval_ms)
+        if bad_peak.size == 0:
+            break
+        # trick to keep the best amplitude when to peak are too close
+        bad_ampl  = ecg[peak_inds[bad_peak]]
+        bad_ampl_next  = ecg[peak_inds[bad_peak + 1]]
+        bad_peak +=(bad_ampl > bad_ampl_next).astype(int)
+        
+        keep = np.ones(peak_inds.size, dtype='bool')
+        keep[bad_peak] = False
+        peak_inds = peak_inds[keep]
     
     return peak_inds
 

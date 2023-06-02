@@ -11,7 +11,7 @@ srate = 1000.
 
 
 def test_compute_ecg():
-    ecg, ecg_peaks = compute_ecg(raw_ecg, srate, parameter_set='simple_ecg')
+    ecg, ecg_peaks = compute_ecg(raw_ecg, srate, parameter_preset='human_ecg')
 
 
 

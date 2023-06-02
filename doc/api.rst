@@ -26,7 +26,7 @@ ECG
 Cylic tools
 -----------
 
-.. automodule:: physio.cylic_deformation
+.. automodule:: physio.cyclic_deformation
 
     .. autofunction:: deform_traces_to_cycle_template
 

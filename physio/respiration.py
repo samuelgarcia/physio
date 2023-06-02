@@ -5,7 +5,7 @@ from .tools import get_empirical_mode, compute_median_mad
 from .preprocess import preprocess, smooth_signal
 from .parameters import get_respiration_parameters, recursive_update
 
-def compute_respiration(raw_resp, srate, parameter_set='human_airflow', parameters=None, ):
+def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', parameters=None, ):
     """
     Function for respiration that:
       * preprocess the signal
@@ -21,7 +21,7 @@ def compute_respiration(raw_resp, srate, parameter_set='human_airflow', paramete
         Raw traces of respiratory signal
     srate: float
         Sampling rate
-    parameter_set: str or None
+    parameter_preset: str or None
         Name of parameters set 'human_airflow'
         This use the automatic parameters you can also have with get_respiration_parameters('human')
     parameters : dict or None
@@ -36,10 +36,10 @@ def compute_respiration(raw_resp, srate, parameter_set='human_airflow', paramete
         amplitudes, volumes, durations, ...
     """
     
-    if parameter_set is None:
+    if parameter_preset is None:
         params = {}
     else:
-        params = get_respiration_parameters(parameter_set)
+        params = get_respiration_parameters(parameter_preset)
     if parameters is not None:
         recursive_update(params, parameters)
 
@@ -327,6 +327,27 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_r
     keep[bad_cycle] = False
     new_cycles = resp_cycles.iloc[keep, :].loc[:, cols].values
     new_cycles[:-1, 2] = new_cycles[1:, 0]
+
+    # import matplotlib.pyplot as plt
+    # fig, axs = plt.subplots(ncols=3)
+    # ax = axs[0]
+    # ax.plot(resp)
+    # inspi_index = resp_cycles['inspi_index'].values
+    # expi_index = resp_cycles['expi_index'].values
+    # ax.scatter(inspi_index, resp[inspi_index], marker='o', color='green')
+    # ax.scatter(expi_index, resp[expi_index], marker='o', color='red')
+    # ax.scatter(inspi_index[~keep], resp[inspi_index[~keep]], marker='*', color='k', s=500)
+    # ax = axs[1]
+    # ax.hist(log_vol, bins=200)
+    # ax.axvline(limit)
+    # ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
+    # ax = axs[2]
+    # vol = resp_cycles['inspi_volume'].values
+    # med2, mad2 = compute_median_mad(vol)
+    # ax.hist(vol, bins=200)
+    # ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.2, color='orange')
+    # plt.show()
+
     # recompute new volumes and amplitudes
     resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
     

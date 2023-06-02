@@ -1,6 +1,6 @@
 '''
-RSA example
-===========
+RSA tutorial
+============
 
 Respiratory sinus arrhythmia (RSA) can be analysed with physio toolbox with
 an innovative method.
@@ -33,7 +33,7 @@ import physio
 ##############################################################################
 # 
 # Read data
-# -----------
+# ---------
 #  
 # 
 
@@ -46,12 +46,12 @@ times = np.arange(raw_resp.size) / srate
 ##############################################################################
 # 
 # Get respiratory cycle and ECG peaks
-# -----------
+# -----------------------------------
 #  
 #
 
-resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_set='human_airflow')
-ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_set='simple_ecg')
+resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
+ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg')
 
 
 ##############################################################################
@@ -80,7 +80,7 @@ print(rsa_cycles[some_features].head(9))
 # 
 # Here we also plot the average ratio inspiration duration cycle duration
 
-# this is the ave
+# this is the average ratio
 inspi_expi_ratio = np.mean(resp_cycles['inspi_duration'] / resp_cycles['cycle_duration'])
 
 one_cycle = np.arange(points_per_cycle) / points_per_cycle
