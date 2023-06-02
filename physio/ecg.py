@@ -12,7 +12,7 @@ import warnings
 
 
 
-def compute_ecg(raw_ecg, srate, parameter_set='human_ecg', parameters=None):
+def compute_ecg(raw_ecg, srate, parameter_preset='human_ecg', parameters=None):
     """
     Function for ECG that:
       * preprocess the ECG
@@ -25,7 +25,7 @@ def compute_ecg(raw_ecg, srate, parameter_set='human_ecg', parameters=None):
         Raw traces of ECG signal
     srate: float
         Sampling rate
-    parameter_set: str or None
+    parameter_preset: str or None
         Name of parameters set like 'human_ecg'
         This use the automatic parameters you can also have with get_ecg_parameters('human_ecg')
     parameters : dict or None
@@ -38,10 +38,10 @@ def compute_ecg(raw_ecg, srate, parameter_set='human_ecg', parameters=None):
     ecg_peaks: pd.DataFrame
         dataframe with indices of R peaks, times of R peaks.
     """
-    if parameter_set is None:
+    if parameter_preset is None:
         params = {}
     else:
-        params = get_ecg_parameters(parameter_set)
+        params = get_ecg_parameters(parameter_preset)
     if parameters is not None:
         recursive_update(params, parameters)
 

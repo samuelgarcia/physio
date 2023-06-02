@@ -36,7 +36,7 @@ srate = 1000.
 times = np.arange(raw_ecg.size) / srate
 
 
-ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_set='simple_ecg')
+ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg')
 
 
 r_peak_ind = ecg_peaks['peak_index'].values
@@ -63,9 +63,9 @@ ax.set_xlim(95, 125)
 # Here a simple recipe to change some predefined parameters
 # We change here some filtering parameters
 
-# get paramseters predefined set for 'simple_ecg'
+# get paramseters predefined set for 'human_ecg'
 # this is a nested dict of parameter of every step
-parameters = physio.get_ecg_parameters('simple_ecg')
+parameters = physio.get_ecg_parameters('human_ecg')
 pprint(parameters)
 # lets change on parameter in the structure
 parameters['preprocess']['band'] = [2., 40.]

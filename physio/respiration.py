@@ -5,7 +5,7 @@ from .tools import get_empirical_mode, compute_median_mad
 from .preprocess import preprocess, smooth_signal
 from .parameters import get_respiration_parameters, recursive_update
 
-def compute_respiration(raw_resp, srate, parameter_set='human_airflow', parameters=None, ):
+def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', parameters=None, ):
     """
     Function for respiration that:
       * preprocess the signal
@@ -21,7 +21,7 @@ def compute_respiration(raw_resp, srate, parameter_set='human_airflow', paramete
         Raw traces of respiratory signal
     srate: float
         Sampling rate
-    parameter_set: str or None
+    parameter_preset: str or None
         Name of parameters set 'human_airflow'
         This use the automatic parameters you can also have with get_respiration_parameters('human')
     parameters : dict or None
@@ -36,10 +36,10 @@ def compute_respiration(raw_resp, srate, parameter_set='human_airflow', paramete
         amplitudes, volumes, durations, ...
     """
     
-    if parameter_set is None:
+    if parameter_preset is None:
         params = {}
     else:
-        params = get_respiration_parameters(parameter_set)
+        params = get_respiration_parameters(parameter_preset)
     if parameters is not None:
         recursive_update(params, parameters)
 

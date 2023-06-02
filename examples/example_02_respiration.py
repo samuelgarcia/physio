@@ -37,7 +37,7 @@ srate = 1000.
 times = np.arange(raw_resp.size) / srate
 
 # the easiest way is to use predefined parameters
-resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_set='human_airflow')
+resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
 
 # resp_cycles is a dataframe containing all cycles and related fetaures (duration, amplitude, volume, timing)
 print(resp_cycles)

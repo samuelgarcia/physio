@@ -1,10 +1,38 @@
 """
-Some predefined parameters set for computing respiration and ecg without pain.
-
-
-
+Some predefined parameters preset for computing respiration and ecg without pain.
 """
+
 import copy
+
+def recursive_update(d, u):
+    """
+    Recurssive dict update.
+    """
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = recursive_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
+
+def get_respiration_parameters(parameter_preset):
+    """
+    Get parameters nested dict for a given predefined parameter preset.
+    """
+    return copy.deepcopy(_resp_parameters[parameter_preset])
+
+
+def get_ecg_parameters(parameter_preset):
+    """
+    Get parameters nested dict for a given predefined parameter preset.
+    """
+    return copy.deepcopy(_ecg_parameters[parameter_preset])
+
+
+###################################################
+# Resp preset
 
 _resp_parameters = {}
 
@@ -19,28 +47,8 @@ _resp_parameters['human_airflow'] = dict(
 )
 
 
-
-
-def get_respiration_parameters(param_set):
-    """
-    Get parameters nested dict for a given predefined parameter set.
-    """
-    return copy.deepcopy(_resp_parameters[param_set])
-
-
-def recursive_update(d, u):
-    """
-    Recurssive dict update.
-    """
-    for k, v in u.items():
-        if isinstance(v, dict):
-            d[k] = recursive_update(d.get(k, {}), v)
-        else:
-            d[k] = v
-    return d
-
 ###################################################
-
+#ECG preset
 
 _ecg_parameters = {}
 
@@ -52,8 +60,3 @@ _ecg_parameters['human_ecg'] = dict(
 )
 
 
-def get_ecg_parameters(param_set):
-    """
-    Get parameters nested dict for a given predefined parameter set.
-    """
-    return copy.deepcopy(_ecg_parameters[param_set])

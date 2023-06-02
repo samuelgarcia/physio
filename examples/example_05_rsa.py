@@ -50,8 +50,8 @@ times = np.arange(raw_resp.size) / srate
 #  
 #
 
-resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_set='human_airflow')
-ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_set='simple_ecg')
+resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
+ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg')
 
 
 ##############################################################################
