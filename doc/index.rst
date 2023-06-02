@@ -9,16 +9,17 @@ Author : Samuel Garcia with the help of Valentin Ghibaudo and Jules Granget.
 This toolbox is used by the CMO team in the **Centre de recherche en Neurosciences de Lyon (CRNL)**
 
 
-**Features** :
+**Features**:
 
   * respiration cycle detection
-  * respiration cycle features (amplitude, duration, volumns ...)
+  * respiration cycle features (amplitude, duration, volumes ...)
   * simple preprocess on signal : filter using scipy and smoothing
   * ecg peak detection
-  * ecg metrics
-  * rsa
+  * ecg/hrv metrics (time domain and freq domain)
+  * rsa : new approach to get cycle-per-cycle metrics
   * cyclic deformation machinery : a simple strecher of any signal to cycle template
   * simple reader of micromed and brainvision using neo
+  * "automagic" parameters for differents species
 
 
 .. toctree::

@@ -1,6 +1,6 @@
 '''
-ECG example
-===========
+ECG tutorial
+============
 
 '''
 
@@ -12,20 +12,12 @@ from pprint import pprint
 
 import physio
 
-##############################################################################
-# 
-# physio.ecg
-# 
-# ----------
-#
-# 
-#  
+
 
 ##############################################################################
 # 
-# ECG : quick way
-# 
-# ---------------
+# Detect ECG R peaks : quick way
+# ------------------------------
 #
 #  The fastest way is to use compute_ecg() using predefine parameters set
 #  here a simple example
@@ -56,9 +48,8 @@ ax.set_xlim(95, 125)
 
 ##############################################################################
 # 
-# Parameters tuning
-# 
-# -----------------------
+# Detect ECG R peaks : Parameters tuning
+# --------------------------------------
 # 
 # Here a simple recipe to change some predefined parameters
 # We change here some filtering parameters
@@ -88,7 +79,6 @@ ax.set_xlim(95, 125)
 ##############################################################################
 # 
 # ECG : compute metrics
-# 
 # ---------------------
 #
 
@@ -99,19 +89,34 @@ print(metrics)
 ##############################################################################
 # 
 # ECG : compute instantaneous rate aka hrv
-# 
 # ----------------------------------------
 #
+# The RR-interval (aka rri) time series is a common tools to analyse the heart rate variability (hrv).
+# This is equivalent to compute the instantaneous hear rate.
+# Heart rate [bpm] = 1 / rri * 60
+#
+# Most people use rri in ms, we feel that use heart rate in bpm is more intuitive.
+# With bpm an increase in the curve = heart acceleration
+# With ms an increase in the curve = heart decceleration
+#
+# feel free to use the units you prefer (bpm or ms)
+
+new_times = times[::10]
+instantaneous_rate = physio.compute_instantaneous_rate(ecg_peaks, new_times, limits=None,
+                                                       units='bpm', interpolation_kind='linear')
+rri = physio.compute_instantaneous_rate(ecg_peaks, new_times, limits=None,
+                                                       units='ms', interpolation_kind='linear')
 
 
-
-rate_times = times[::10]
-instantaneous_rate = physio.compute_instantaneous_rate(ecg_peaks, rate_times, limits=None, units='bpm', interpolation_kind='linear')
-
-fig, ax = plt.subplots()
-ax.plot(rate_times, instantaneous_rate)
+fig, axs = plt.subplots(nrows=2, sharex=True)
+ax = axs[0]
+ax.plot(new_times, instantaneous_rate)
+ax.set_ylabel('heart rate [bpm]')
+ax = axs[1]
+ax.plot(new_times, rri)
+ax.set_ylabel('rri [ms]')
 ax.set_xlabel('time [s]')
-ax.set_ylabel('hrv [bpm]')
+ax.set_xlim(100, 150)
 
 ##############################################################################
 # 

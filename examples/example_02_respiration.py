@@ -1,6 +1,6 @@
 '''
-Respiration example
-===================
+Respiration tutorial
+====================
 
 
 '''
@@ -12,20 +12,12 @@ from pprint import pprint
 
 import physio
 
-##############################################################################
-# 
-# physio.respiration
-# 
-# ------------------
-#
-# 
-#  
+
 
 ##############################################################################
 # 
-# Respiration : quick way
-# 
-# -----------------------
+# Respiration cucle detection: quick way
+# --------------------------------------
 #
 #  The fastest way is to use compute_respiration() using predefine parameters set
 #  here a simple example
@@ -57,8 +49,8 @@ ax.set_xlim(110, 170)
 
 ##############################################################################
 # 
-# Parameters tuning
-# -----------------------
+# Cycle detection : Parameters tuning
+# -----------------------------------
 # 
 # Here a simple recipe to change some predefined parameters
 # We change here the length smoothing parameter
