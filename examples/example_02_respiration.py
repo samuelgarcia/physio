@@ -77,7 +77,7 @@ resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameters=param
 resp = physio.preprocess(resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
 resp = physio.smooth_signal(resp, srate, win_shape='gaussian', sigma_ms=90.0)
 
-baseline = physio.get_respiration_baseline(resp, srate, baseline_mode='median - epsilon')
+baseline = physio.get_respiration_baseline(resp, srate, baseline_mode='median')
 print('baseline', baseline)
 
 # this will give a numpy.array with shape (num_cycle, 3)
