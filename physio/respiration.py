@@ -53,9 +53,10 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
 
     baseline = get_respiration_baseline(resp, srate, **params['baseline'])
     
-    baseline_detect = get_respiration_baseline(resp, srate, baseline=baseline, **params['baseline_detect'])
+    baseline_detect = baseline
 
-    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=baseline_detect, **params['cycle_detection'])
+    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=baseline,
+                                        **params['cycle_detection'])
 
     resp_cycles = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline)
 
@@ -94,12 +95,12 @@ def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None)
         baseline = np.median(resp)
     elif baseline_mode == 'mode':
         baseline = get_empirical_mode(resp)
-    elif baseline_mode == 'median - epsilon':
-        epsilon = (np.quantile(resp, 0.75) - np.quantile(resp, 0.25)) / 100.
-        if baseline is not None:
-            baseline = baseline - epsilon * 5.
-        else:
-            baseline = np.median(resp) - epsilon * 5.
+    # elif baseline_mode == 'median - epsilon':
+    #     epsilon = (np.quantile(resp, 0.75) - np.quantile(resp, 0.25)) / 100.
+    #     if baseline is not None:
+    #         baseline = baseline - epsilon * 5.
+    #     else:
+    #         baseline = np.median(resp) - epsilon * 5.
     else:
         raise ValueError(f'get_respiration_baseline wring baseline_mode {baseline_mode}')
 
@@ -107,7 +108,8 @@ def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None)
 
     
 
-def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None, inspiration_adjust_on_derivative=False):
+def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None, 
+                              epsilon_factor1=10, epsilon_factor2=5, inspiration_adjust_on_derivative=False):
     """
     Detect respiration cycles based on:
       * crossing zeros (or crossing baseline)
@@ -135,16 +137,55 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
 
     baseline = get_respiration_baseline(resp, srate, baseline_mode=baseline_mode, baseline=baseline)
 
+    q75 = np.quantile(resp, 0.75)
+    q25 = np.quantile(resp, 0.25)
+    epsilon = (q75 - q25) / 100.
+
+    baseline_dw = baseline - epsilon * epsilon_factor1
+    baseline_insp = baseline - epsilon * epsilon_factor2
+
     resp0 = resp[:-1]
     resp1 = resp[1:]
 
-    ind_insp, = np.nonzero((resp0 >= baseline) & (resp1 < baseline))
+    ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp1 < baseline_dw))
+    
+    ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
+    keep_inds = np.searchsorted(ind_insp, ind_dw, side='left')
+    keep_inds = keep_inds[keep_inds > 0]
+    ind_insp = ind_insp[keep_inds - 1]
+    ind_insp = np.unique(ind_insp)
+
     ind_exp, = np.nonzero((resp0 < baseline) & (resp1 >= baseline))
+    keep_inds = np.searchsorted(ind_exp, ind_insp, side='right')
+    keep_inds = keep_inds[keep_inds<ind_exp.size]
+    ind_exp = ind_exp[keep_inds]
+    
+    keep, = np.nonzero(np.diff(ind_exp) != 0)
+    keep = np.concatenate((keep, [ind_exp.size - 1]))
+    ind_insp = ind_insp[keep]
+    ind_exp = ind_exp[keep]
+
+
+    # import matplotlib.pyplot as plt
+    # fig, ax = plt.subplots()
+    # ax.plot(resp)
+    # ax.scatter(ind_dw, resp[ind_dw], color='orange', marker='o', s=30)
+    # ax.scatter(ind_insp, resp[ind_insp], color='g', marker='o')
+    # ax.scatter(ind_exp, resp[ind_exp], color='r', marker='o')
+    # ax.axhline(baseline, color='r')
+    # ax.axhline(baseline_insp, color='g')
+    # ax.axhline(baseline_dw, color='orange')
+    # ax.axhline(q25, color='k')
+    # ax.axhline(q75, color='k')
+    # plt.show()
+
+
+
 
     if ind_insp.size == 0:
         print('no cycle dettected')
         return
-    
+
     mask = (ind_exp > ind_insp[0]) & (ind_exp < ind_insp[-1])
     ind_exp = ind_exp[mask]
 
@@ -171,11 +212,6 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
                     if np.any(mask):
                         ind_insp[i] = i0 + np.nonzero(mask)[0][-1]
     
-    # cycles = np.zeros((ind_insp.size, 2), dtype='int64')
-    # cycles[:, 0] = ind_insp
-    # cycles[:-1, 1] = ind_exp
-    # cycles[-1, 1] = -1
-
     cycles = np.zeros((ind_insp.size - 1, 3), dtype='int64')
     cycles[:, 0] = ind_insp[:-1]
     cycles[:, 1] = ind_exp
@@ -339,13 +375,13 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_r
     # ax.scatter(inspi_index[~keep], resp[inspi_index[~keep]], marker='*', color='k', s=500)
     # ax = axs[1]
     # ax.hist(log_vol, bins=200)
-    # ax.axvline(limit)
+    # ax.axvline(limit, color='orange')
     # ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
     # ax = axs[2]
     # vol = resp_cycles['inspi_volume'].values
     # med2, mad2 = compute_median_mad(vol)
     # ax.hist(vol, bins=200)
-    # ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.2, color='orange')
+    # ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.1, color='orange')
     # plt.show()
 
     # recompute new volumes and amplitudes

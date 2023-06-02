@@ -42,8 +42,7 @@ _resp_parameters['human_airflow'] = dict(
     smooth=dict(win_shape='gaussian', sigma_ms=60.0),
     cycle_detection=dict(inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='median'),
-    baseline_detect=dict(baseline_mode='median - epsilon'),
-    cycle_clean=dict(low_limit_log_ratio=3.5),
+    cycle_clean=dict(low_limit_log_ratio=4.),
 )
 
 
