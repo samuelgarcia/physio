@@ -5,7 +5,7 @@ from .ecg import compute_instantaneous_rate
 from .cyclic_deformation import deform_traces_to_cycle_template
 
 
-def compute_rsa(resp_cycles, ecg_peaks, srate=10., units='bpm', two_segment=True, points_per_cycle=50):
+def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', two_segment=True, points_per_cycle=50):
     """
     RSA = Respiratory Sinus Arrhythmia
 
@@ -22,6 +22,7 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=10., units='bpm', two_segment=True
     ecg_peaks
     
     srate
+    100 is safe for both animal and human for human 10 is also OK.
 
     units
 
