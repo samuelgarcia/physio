@@ -2,7 +2,7 @@
 Getting started tutorial
 ========================
 
-Here a quick overview of the :py:mod:`physio`
+Here is a quick overview of :py:mod:`physio`
 '''
 
 import numpy as np
@@ -16,12 +16,12 @@ import physio
 # physio module overview
 # ----------------------
 # 
-# :py:mod:`physio` have a util function for reading some format like:
+# :py:mod:`physio` has utility functions for reading some formats like:
 #  
 #    * micromed
 #    * brainvision
 #
-# Here we use internal file in numpy format for the demo
+# Here, we use an internal file in the numpy format for the demo
 
 raw_resp = np.load('resp1.npy')
 raw_ecg = np.load('ecg1.npy')
@@ -42,8 +42,8 @@ ax.set_xlim(185, 225)
 
 ##############################################################################
 # 
-# Analyse resp
-# ------------
+# Analyse respiration
+# -------------------
 # 
 # :py:func:`~physio.compute_respiration` is an easy function to:
 #
@@ -64,8 +64,8 @@ ax.set_xlim(185, 225)
 # repiration cycles and features
 # ------------------------------
 #  
-# resp_cycles is a dataframe containing all respiration cycles as rows and columns
-# contain features like duration, amplitudes, durations
+# resp_cycles is a dataframe containing all respiration cycles as rows and columns.
+# It contains features like duration, amplitudes, durations
 # 
 
 print(resp_cycles.shape)
@@ -93,13 +93,13 @@ ax.set_xlim(185, 225)
 
 ##############################################################################
 # 
-# Analyse ecg
+# Analyse ECG
 # -----------
 #  
 # :py:func:`~physio.compute_ecg` is an easy function to:
 #
-#     * preprocess the ecg signal output is normalize by default
-#     * detec R peaks
+#     * Preprocess the ECG signal output, which is normalized by default
+#     * Detect R peaks
 
 
 ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate)
@@ -146,8 +146,8 @@ print(ecg_metrics)
 # Cyclic deformation
 # ------------------
 # 
-# :py:func:`~physio.deform_traces_to_cycle_template` is a tools to deform traces
-# to a cycle template by strentching with linear resample to a fixed number of 
+# :py:func:`~physio.deform_traces_to_cycle_template` is a tool to deform traces
+# to a cycle template by stretching with linear resampling to a fixed number of 
 # points per cycle.
 #
 # This is helpfull to check if a signal is driven by a cyclic event like respiration
@@ -155,7 +155,7 @@ print(ecg_metrics)
 # Here we deform the signal trace by "itself" : the respiration cycle
 # this lead a the average respiration template
 #
-# Importantly this can be done using one or several segment inside the cycle.
+# Importantly, this can be done using one or several segment inside the cycle.
 
 # here we have 3 time per cycle so 2 segments
 cycle_times = resp_cycles[['inspi_time', 'expi_time', 'next_inspi_time']].values

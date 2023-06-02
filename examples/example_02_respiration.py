@@ -16,11 +16,11 @@ import physio
 
 ##############################################################################
 # 
-# Respiration cucle detection: quick way
-# --------------------------------------
+# Respiration cycle detection: the quick way
+# ------------------------------------------
 #
-#  The fastest way is to use compute_respiration() using predefine parameters set
-#  here a simple example
+#  The fastest way is to use compute_respiration() using a predefines parameter set.
+#  Here is a simple example.
 
 
 # read data
@@ -49,11 +49,11 @@ ax.set_xlim(110, 170)
 
 ##############################################################################
 # 
-# Cycle detection : Parameters tuning
+# Cycle detection: Parameters tuning
 # -----------------------------------
 # 
-# Here a simple recipe to change some predefined parameters
-# We change here the length smoothing parameter
+# Here is a simple recipe to change some predefined parameters.
+# We change here the length of the smoothing parameter.
 
 # get paramseters set
 # this is a nested dict of parameter of every step
@@ -71,7 +71,7 @@ resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameters=param
 # Respiration : step by step
 # --------------------------
 # 
-# Here a detail of all low level functions that are used internally in the compute_respiration()
+# Here are details of all low-level functions used internally in the compute_respiration()
 
 
 resp = physio.preprocess(resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
