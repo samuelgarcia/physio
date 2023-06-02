@@ -150,6 +150,7 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp1 < baseline_dw))
     
     ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
+    ind_insp_no_clean = ind_insp.copy()
     keep_inds = np.searchsorted(ind_insp, ind_dw, side='left')
     keep_inds = keep_inds[keep_inds > 0]
     ind_insp = ind_insp[keep_inds - 1]
@@ -160,15 +161,21 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     keep_inds = keep_inds[keep_inds<ind_exp.size]
     ind_exp = ind_exp[keep_inds]
     
-    keep, = np.nonzero(np.diff(ind_exp) != 0)
-    keep = np.concatenate((keep, [ind_exp.size - 1]))
+    # this is tricky to read but quite simple in concept
+    # this remove ind_exp assigned to the same ind_insp
+    bad, = np.nonzero(np.diff(ind_exp) == 0)
+    keep = np.ones(ind_insp.size, dtype='bool')
+    keep[bad + 1] = False
     ind_insp = ind_insp[keep]
+    keep = np.ones(ind_exp.size, dtype='bool')
+    keep[bad + 1] = False
     ind_exp = ind_exp[keep]
 
 
     # import matplotlib.pyplot as plt
     # fig, ax = plt.subplots()
     # ax.plot(resp)
+    # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='m', marker='*', s=100)
     # ax.scatter(ind_dw, resp[ind_dw], color='orange', marker='o', s=30)
     # ax.scatter(ind_insp, resp[ind_insp], color='g', marker='o')
     # ax.scatter(ind_exp, resp[ind_exp], color='r', marker='o')
@@ -185,6 +192,7 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     if ind_insp.size == 0:
         print('no cycle dettected')
         return
+
 
     mask = (ind_exp > ind_insp[0]) & (ind_exp < ind_insp[-1])
     ind_exp = ind_exp[mask]
