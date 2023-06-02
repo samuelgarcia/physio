@@ -171,7 +171,6 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     keep[bad + 1] = False
     ind_exp = ind_exp[keep]
 
-
     # import matplotlib.pyplot as plt
     # fig, ax = plt.subplots()
     # ax.plot(resp)
@@ -185,8 +184,6 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     # ax.axhline(q25, color='k')
     # ax.axhline(q75, color='k')
     # plt.show()
-
-
 
 
     if ind_insp.size == 0:
