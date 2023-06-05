@@ -137,9 +137,9 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
 
     baseline = get_respiration_baseline(resp, srate, baseline_mode=baseline_mode, baseline=baseline)
 
-    q75 = np.quantile(resp, 0.75)
-    q25 = np.quantile(resp, 0.25)
-    epsilon = (q75 - q25) / 100.
+    #~ q90 = np.quantile(resp, 0.90)
+    q10 = np.quantile(resp, 0.10)
+    epsilon = (baseline - q10) / 100.
 
     baseline_dw = baseline - epsilon * epsilon_factor1
     baseline_insp = baseline - epsilon * epsilon_factor2
@@ -171,19 +171,18 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     keep[bad + 1] = False
     ind_exp = ind_exp[keep]
 
-    # import matplotlib.pyplot as plt
-    # fig, ax = plt.subplots()
-    # ax.plot(resp)
-    # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='m', marker='*', s=100)
-    # ax.scatter(ind_dw, resp[ind_dw], color='orange', marker='o', s=30)
-    # ax.scatter(ind_insp, resp[ind_insp], color='g', marker='o')
-    # ax.scatter(ind_exp, resp[ind_exp], color='r', marker='o')
-    # ax.axhline(baseline, color='r')
-    # ax.axhline(baseline_insp, color='g')
-    # ax.axhline(baseline_dw, color='orange')
-    # ax.axhline(q25, color='k')
-    # ax.axhline(q75, color='k')
-    # plt.show()
+    #~ import matplotlib.pyplot as plt
+    #~ fig, ax = plt.subplots()
+    #~ ax.plot(resp)
+    #~ ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='m', marker='*', s=100)
+    #~ ax.scatter(ind_dw, resp[ind_dw], color='orange', marker='o', s=30)
+    #~ ax.scatter(ind_insp, resp[ind_insp], color='g', marker='o')
+    #~ ax.scatter(ind_exp, resp[ind_exp], color='r', marker='o')
+    #~ ax.axhline(baseline, color='r')
+    #~ ax.axhline(baseline_insp, color='g')
+    #~ ax.axhline(baseline_dw, color='orange')
+    #~ ax.axhline(q10, color='k')
+    #~ plt.show()
 
 
     if ind_insp.size == 0:
@@ -369,25 +368,25 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_r
     new_cycles = resp_cycles.iloc[keep, :].loc[:, cols].values
     new_cycles[:-1, 2] = new_cycles[1:, 0]
 
-    # import matplotlib.pyplot as plt
-    # fig, axs = plt.subplots(ncols=3)
-    # ax = axs[0]
-    # ax.plot(resp)
-    # inspi_index = resp_cycles['inspi_index'].values
-    # expi_index = resp_cycles['expi_index'].values
-    # ax.scatter(inspi_index, resp[inspi_index], marker='o', color='green')
-    # ax.scatter(expi_index, resp[expi_index], marker='o', color='red')
-    # ax.scatter(inspi_index[~keep], resp[inspi_index[~keep]], marker='*', color='k', s=500)
-    # ax = axs[1]
-    # ax.hist(log_vol, bins=200)
-    # ax.axvline(limit, color='orange')
-    # ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
-    # ax = axs[2]
-    # vol = resp_cycles['inspi_volume'].values
-    # med2, mad2 = compute_median_mad(vol)
-    # ax.hist(vol, bins=200)
-    # ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.1, color='orange')
-    # plt.show()
+    #~ import matplotlib.pyplot as plt
+    #~ fig, axs = plt.subplots(ncols=3)
+    #~ ax = axs[0]
+    #~ ax.plot(resp)
+    #~ inspi_index = resp_cycles['inspi_index'].values
+    #~ expi_index = resp_cycles['expi_index'].values
+    #~ ax.scatter(inspi_index, resp[inspi_index], marker='o', color='green')
+    #~ ax.scatter(expi_index, resp[expi_index], marker='o', color='red')
+    #~ ax.scatter(inspi_index[~keep], resp[inspi_index[~keep]], marker='*', color='k', s=500)
+    #~ ax = axs[1]
+    #~ ax.hist(log_vol, bins=200)
+    #~ ax.axvline(limit, color='orange')
+    #~ ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
+    #~ ax = axs[2]
+    #~ vol = resp_cycles['inspi_volume'].values
+    #~ med2, mad2 = compute_median_mad(vol)
+    #~ ax.hist(vol, bins=200)
+    #~ ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.1, color='orange')
+    #~ plt.show()
 
     # recompute new volumes and amplitudes
     resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)

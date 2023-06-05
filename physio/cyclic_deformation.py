@@ -79,7 +79,7 @@ def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=4
     # check that cycle_times are inside time range
     t_start, t_stop = times[0], times[-1]
     assert cycle_times[0, 0] >= t_start
-    assert cycle_times[-1, -1] < t_stop
+    assert cycle_times[-1, -1] <= t_stop
     # keep_cycles = (cycle_times[:, 0] >= t_start) & (cycle_times[:, -1] < t_stop)
     # cycles_inds, = np.nonzero(keep_cycles)
 
