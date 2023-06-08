@@ -47,13 +47,24 @@ _resp_parameters['human_airflow'] = dict(
 
 
 _resp_parameters['rat_plethysmo'] = dict(
-    preprocess=dict(band=50., btype='lowpass', ftype='bessel', order=5, normalize=False),
-    # smooth=dict(win_shape='gaussian', sigma_ms=5.0),
-    smooth=None,
+    preprocess=dict(band=30., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    smooth=dict(win_shape='gaussian', sigma_ms=5.0),
+    #~ smooth=None,
     cycle_detection=dict(inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='manual', baseline=0.),
     cycle_clean=dict(low_limit_log_ratio=5.),
 )
+
+# belt form etisens https://etisense.com/
+_resp_parameters['rat_etisens_belt'] = dict(
+    preprocess=dict(band=30., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    smooth=dict(win_shape='gaussian', sigma_ms=5.0),
+    #~ smooth=None,
+    cycle_detection=dict(epsilon_factor1=30, epsilon_factor2=10, inspiration_adjust_on_derivative=False),
+    baseline=dict(baseline_mode='manual', baseline=0.),
+    cycle_clean=dict(low_limit_log_ratio=5.),
+)
+
 
 
 ###################################################
