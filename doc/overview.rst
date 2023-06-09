@@ -97,12 +97,14 @@ Here a very very biased and unfair comparison to some other well-known toolboxes
 Cite
 ----
 
-We are wrtting a short paper to describe this toolbox here : TODO put URL
+We have writted a `preprint manuscript <https://osf.io/qbuzy/>`_ to describe this toolbox and the cycle-by-cycle
+RSA method.
 
 If you use this toolbox a citation would be appreciated for sure.
 
 You can also check some notebook used to benchmark and test this toolbox
 `here <https://github.com/samuelgarcia/physio_benchmark>`_
+
 
 
 Authors

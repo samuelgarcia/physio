@@ -1,15 +1,28 @@
-documentation of physio 
-=======================
+Documentation of toolox physio
+==============================
 
 
 :py:mod:`physio` is a python toolbox to analyse physiological signals : respiration and ECG
 
-Author : Samuel Garcia with the help of Valentin Ghibaudo and Jules Granget.
+
+Authors
+-------
+
+:py:mod:`physio` is developped by Samuel Garcia with the help of Valentin Ghibaudo and Jules Granget.
 
 This toolbox is used by the CMO team in the **Centre de recherche en Neurosciences de Lyon (CRNL)**
 
 
-**Features**:
+
+Preprint manuscript
+-------------------
+
+Have a look to the `preprint manuscript <https://osf.io/qbuzy/>`_ for more information.
+
+
+
+Features
+--------
 
   * respiration cycle detection
   * respiration cycle features (amplitude, duration, volumes ...)
