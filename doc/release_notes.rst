@@ -10,7 +10,7 @@ Release notes
 Version 0.1.0
 =============
 
-2023-06-XX
+2023-06-09
 
 **Initial Version with**:
 
