@@ -18,8 +18,8 @@ Version 0.1.0
   * respiration cycle features (amplitude, duration, volumes ...)
   * simple preprocess on signal : filter using scipy and smoothing
   * ecg peak detection
-  * ecg/hrv metrics (time domain and freq domain)
-  * rsa : new approach to get cycle-per-cycle metrics
-  * cyclic deformation machinery : a simple strecher of any signal to cycle template
+  * ecg/hrv metrics (time domain and frequency domain)
+  * rsa : new approach to get cycle-by-cycle metrics
+  * cyclic deformation machinery : a simple stretcher of any signal to cycle template
   * simple reader of micromed and brainvision using neo
-  * "automagic" parameters for differents species
+  * "auto-magic" parameters for different species

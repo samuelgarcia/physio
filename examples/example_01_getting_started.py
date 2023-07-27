@@ -122,10 +122,10 @@ ax.set_xlim(185, 225)
 # ECG metrics
 # -----------
 # 
-# :py:func:`~physio.compute_ecg_metrics` is a simple function to compute tempral based metrics around ECG
+# :py:func:`~physio.compute_ecg_metrics` is a simple function to compute temporal based metrics around ECG
 # 
 #
-# We can check the this metrics on top of the dstribution.
+# We can visualize theses metrics and the RR interval distribution.
 
 
 ecg_metrics = physio.compute_ecg_metrics(ecg_peaks)
@@ -147,13 +147,13 @@ print(ecg_metrics)
 # ------------------
 # 
 # :py:func:`~physio.deform_traces_to_cycle_template` is a tool to deform traces
-# to a cycle template by stretching with linear resampling to a fixed number of 
+# to a cycle template by stretching with linear resampling to a fixed number of
 # points per cycle.
 #
-# This is helpfull to check if a signal is driven by a cyclic event like respiration
+# This is helpfull to check if a signal is driven by a cyclic event like respiration.
 # 
-# Here we deform the signal trace by "itself" : the respiration cycle
-# this lead a the average respiration template
+# Here, we deform the signal trace by "itself" : the respiration cycle.
+# This leads to an average respiration template.
 #
 # Importantly, this can be done using one or several segment inside the cycle.
 
