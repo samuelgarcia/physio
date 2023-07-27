@@ -19,8 +19,8 @@ import physio
 # Respiration cycle detection: the quick way
 # ------------------------------------------
 #
-#  The fastest way is to use compute_respiration() using a predefines parameter set.
-#  Here is a simple example.
+# The fastest way is to use compute_respiration() using a predefined
+# parameter presetset. Here is a simple example.
 
 
 # read data

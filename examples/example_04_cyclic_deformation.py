@@ -8,14 +8,13 @@ The cyclic deformation is the implemenation of this paper:
  * URL: https://www.sciencedirect.com/science/article/pii/S0165027005003109},
  * DOI : 10.1016/j.jneumeth.2005.09.004
 
-The main concept is to use respiratory cycles as a time basis to stufy another signal such neural events, heart rate, ...
-This strech signal pieces in to a fixed number of point per respiratory cycle and so all cycle can be aligned.
-This can be done with one or several segments. The most intuitive is to use to segment when studying respiratory phase:
+The main concept is to use respiratory cycles as a time basis to study another signal such neural events, heart rate, ...
+Theses stretched signal pieces into a fixed number of points per respiratory cycle and so all cycle can be aligned.
+This can be done with one or several segments. The most intuitive is to use two segments when studying respiratory phase:
 inhalation and exhalation.
 
 This is a particularly relevant method to characterize activity such as heart rate dynamics
 normalized on a respiratory time basis. See also the RSA tutorial the use this method.
- 
 
 
 '''
@@ -61,7 +60,7 @@ instantaneous_cardiac_rate = physio.compute_instantaneous_rate(ecg_peaks, rate_t
 # Cyclic deformation
 # ------------------
 # 
-# Apply cyclic deformation on heart rate sighnal and respiratory signal
+# Apply cyclic deformation on heart rate signal and respiratory signal
 
 
 

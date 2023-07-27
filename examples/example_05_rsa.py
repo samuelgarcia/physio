@@ -15,7 +15,7 @@ The method consists of:
 
 This method has 2 important advantages:
   * the dynamic of th RSA can be finely analysed
-  * features of RSA can be analyse at respiratory cycle basis
+  * features of RSA can be analysed using respiratory cycle-by-cycle
 
 '''
 
@@ -60,8 +60,8 @@ ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg'
 #  
 # This is done with one unique function that returns:
 #   
-#   * One dataframe with all RAS features
-#   * The cyclic deformed cardic rate
+#   * One dataframe with all RSA features
+#   * The cyclic deformed cardiac rate
 
 points_per_cycle = 50
 

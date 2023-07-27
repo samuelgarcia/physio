@@ -17,8 +17,8 @@ import physio
 # Detect ECG R peaks: quick way
 # -----------------------------
 #
-#  The fastest way is to use compute_ecg() using a predefine parameter set.
-#  Here is a simple example.
+# The fastest way is to use compute_ecg() using a predefined parameter
+# preset. Here is a simple example.
 
 
 raw_ecg = np.load('ecg1.npy')
@@ -84,18 +84,18 @@ print(metrics)
 
 ##############################################################################
 # 
-# ECG : compute instantaneous rate aka hrv
-# ----------------------------------------
+# ECG : compute instantaneous rate
+# --------------------------------
 #
-# The RR-interval (aka rri) time series is a common tools to analyse the heart rate variability (hrv).
-# This is equivalent to computing the instantaneous hear rate.
+# The RR-interval (aka rri) time series is a common tool to analyse the heart rate variability (hrv).
+# This is equivalent to computing the instantaneous heart rate.
 # Heart rate [bpm] = 1 / rri * 60
 #
-# Most people use rri in ms, we feel that use heart rate in bpm is more intuitive.
-# With bpm an increase in the curve = heart acceleration
-# With ms an increase in the curve = heart decceleration
+# Most people use rri in ms, we feel that use heart rate in bpm is more intuitive. 
+# With bpm an increase in the curve = heart acceleration. 
+# With ms an increase in the curve = heart decceleration. 
 #
-# feel free to use the units you prefer (bpm or ms)
+# Feel free to use the units you prefer (bpm or ms)
 
 new_times = times[::10]
 instantaneous_rate = physio.compute_instantaneous_rate(

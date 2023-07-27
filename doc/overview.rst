@@ -11,14 +11,14 @@ What can be done with physio toolbox ?
   * respiration cycle features (amplitude, duration, volumes ...)
   * simple preprocess on signal : filter using scipy and smoothing
   * ecg peak detection
-  * ecg/hrv metrics (time domain and freq domain)
-  * rsa : new approach to get cycle-per-cycle metrics
-  * cyclic deformation machinery : a simple strecher of any signal to cycle template
+  * ecg/hrv metrics (time domain and frequency domain)
+  * rsa : new approach to get cycle-by-cycle metrics
+  * cyclic deformation machinery : a simple stretcher of any signal to cycle template
   * simple reader of micromed and brainvision using neo
-  * "automagic" parameters for differents species
+  * "auto-magic" parameters for different species
 
 
-Why another python toolbox for ecg and respiration ?
+Why another python toolbox for ECG and respiration ?
 ----------------------------------------------------
 
 :py:mod:`physio` python toolbox has been develop in the `CMO <https://www.crnl.fr/fr/equipe/cmo>`_
@@ -28,10 +28,10 @@ The  **CMO** team has a long term experience in analysing respiration and neural
 `Respiratory cycle as time basis: An improved method for averaging olfactory neural events <https://pubmed.ncbi.nlm.nih.gov/16246424/>`_
 
 Many pieces of our codes for analysing respiration were never published and not released properly as open source despite
-the fact we are highly contributing to many open source projects (neo, spikeinterface, ephyviewer).
+the fact that we are highly contributing to many open source projects (neo, spikeinterface, ephyviewer).
 
-Also some methods (cyclic deformation on respiratory signal) is some kind of home made signature of many analyses from
-the team, having a public tool could be usefull for others.
+Some methods (cyclic deformation on respiratory signal) is home made and very central for many analyses in
+the team, having a public tool could be useful for others.
 
 And finally, about the RSA (Respiratory Sinus Arrhythmia), we truely believe that respiration and ecg must be analysed
 jointly, the developemment of this toolbox have been mainly motivated by this simple idea.
@@ -40,22 +40,20 @@ jointly, the developemment of this toolbox have been mainly motivated by this si
 Parameters handling
 -------------------
 
-Detecting respiratory cycles and ECG cycles have many nested parameters  : filetering, smotthing, threshold, ...
-This parameters have a high impact on the results and are totaly species/protocol/state dependent.
-This parameters also depend on the sensor used. For instance  : nasal airflow vs inductive belt vs plethysmo.
+Detecting respiratory cycles and ECG cycles have many nested parameters : filtering, smoothing, threshold, ...
+Theses parameters have a high impact on the results and are totaly species/protocol/state dependent.
+Theses parameters also depend on the sensor used. For instance  : nasal airflow vs inductive belt vs plethysmo.
 
-:py:mod:`physio` come with some predefined parameters set for a few species (human, rodent) and sensor
-By default this parameters set should work without too much pain. For better results they can be finely tuned to get
+:py:mod:`physio` come with some predefined parameters preset for a few species (human, rodent) and sensors.
+By default theses parameters preset should work without too much pain. For better results they can be finely tuned to get
 better results on cycle detection.
-
-TODO some code examples.
 
 
 Design choice
 -------------
 
 * simplicity: easy to read, easy to understand, easy to hack
-* function only (no custum class or complicated structures). input/ouput are numpy arrays or pandas dataframe.
+* function only (no custom class or complicated structures). input/ouput are numpy arrays or pandas dataframe.
 * frugality : few features
 * few dependencies: numpy, pandas, scipy and neo (for data reading)
 
@@ -64,9 +62,9 @@ Comparison to other toolboxes
 -----------------------------
 
 :py:mod:`physio` is not the first toolbox on the open-source market to analyse ECG and respiratory signals!
-Here a very very biased and unfair comparison to some other well-known toolboxes used by many accademic labs.
+Here a very biased and unfair comparison to some other well-known toolboxes used by many accademic labs.
 *If you are one author of theses toolboxes, first many thanks for sharing your code and apologize for this comment.*
-*Feel free to comment our toolbox*
+*Feel free to comment on our toolbox*
 
 
 * `**neurokit2** <https://neuropsychology.github.io/NeuroKit>`_: A very impressive, generalist and widely used python

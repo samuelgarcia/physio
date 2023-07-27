@@ -1,4 +1,4 @@
-Documentation of toolox physio
+Documentation of toolbox physio
 ==============================
 
 
@@ -8,7 +8,7 @@ Documentation of toolox physio
 Authors
 -------
 
-:py:mod:`physio` is developped by Samuel Garcia with the help of Valentin Ghibaudo and Jules Granget.
+:py:mod:`physio` is developped by Samuel Garcia, Valentin Ghibaudo and Jules Granget.
 
 This toolbox is used by the CMO team in the **Centre de recherche en Neurosciences de Lyon (CRNL)**
 
@@ -17,7 +17,7 @@ This toolbox is used by the CMO team in the **Centre de recherche en Neuroscienc
 Preprint manuscript
 -------------------
 
-Have a look to the `preprint manuscript <https://osf.io/qbuzy/>`_ for more information.
+Have a look to the `preprint manuscript <https://osf.io/qbuzy/>`_ for more informations.
 
 
 
@@ -28,11 +28,11 @@ Features
   * respiration cycle features (amplitude, duration, volumes ...)
   * simple preprocess on signal : filter using scipy and smoothing
   * ecg peak detection
-  * ecg/hrv metrics (time domain and freq domain)
-  * rsa : new approach to get cycle-per-cycle metrics
-  * cyclic deformation machinery : a simple strecher of any signal to cycle template
+  * ecg/hrv metrics (time domain and frequency domain)
+  * rsa : new approach to get cycle-by-cycle metrics
+  * cyclic deformation machinery : a simple stretcher of any signal to cycle template
   * simple reader of micromed and brainvision using neo
-  * "automagic" parameters for differents species
+  * "auto-magic" parameters for different species
 
 
 .. toctree::
