@@ -5,7 +5,7 @@ from .ecg import compute_instantaneous_rate
 from .cyclic_deformation import deform_traces_to_cycle_template
 
 
-def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', two_segment=True, points_per_cycle=50):
+def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None, two_segment=True, points_per_cycle=50):
     """
     RSA = Respiratory Sinus Arrhythmia
 
@@ -26,6 +26,8 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', two_segment=Tru
 
     units
 
+    limits
+
     two_segment
 
     points_per_cycle
@@ -43,7 +45,7 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', two_segment=Tru
     duration_s = resp_cycles['next_inspi_time'].values[-1]
 
     times = np.arange(0,  duration_s + 1 / srate, 1 / srate)
-    instantaneous_cardiac_rate = compute_instantaneous_rate(ecg_peaks, times, limits=None,
+    instantaneous_cardiac_rate = compute_instantaneous_rate(ecg_peaks, times, limits=limits,
                                                             units=units, interpolation_kind='linear')    
     
     if two_segment:
