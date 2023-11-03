@@ -14,11 +14,10 @@ This toolbox is used by the CMO team in the **Centre de recherche en Neuroscienc
 
 
 
-Preprint manuscript
--------------------
+Manuscript
+----------
 
-Have a look to the `preprint manuscript <https://osf.io/qbuzy/>`_ for more informations.
-
+This work has been published at eNeuro : https://www.eneuro.org/content/10/10/ENEURO.0197-23.2023
 
 
 Features
