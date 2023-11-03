@@ -45,6 +45,7 @@ def detect_peak(traces, srate, thresh=5, exclude_sweep_ms=4.0):
     """
     
     exclude_sweep_size = int(exclude_sweep_ms / 1000. * srate)
+    exclude_sweep_size = max(exclude_sweep_size, 1)
     
     traces_center = traces[exclude_sweep_size:-exclude_sweep_size]
     length = traces_center.shape[0]
