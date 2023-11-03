@@ -95,8 +95,8 @@ Here a very biased and unfair comparison to some other well-known toolboxes used
 Cite
 ----
 
-We have writted a `preprint manuscript <https://osf.io/qbuzy/>`_ to describe this toolbox and the cycle-by-cycle
-RSA method.
+We have writted a `manuscript <https://www.eneuro.org/content/10/10/ENEURO.0197-23.2023>`_ to describe this toolbox
+and the cycle-by-cycle RSA method.
 
 If you use this toolbox a citation would be appreciated for sure.
 

@@ -4,9 +4,9 @@ Simple python toolbox to analyse physio signals (Respiration, ECG, and RSA)
 
 **Please jump to documentation now https://physio.readthedocs.io**
 
-## preprint
+## Manuscript
 
-Have a look to the preprint for more information.
+This work has been published at eNeuro : https://www.eneuro.org/content/10/10/ENEURO.0197-23.2023
 
 
 ## Features
