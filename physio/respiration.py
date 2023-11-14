@@ -170,15 +170,8 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     keep = np.ones(ind_exp.size, dtype='bool')
     keep[bad + 1] = False
     ind_exp = ind_exp[keep]
+ 
     
-
-
-
-    print(ind_insp[:5], ind_insp[-5:])
-    print(ind_exp[:5], ind_exp[-5:])
-
-
-
     # import matplotlib.pyplot as plt
     # fig, ax = plt.subplots()
     # ax.plot(resp)
