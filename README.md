@@ -22,14 +22,14 @@ This work has been published at eNeuro : https://www.eneuro.org/content/10/10/EN
   * "automagic" parameters for differents species
 
 
-## Installation from PyPi:
+## Installation from PyPi
 
 ```bash
 pip install physio
 ```
 
 
-## Installation from source:
+## Installation from source
 
 ```bash
 git clone https://github.com/samuelgarcia/physio.git
