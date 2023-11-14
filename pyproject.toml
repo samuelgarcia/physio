@@ -55,6 +55,7 @@ test = [
 docs = [
     "matplotlib",
     "sphinx-gallery",
+    "sphinx_rtd_theme",
     "numpydoc",
 ]
 
