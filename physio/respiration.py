@@ -170,28 +170,45 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     keep = np.ones(ind_exp.size, dtype='bool')
     keep[bad + 1] = False
     ind_exp = ind_exp[keep]
+    
 
-    #~ import matplotlib.pyplot as plt
-    #~ fig, ax = plt.subplots()
-    #~ ax.plot(resp)
-    #~ ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='m', marker='*', s=100)
-    #~ ax.scatter(ind_dw, resp[ind_dw], color='orange', marker='o', s=30)
-    #~ ax.scatter(ind_insp, resp[ind_insp], color='g', marker='o')
-    #~ ax.scatter(ind_exp, resp[ind_exp], color='r', marker='o')
-    #~ ax.axhline(baseline, color='r')
-    #~ ax.axhline(baseline_insp, color='g')
-    #~ ax.axhline(baseline_dw, color='orange')
-    #~ ax.axhline(q10, color='k')
-    #~ plt.show()
+
+
+    print(ind_insp[:5], ind_insp[-5:])
+    print(ind_exp[:5], ind_exp[-5:])
+
+
+
+    # import matplotlib.pyplot as plt
+    # fig, ax = plt.subplots()
+    # ax.plot(resp)
+    # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='m', marker='*', s=100)
+    # ax.scatter(ind_dw, resp[ind_dw], color='orange', marker='o', s=30)
+    # ax.scatter(ind_insp, resp[ind_insp], color='g', marker='o')
+    # ax.scatter(ind_exp, resp[ind_exp], color='r', marker='o')
+    # ax.axhline(baseline, color='r')
+    # ax.axhline(baseline_insp, color='g')
+    # ax.axhline(baseline_dw, color='orange')
+    # ax.axhline(q10, color='k')
+    # plt.show()
 
 
     if ind_insp.size == 0:
         print('no cycle dettected')
         return
 
-
+    # keep ind_exp inside ind_insp
     mask = (ind_exp > ind_insp[0]) & (ind_exp < ind_insp[-1])
     ind_exp = ind_exp[mask]
+
+    # corner cases several ind_insp at the beginning/end
+    n = np.sum(ind_insp < ind_exp[0])
+    if n > 1:
+        ind_insp = ind_insp[n - 1:]
+    n = np.sum(ind_insp > ind_exp[-1])
+    if n > 1:
+        ind_insp = ind_insp[: - (n - 1)]
+
 
     if inspiration_adjust_on_derivative:
         # lets find local minima on second derivative
