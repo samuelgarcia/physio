@@ -160,10 +160,10 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
     
     metrics = pd.Series(dtype=float)
     
-    metrics['N_RRi'] = np.count_nonzero(~np.isnan(delta_ms))
+    metrics['HRV_N'] = np.count_nonzero(~np.isnan(delta_ms))
     metrics['HRV_Mean'] = np.nanmean(delta_ms)
     metrics['HRV_SD'] = np.nanstd(delta_ms)
-    metrics['HRV_SEM'] = metrics['HRV_SD'] / np.sqrt(metrics['N_RRi'])
+    metrics['HRV_SEM'] = metrics['HRV_SD'] / np.sqrt(metrics['HRV_N'])
     metrics['HRV_Median'], metrics['HRV_Mad'] = compute_median_mad(delta_ms[~np.isnan(delta_ms)])
     metrics['HRV_CV'] = metrics['HRV_SD'] / metrics['HRV_Mean']
     metrics['HRV_MCV'] = metrics['HRV_Mad'] / metrics['HRV_Median']
