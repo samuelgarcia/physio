@@ -129,13 +129,16 @@ def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=4
 
 
 
-def time_to_cycle(times, cycle_times,  inspi_ratio = 0.4):
+def time_to_cycle(times, cycle_times,  segment_ratios = 0.4):
     """
     Map absolut event time to cycle position.
     Useful for event to respiration cycle histogram
     
     Parameters
     ----------
+
+    segment_ratios: None or float or list of float
+        If multi segment deformation then a list of segmetn ratio must provived.
 
     Returns
     -------
@@ -152,20 +155,30 @@ def time_to_cycle(times, cycle_times,  inspi_ratio = 0.4):
     
     num_seg_phase = cycle_times.shape[1] - 1
 
+    if num_seg_phase == 1:
+        assert segment_ratios is None
+        ratios = [0., 1.]
+    else:
+        assert segment_ratios is not None
+        if num_seg_phase == 2 and np.isscalar(segment_ratios):
+            segment_ratios = [segment_ratios]
+        assert len(segment_ratios) == num_seg_phase - 1
+        ratios = [0.] + list(segment_ratios) + [1.]
+
+
+
 
 
     n = cycle_times.shape[0]
 
     # num_seg_phase = cycle_times.shape[1]
-    assert num_seg_phase in (1, 2)
+    # assert num_seg_phase in (1, 2)
     
     
-    cycle_point = np.zeros_like(cycle_times[:, :-1])
-    if num_seg_phase ==1:
-        cycle_point[:, 0] = np .arange(n)
-    elif num_seg_phase ==2:
-        cycle_point[:, 0] = np .arange(n)
-        cycle_point[:, 1] = np .arange(n) + inspi_ratio
+    cycle_point = np.zeros((cycle_times.shape[0], len(ratios) - 1))
+    for i in range(len(ratios) - 1):
+        cycle_point[:, i] = np .arange(n) + ratios[i]
+
     
     flat_cycle_times = cycle_times[:, :-1].flatten()
     flat_cycle_point = cycle_point.flatten()

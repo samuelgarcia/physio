@@ -100,8 +100,7 @@ def get_empirical_mode(traces, nbins=200):
 
 def crosscorrelogram(a, b, bins):
     """
-    Lazy 
-
+    Lazy implementation of crosscorrelogram.
     """
     diff = a[:, np.newaxis] - b[np.newaxis, :]
     count, bins = np.histogram(diff, bins)
