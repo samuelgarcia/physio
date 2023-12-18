@@ -96,7 +96,17 @@ def get_empirical_mode(traces, nbins=200):
     mode = bins[ind_max]
 
     return mode
-    
+
+
+def crosscorrelogram(a, b, bins):
+    """
+    Lazy 
+
+    """
+    diff = a[:, np.newaxis] - b[np.newaxis, :]
+    count, bins = np.histogram(diff, bins)
+    return count, bins
+
 
 
 
