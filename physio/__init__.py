@@ -10,3 +10,4 @@ from .rsa import compute_rsa
 from .reader import read_one_channel
 from .plotting import plot_cyclic_deformation
 from .parameters import get_respiration_parameters, get_ecg_parameters
+from .cardio_respiratory_synchronization import *

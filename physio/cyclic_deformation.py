@@ -129,58 +129,62 @@ def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=4
 
 
 
-# def time_to_cycle(times, cycle_times,  inspi_ratio = 0.4):
-#     """
-#     Map absoulut event time to cycle position.
-#     Util for spike, events, trigs...
+def time_to_cycle(times, cycle_times,  inspi_ratio = 0.4):
+    """
+    Map absolut event time to cycle position.
+    Useful for event to respiration cycle histogram
     
-#     Input:
-#     times: a times vector
-#     cycle_times: N*2 array columns are inspi and expi times. If expi is "nan", corresponding cycle is skipped
-    
-#     Output:
-#     cycles: cycle position for times (same size than times) nan if outside.
+    Parameters
+    ----------
 
-#     Parameters
-#     ----------
+    Returns
+    -------
 
-#     Returns
-#     -------
+    """
+    if cycle_times.ndim == 1:
+        cycle_times_1d = cycle_times
+        cycle_times = np.zeros((cycle_times_1d.size - 1, 2), dtype=cycle_times_1d.dtype)
+        cycle_times[:, 0] = cycle_times_1d[:-1]
+        cycle_times[:, 1] = cycle_times_1d[1:]
 
-#     """
+    # check that the end of a cycle is the same the start of the following cycle
+    assert (cycle_times[1:, 0] == cycle_times[:-1, -1]).all(), 'Start and end cycle times do not match'
     
-#     n = cycle_times.shape[0]
-#     num_seg_phase = cycle_times.shape[1]
-#     assert num_seg_phase in (1, 2)
-    
-    
-#     cycle_point = np.zeros_like(cycle_times)
-#     if num_seg_phase ==1:
-#         cycle_point[:, 0] = np .arange(n)
-#     elif num_seg_phase ==2:
-#         cycle_point = np.zeros_like(cycle_times)
-#         cycle_point[:, 0] = np .arange(n)
-#         cycle_point[:, 1] = np .arange(n) + inspi_ratio
-    
-#     flat_cycle_times = cycle_times.flatten()
-#     flat_cycle_point = cycle_point.flatten()
-#     keep = ~np.isnan(flat_cycle_times)
-#     flat_cycle_times = flat_cycle_times[keep]
-#     flat_cycle_point = flat_cycle_point[keep]
-    
-#     interp = scipy.interpolate.interp1d(flat_cycle_times, flat_cycle_point, kind='linear', axis=0, bounds_error=False, fill_value='extrapolate')
+    num_seg_phase = cycle_times.shape[1] - 1
+
+
+
+    n = cycle_times.shape[0]
+
+    # num_seg_phase = cycle_times.shape[1]
+    assert num_seg_phase in (1, 2)
     
     
-#     inside = (times>=cycle_times[0,0]) & (times<cycle_times[-1,0])
-#     cycles = np.zeros_like(times) * np.nan
-#     cycles[inside] = interp(times[inside])
+    cycle_point = np.zeros_like(cycle_times[:, :-1])
+    if num_seg_phase ==1:
+        cycle_point[:, 0] = np .arange(n)
+    elif num_seg_phase ==2:
+        cycle_point[:, 0] = np .arange(n)
+        cycle_point[:, 1] = np .arange(n) + inspi_ratio
     
-#     # put nan when some times are in missing cycles
-#     if num_seg_phase == 2:
-#         ind_missing, = np.nonzero(np.isnan(cycle_times[:, 1]))
-#         in_missing = np.in1d(np.floor(cycles), ind_missing.astype(cycles.dtype))
-#         cycles[in_missing] = np.nan
+    flat_cycle_times = cycle_times[:, :-1].flatten()
+    flat_cycle_point = cycle_point.flatten()
+    keep = ~np.isnan(flat_cycle_times)
+    flat_cycle_times = flat_cycle_times[keep]
+    flat_cycle_point = flat_cycle_point[keep]
+    interp = scipy.interpolate.interp1d(flat_cycle_times, flat_cycle_point, kind='linear', axis=0, bounds_error=False, fill_value='extrapolate')
     
     
-#     return cycles
+    inside = (times>=cycle_times[0,0]) & (times<cycle_times[-1,0])
+    cycles = np.zeros_like(times) * np.nan
+    cycles[inside] = interp(times[inside])
+    
+    # put nan when some times are in missing cycles
+    if num_seg_phase == 2:
+        ind_missing, = np.nonzero(np.isnan(cycle_times[:, 1]))
+        in_missing = np.in1d(np.floor(cycles), ind_missing.astype(cycles.dtype))
+        cycles[in_missing] = np.nan
+    
+    
+    return cycles
     
