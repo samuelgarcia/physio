@@ -70,7 +70,7 @@ ax.set_xlim(0,  40)
 # Ecg peaks transform in resp cycle phase
 # ---------------------------------------
 #  
-# 
+# sphinx_gallery_thumbnail_number = 2
 
 
 inspi_ratio = resp_cycles['cycle_ratio'].median()
@@ -134,3 +134,4 @@ ax.legend()
 
 plt.show()
 
+ax.set_xlim(-0.01, 1.01)
