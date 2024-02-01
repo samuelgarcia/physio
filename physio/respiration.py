@@ -67,7 +67,8 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
 
 
     resp_cycles = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, **params["features"])
-
+    
+    
     if params['cycle_clean'] is not None:
         resp_cycles = clean_respiration_cycles(resp, srate, resp_cycles, baseline, **params['cycle_clean'])
     
@@ -191,14 +192,16 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     
     ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
     ind_insp_no_clean = ind_insp.copy()
-    keep_inds = np.searchsorted(ind_insp, ind_dw, side='left')
+    keep_inds = np.searchsorted(ind_insp, ind_dw, side='right')
     keep_inds = keep_inds[keep_inds > 0]
     ind_insp = ind_insp[keep_inds - 1]
     ind_insp = np.unique(ind_insp)
-
     ind_exp, = np.nonzero((resp0 < baseline) & (resp1 >= baseline))
-
+    
+    
     ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_exp=False)
+
+    
 
     if inspiration_adjust_on_derivative:
         # lets find local minima on second derivative
