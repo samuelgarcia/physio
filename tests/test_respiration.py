@@ -25,9 +25,9 @@ def test_detect_respiration_cycles():
     resp = preprocess(raw_resp, srate, band=25., btype='lowpass', ftype='bessel', order=5, normalize=False)
 
 
-    cycles = detect_respiration_cycles(resp, srate, baseline_mode='median',
+    cycles = detect_respiration_cycles(resp, srate, method="crossing_baseline", baseline_mode='median',
                               inspiration_adjust_on_derivative=False)
-
+    print(cycles.shape)
 
 
     # clean_respiration_cycles

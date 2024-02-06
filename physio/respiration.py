@@ -13,8 +13,6 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
       * clean cycles
       * compute metrics cycle by cycle
     
-    
-
     Parameters
     ----------
     raw_resp: np.array
@@ -44,23 +42,37 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
         recursive_update(params, parameters)
 
     # filter and smooth : more or less 2 times a low pass
-    center = np.mean(raw_resp)
-    resp = raw_resp - center
-    resp = preprocess(resp, srate, **params['preprocess'])
-    if params['smooth'] is not None:
-        resp = smooth_signal(resp, srate, **params['smooth'])
-    resp += center
+    if params['preprocess'] is not None and params['smooth'] is not None:
+        center = np.mean(raw_resp)
+        resp = raw_resp - center
+        if params['preprocess'] is not None:
+            resp = preprocess(resp, srate, **params['preprocess'])
+        if params['smooth'] is not None:
+            resp = smooth_signal(resp, srate, **params['smooth'])
+        resp += center
+    else:
+        resp = raw_resp
+
 
     baseline = get_respiration_baseline(resp, srate, **params['baseline'])
     
-    baseline_detect = baseline
+    
+    detection_method = params['cycle_detection']["method"]
 
-    cycles = detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=baseline,
-                                        **params['cycle_detection'])
+    if detection_method == "crossing_baseline":
+        cycles = detect_respiration_cycles(resp, srate, 
+                                           baseline_mode='manual', baseline=baseline,
+                                           **params['cycle_detection'])
+    else:
+        cycles = detect_respiration_cycles(resp, srate, 
+                                            **params['cycle_detection'])
 
-    resp_cycles = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline)
 
-    resp_cycles = clean_respiration_cycles(resp, srate, resp_cycles, baseline, **params['cycle_clean'])
+    resp_cycles = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, **params["features"])
+    
+    
+    if params['cycle_clean'] is not None:
+        resp_cycles = clean_respiration_cycles(resp, srate, resp_cycles, baseline, **params['cycle_clean'])
     
     return resp, resp_cycles
 
@@ -106,12 +118,43 @@ def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None)
 
     return baseline
 
-    
 
-def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None, 
+def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_kwargs):
+    """
+    Detect respiration with several methods:
+      * "crossing_baseline": internally use detect_respiration_cycles_crossing_baseline()
+      * "co2" : internally use detect_respiration_cycles_co2()
+
+    Parameters
+    ----------
+    resp: np.array
+        Preprocess traces of respiratory signal.
+    srate: float
+        Sampling rate
+    method: 'crossing_baseline' / 'co2'
+        Which method for respiration.
+    **method_kwargs: 
+        All other option are routed to the sub function.
+    Returns
+    -------
+    cycles: np.array
+        Indices of inspiration and expiration. shape=(num_cycle, 3)
+        with [index_inspi, index_expi, index_next_inspi]
+    """    
+    if method == "crossing_baseline":
+        cycles = detect_respiration_cycles_crossing_baseline(resp, srate, **method_kwargs)
+    elif method == "co2":
+        cycles = detect_respiration_cycles_co2(resp, srate, **method_kwargs)
+    else:
+        raise ValueError(f"detect_respiration_cycles(): {method} do not exists")
+    
+    return cycles
+
+
+def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manual', baseline=None, 
                               epsilon_factor1=10, epsilon_factor2=5, inspiration_adjust_on_derivative=False):
     """
-    Detect respiration cycles based on:
+    Detect respiration by cycles based on:
       * crossing zeros (or crossing baseline)
       * some cleanning with euristicts
 
@@ -151,57 +194,25 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     
     ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
     ind_insp_no_clean = ind_insp.copy()
-    keep_inds = np.searchsorted(ind_insp, ind_dw, side='left')
+    keep_inds = np.searchsorted(ind_insp, ind_dw, side='right')
     keep_inds = keep_inds[keep_inds > 0]
     ind_insp = ind_insp[keep_inds - 1]
     ind_insp = np.unique(ind_insp)
-
     ind_exp, = np.nonzero((resp0 < baseline) & (resp1 >= baseline))
-    keep_inds = np.searchsorted(ind_exp, ind_insp, side='right')
-    keep_inds = keep_inds[keep_inds<ind_exp.size]
-    ind_exp = ind_exp[keep_inds]
     
-    # this is tricky to read but quite simple in concept
-    # this remove ind_exp assigned to the same ind_insp
-    bad, = np.nonzero(np.diff(ind_exp) == 0)
-    keep = np.ones(ind_insp.size, dtype='bool')
-    keep[bad + 1] = False
-    ind_insp = ind_insp[keep]
-    keep = np.ones(ind_exp.size, dtype='bool')
-    keep[bad + 1] = False
-    ind_exp = ind_exp[keep]
- 
     
+    ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_exp=False)
+
     # import matplotlib.pyplot as plt
     # fig, ax = plt.subplots()
     # ax.plot(resp)
-    # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='m', marker='*', s=100)
-    # ax.scatter(ind_dw, resp[ind_dw], color='orange', marker='o', s=30)
-    # ax.scatter(ind_insp, resp[ind_insp], color='g', marker='o')
-    # ax.scatter(ind_exp, resp[ind_exp], color='r', marker='o')
-    # ax.axhline(baseline, color='r')
-    # ax.axhline(baseline_insp, color='g')
-    # ax.axhline(baseline_dw, color='orange')
-    # ax.axhline(q10, color='k')
+    # ax.scatter(ind_insp, resp[ind_insp], color='g')
+    # ax.scatter(ind_exp, resp[ind_exp], color='r')
+    # ax.axhline(baseline_dw)
+    # ax.axhline(baseline_insp)
+    # ax.axhline(baseline)
     # plt.show()
-
-
-    if ind_insp.size == 0:
-        print('no cycle dettected')
-        return
-
-    # keep ind_exp inside ind_insp
-    mask = (ind_exp > ind_insp[0]) & (ind_exp < ind_insp[-1])
-    ind_exp = ind_exp[mask]
-
-    # corner cases several ind_insp at the beginning/end
-    n = np.sum(ind_insp < ind_exp[0])
-    if n > 1:
-        ind_insp = ind_insp[n - 1:]
-    n = np.sum(ind_insp > ind_exp[-1])
-    if n > 1:
-        ind_insp = ind_insp[: - (n - 1)]
-
+    
 
     if inspiration_adjust_on_derivative:
         # lets find local minima on second derivative
@@ -235,11 +246,124 @@ def detect_respiration_cycles(resp, srate, baseline_mode='manual', baseline=None
     return cycles
 
 
+def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thresh_expi_factor=0.05,
+                                  clean_by_mid_value=True):
+    """
+    Detect respiration for CO2 sensor.
+
+    Parameters
+    ----------
+    co2_raw: np.array
+        Preprocess traces of respiratory signal.
+    srate: float
+        Sampling rate
+    thresh_inspi_factor: float, default 0.05
+        Fraction of the min derivative for sertting threshold for inspiration
+    thresh_expi_factor: float, default 0.05
+        Fraction of the min derivative for sertting threshold for expiration
+    clean_by_mid_value: bool, default True
+        Remove strange cycle by mid value.
+
+    Returns
+    -------
+    cycles: np.array
+        Indices of inspiration and expiration. shape=(num_cycle, 3)
+        with [index_inspi, index_expi, index_next_inspi]
+    """ 
 
 
+    # detect resp on CO2 signal
+    co2_gradient = np.gradient(co2_raw)
+    min_, max_ = np.min(co2_gradient), np.max(co2_gradient)
+
+    thresh_inspi = min_ * thresh_inspi_factor
+    thresh_expi = max_ * thresh_expi_factor
+    
+    ind_insp = np.flatnonzero((co2_gradient[:-1] >= thresh_inspi) & (co2_gradient[1:] < thresh_inspi))
+    ind_exp = np.flatnonzero((co2_gradient[:-1]  <= thresh_expi) & (co2_gradient[1:] > thresh_expi))
+    
+
+    ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_exp=False)
+    
+    # simple clean by separting up and down values
+    if clean_by_mid_value:
+        insp_values = co2_raw[ind_insp]
+        exp_values = co2_raw[ind_exp]
+        mid_value = (np.median(insp_values) + np.median(exp_values)) / 2
+        remove_inds = np.flatnonzero(exp_values > mid_value)
+        keep = np.ones(ind_insp.size, dtype=bool)
+        keep[remove_inds] = False
+        ind_insp = ind_insp[keep]
+        keep = np.ones(ind_exp.size, dtype=bool)
+        keep[remove_inds] = False
+        ind_exp = ind_exp[keep]
+ 
+    # import matplotlib.pyplot as plt
+    # fig, axs = plt.subplots(nrows=2, sharex=True)
+    # ax = axs[0]
+    # ax.plot(co2_raw)
+    # ax.plot(smoothed_co2)
+    # ax.scatter(ind_insp, smoothed_co2[ind_insp], color='g')
+    # ax.scatter(ind_exp, smoothed_co2[ind_exp], color='r')
+    # ax = axs[1]
+    # ax.plot(co2_gradient)
+    # ax.axhline(thresh_inspi, color='g')
+    # ax.axhline(thresh_expi, color='r')
+    # plt.show()
+
+    cycles = np.zeros((ind_insp.size - 1, 3), dtype='int64')
+    cycles[:, 0] = ind_insp[:-1]
+    cycles[:, 1] = ind_exp
+    cycles[:, 2] = ind_insp[1:]
+    
+    return cycles
 
 
-def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
+def _ensure_interleave(ind0, ind1, remove_first=True):
+    """
+    Clean ind0 so they are interlevaed into ind1.
+    """
+    keep_inds = np.searchsorted(ind1, ind0,  side='right')
+    keep = np.ones(ind0.size, dtype=bool)
+    ind_bad = np.flatnonzero(np.diff(keep_inds) == 0)
+    if remove_first:
+        keep[ind_bad] = False
+    else:
+        keep[ind_bad + 1] = False
+    ind0_clean = ind0[keep]
+    return ind0_clean
+
+
+def interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_exp=False):
+    """
+    Ensure index of inspiration and expiration are interleaved.
+
+    Ensure also that it start and stop with inspiration so that ind_insp.size == ind_exp.size + 1
+    """
+
+    ind_exp = _ensure_interleave(ind_exp, ind_insp, remove_first=remove_first_exp)
+
+    ind_insp = _ensure_interleave(ind_insp, ind_exp, remove_first=remove_first_insp)
+
+
+    if np.any(ind_exp < ind_insp[0]):
+        ind_exp = ind_exp[ind_exp>ind_insp[0]]
+
+    if np.any(ind_exp > ind_insp[-1]):
+        ind_exp = ind_exp[ind_exp<ind_insp[-1]]
+
+    # corner cases several ind_insp at the beginning/end
+    n = np.sum(ind_insp < ind_exp[0])
+    if n > 1:
+        ind_insp = ind_insp[n - 1:]
+    n = np.sum(ind_insp > ind_exp[-1])
+    if n > 1:
+        ind_insp = ind_insp[: - (n - 1)]
+    
+    return ind_insp, ind_exp
+
+
+def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, compute_volume=True, compute_amplitude=True):
     """
     Compute respiration features cycle by cycle
 
@@ -311,26 +435,37 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None):
 
     df['cycle_freq'] = 1. / df['cycle_duration']
     df['cycle_ratio'] = df['inspi_duration'] / df['cycle_duration']
-    for k in ('inspi_volume', 'expi_volume', 'total_amplitude', 'inspi_amplitude', 'expi_amplitude'):
-        df[k] = pd.Series(dtype='float64')
+
+    if compute_volume:
+        for k in ('inspi_volume', 'expi_volume', ):
+            df[k] = pd.Series(dtype='float64')
+
+    if compute_amplitude:
+        for k in ('total_amplitude', 'inspi_amplitude', 'expi_amplitude'):
+            df[k] = pd.Series(dtype='float64')
     
     #missing cycle
     mask = (ix2 == -1)
     df.loc[mask, ['expi_time', 'cycle_duration', 'inspi_duration', 'expi_duration', 'cycle_freq']] = np.nan
     
-    for c in range(n):
-        i1, i2, i3 = ix1[c], ix2[c], ix3[c]
-        if i2 == -1:
-            #this is a missing cycle in the middle
-            continue
-
-        df.at[c, 'inspi_volume'] = np.abs(np.sum(resp[i1:i2])) / srate
-        df.at[c, 'expi_volume'] = np.abs(np.sum(resp[i2:i3])) / srate
-        df.at[c, 'inspi_amplitude'] = np.max(np.abs(resp[i1:i2]))
-        df.at[c, 'expi_amplitude'] = np.max(np.abs(resp[i2:i3]))
+    if compute_volume or compute_amplitude:
+        for c in range(n):
+            i1, i2, i3 = ix1[c], ix2[c], ix3[c]
+            if i2 == -1:
+                #this is a missing cycle in the middle
+                continue
+            if compute_volume:
+                df.at[c, 'inspi_volume'] = np.abs(np.sum(resp[i1:i2])) / srate
+                df.at[c, 'expi_volume'] = np.abs(np.sum(resp[i2:i3])) / srate
+            if compute_amplitude:
+                df.at[c, 'inspi_amplitude'] = np.max(np.abs(resp[i1:i2]))
+                df.at[c, 'expi_amplitude'] = np.max(np.abs(resp[i2:i3]))
     
-    df['total_amplitude'] = df['inspi_amplitude'] + df['expi_amplitude']
-    df['total_volume'] = df['inspi_volume'] + df['expi_volume']
+    if compute_amplitude:
+        df['total_amplitude'] = df['inspi_amplitude'] + df['expi_amplitude']
+
+    if compute_volume:
+        df['total_volume'] = df['inspi_volume'] + df['expi_volume']
     
     return resp_cycles
 
