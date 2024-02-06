@@ -5,6 +5,14 @@ Release notes
 =============
 
 
+Version 0.2.0
+=============
+
+2024-01-06
+
+  * improve respiration cycle detection (2 methods : crossing baseline and co2)
+  * more doc
+  * proof of concept of cardio-respiration synchronisation
 
 
 Version 0.1.0
