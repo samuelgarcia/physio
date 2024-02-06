@@ -42,15 +42,17 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
         recursive_update(params, parameters)
 
     # filter and smooth : more or less 2 times a low pass
-    center = np.mean(raw_resp)
-    resp = raw_resp - center
-    resp = preprocess(resp, srate, **params['preprocess'])
-    if params['smooth'] is not None:
-        resp = smooth_signal(resp, srate, **params['smooth'])
-    resp += center
+    if params['preprocess'] is not None and params['smooth'] is not None:
+        center = np.mean(raw_resp)
+        resp = raw_resp - center
+        if params['preprocess'] is not None:
+            resp = preprocess(resp, srate, **params['preprocess'])
+        if params['smooth'] is not None:
+            resp = smooth_signal(resp, srate, **params['smooth'])
+        resp += center
+    else:
+        resp = raw_resp
 
-
-    
 
     baseline = get_respiration_baseline(resp, srate, **params['baseline'])
     
@@ -201,6 +203,15 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     
     ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_exp=False)
 
+    # import matplotlib.pyplot as plt
+    # fig, ax = plt.subplots()
+    # ax.plot(resp)
+    # ax.scatter(ind_insp, resp[ind_insp], color='g')
+    # ax.scatter(ind_exp, resp[ind_exp], color='r')
+    # ax.axhline(baseline_dw)
+    # ax.axhline(baseline_insp)
+    # ax.axhline(baseline)
+    # plt.show()
     
 
     if inspiration_adjust_on_derivative:
