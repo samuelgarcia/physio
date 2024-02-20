@@ -47,8 +47,8 @@ ax.set_xlim(95, 125)
 # Detect ECG R peaks: Parameters tuning
 # -------------------------------------
 # 
-# Here is a simple recipe to change some predefined parameters.
-# We change here some filtering parameters.
+# Here is a simple recipe to change the default parameters.
+# We change here some filtering parameters (frequency band, filter type, order of the filter).
 
 # get paramseters predefined set for 'human_ecg'
 # this is a nested dict of parameter of every step
@@ -74,7 +74,7 @@ ax.set_xlim(95, 125)
 
 ##############################################################################
 # 
-# ECG: compute metrics
+# ECG: compute time-domain heart rate variability (HRV) metrics
 # --------------------
 #
 
@@ -87,13 +87,13 @@ print(metrics)
 # ECG : compute instantaneous rate
 # --------------------------------
 #
-# The RR-interval (aka rri) time series is a common tool to analyse the heart rate variability (hrv).
-# This is equivalent to computing the instantaneous heart rate.
+# The RR-interval (aka rri) time series is a common tool to analyse the heart rate variability (HRV).
+# This is equivalent to compute the instantaneous heart rate.
 # Heart rate [bpm] = 1 / rri * 60
 #
-# Most people use rri in ms, we feel that use heart rate in bpm is more intuitive. 
-# With bpm an increase in the curve = heart acceleration. 
-# With ms an increase in the curve = heart decceleration. 
+# Most people use rri in ms, we feel that the use of heart rate in bpm is more intuitive. 
+# With bpm unit, an increase in the curve means heart rate acceleration. 
+# With ms unit, an increase in the curve means heart rate deceleration. 
 #
 # Feel free to use the units you prefer (bpm or ms)
 
@@ -125,7 +125,7 @@ ax.set_xlim(100, 150)
 
 ##############################################################################
 # 
-# ECG: compute hrv spectrum
+# ECG: compute frequency-domain heart rate variability (HRV) metrics
 # -------------------------
 #
 # 
