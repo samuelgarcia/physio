@@ -42,14 +42,13 @@ ax.set_xlim(185, 225)
 
 ##############################################################################
 # 
-# Analyse respiration
+# Analyze respiration
 # -------------------
 # 
 # :py:func:`~physio.compute_respiration` is an easy function to:
 #
-#    * preprocess the respiration signal
-#    * compute cycle
-#    * compute cycle features
+#    * preprocess the respiratory signal (resp)
+#    * compute cycle features (resp_cycles)
 
 
 resp, resp_cycles = physio.compute_respiration(raw_resp, srate)
@@ -61,11 +60,11 @@ ax.set_xlim(185, 225)
 
 ##############################################################################
 # 
-# repiration cycles and features
+# Respiration cycles and features
 # ------------------------------
 #  
-# resp_cycles is a dataframe containing all respiration cycles as rows and columns.
-# It contains features like duration, amplitudes, durations
+# resp_cycles is a dataframe containing all respiratory cycles as rows.
+# Columns contain features like duration, amplitudes, volumes.
 # 
 
 print(resp_cycles.shape)
@@ -98,8 +97,8 @@ ax.set_xlim(185, 225)
 #  
 # :py:func:`~physio.compute_ecg` is an easy function to:
 #
-#     * Preprocess the ECG signal output, which is normalized by default
-#     * Detect R peaks
+#     * Preprocess the ECG signal output, which is normalized by default (ecg)
+#     * Detect R peaks (ecg_peaks)
 
 
 ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate)
@@ -122,10 +121,10 @@ ax.set_xlim(185, 225)
 # ECG metrics
 # -----------
 # 
-# :py:func:`~physio.compute_ecg_metrics` is a simple function to compute temporal based metrics around ECG
+# :py:func:`~physio.compute_ecg_metrics` is a simple function to compute time-domain Heart Rate Variability (HRV) metrics.
 # 
 #
-# We can visualize theses metrics and the RR interval distribution.
+# We can visualize these metrics and the RR interval distribution.
 
 
 ecg_metrics = physio.compute_ecg_metrics(ecg_peaks)
@@ -150,21 +149,21 @@ print(ecg_metrics)
 # to a cycle template by stretching with linear resampling to a fixed number of
 # points per cycle.
 #
-# This is helpfull to check if a signal is driven by a cyclic event like respiration.
+# This is helpful to explore if features of a signal are driven by a cyclic phenomenon like respiration.
 # 
-# Here, we deform the signal trace by "itself" : the respiration cycle.
-# This leads to an average respiration template.
+# Here, we deform the signal trace by "itself" : the respiratory cycle.
+# This leads to an average respiratory template.
 #
 # Importantly, this can be done using one or several segment inside the cycle.
 
-# here we have 3 time per cycle so 2 segments
+# here we have 3 times per cycle so 2 segments
 cycle_times = resp_cycles[['inspi_time', 'expi_time', 'next_inspi_time']].values
 deformed_resp_1seg = physio.deform_traces_to_cycle_template(resp, times, cycle_times,
                                                 points_per_cycle=40, segment_ratios=0.4,
                                                 output_mode='stacked')
 print(deformed_resp_1seg.shape, cycle_times.shape)
 
-# here we have 2 time per cycle so 1 segment
+# here we have 2 times per cycle so 1 segment
 cycle_times = resp_cycles[['inspi_time', 'next_inspi_time']].values
 deformed_resp_2seg = physio.deform_traces_to_cycle_template(resp, times, cycle_times,
                                                 points_per_cycle=40, segment_ratios=None,
@@ -183,7 +182,7 @@ axs[1].set_title('Deformation 1 segment')
 # Cyclic deformation on ECG
 # -------------------------
 # 
-# Lets use the same for ECG trace
+# Let's use the same for ECG trace
 # 
 # We can also use a simple vector in this case it is converted a a 1 segment case.
 
@@ -196,7 +195,7 @@ print(deformed_ecg.shape, cycle_times.shape)
 
 fig, ax = plt.subplots()
 physio.plot_cyclic_deformation(deformed_ecg, two_cycles=True, ax=ax)
-ax.set_title('two ECG cycle avaerage')
+ax.set_title('Two ECG cycle averaged')
 
 ##############################################################################
 # 
