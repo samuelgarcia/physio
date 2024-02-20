@@ -20,7 +20,7 @@ import physio
 # ------------------------------------------
 #
 # The fastest way is to use compute_respiration() using a predefined
-# parameter presetset. Here is a simple example.
+# parameter preset. Here is a simple example.
 
 
 # read data
@@ -46,22 +46,31 @@ ax.set_ylabel('resp')
 
 ax.set_xlim(110, 170)
 
+##############################################################################
+# 
+# Cycle detection: Default parameters
+# -----------------------------------
+# 
+# Here are the default parameters : those aiming to process a human airflow signal. 
+# It is possible to get default parameters dictionnary by calling it with the :py:func:`~physio.get_respiration_parameters` function.
+
+# this is a nested dict of parameters of every processing step
+parameters = physio.get_respiration_parameters('human_airflow')
+pprint(parameters)
 
 ##############################################################################
 # 
 # Cycle detection: Parameters tuning
 # -----------------------------------
 # 
-# Here is a simple recipe to change some predefined parameters.
-# We change here the length of the smoothing parameter.
+# If necessary, it is possible to change the predefined parameters.
+# For example, we change here the length of the smoothing parameter.
 
-# get paramseters set
-# this is a nested dict of parameter of every step
-parameters = physio.get_respiration_parameters('human_airflow')
-# lets change on parameter in the structure
+# let's change on parameter in the structure ...
 parameters['smooth']['sigma_ms'] = 100.
 pprint(parameters)
 
+# ... and use them by providing it to "parameters"
 resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameters=parameters)
 
 
