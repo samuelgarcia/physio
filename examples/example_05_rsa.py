@@ -61,7 +61,7 @@ ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg'
 # This is done with one unique function that returns:
 #   
 #   * One dataframe with all RSA features
-#   * The cyclic deformed cardiac rate
+#   * The cyclically deformed cardiac rate
 
 points_per_cycle = 50
 

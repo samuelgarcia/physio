@@ -156,5 +156,3 @@ ax.legend()
 
 
 plt.show()
-
-ax.set_xlim(-0.01, 1.01)
