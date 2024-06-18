@@ -68,8 +68,8 @@ def smooth_signal(trace, srate, win_shape='gaussian', sigma_ms=5.0):
     trace_smooth: np.array
         The smoothed traces
     """
-
     size = int(srate * sigma_ms / 1000.)
+    assert size > 0, 'sigma_ms is too short for srate = {}. sigma_ms should be at least {} ms'.format(srate, round(1000/srate,1))
     if win_shape == 'gaussian':
         times = np.arange(- 5 * size, 5 * size + 1)
         kernel = np.exp(- times ** 2 / size ** 2)
