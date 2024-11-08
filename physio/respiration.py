@@ -236,6 +236,10 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
                     mask = (d2[:-1] >=0) & (d2[1:] < 0)
                     if np.any(mask):
                         ind_insp[i] = i0 + np.nonzero(mask)[0][-1]
+
+    # correct if cycle detection finish by two inspi, remove the last one
+    if ind_insp[-1] >= ind_exp[-1] and ind_insp[-2] >= ind_exp[-1]:
+        ind_insp = ind_insp[:-1]
     
     cycles = np.zeros((ind_insp.size - 1, 3), dtype='int64')
     cycles[:, 0] = ind_insp[:-1]
