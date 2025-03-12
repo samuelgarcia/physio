@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from .tools import get_empirical_mode, compute_median_mad
+from .tools import get_empirical_mode, compute_median_mad, detect_peak
 from .preprocess import preprocess, smooth_signal
 from .parameters import get_respiration_parameters, recursive_update
 
@@ -122,8 +122,13 @@ def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None)
 def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_kwargs):
     """
     Detect respiration with several methods:
-      * "crossing_baseline": internally use detect_respiration_cycles_crossing_baseline()
-      * "co2" : internally use detect_respiration_cycles_co2()
+      * "crossing_baseline": method used when the respiratory signal is airflow
+        internally use detect_respiration_cycles_crossing_baseline()
+      * "min_max" : method used when the respiratory signal is volume
+        internally use detect_respiration_cycles_min_max()
+      * "co2" : method used when the respiratory signal is from co2 sensor
+        internally use detect_respiration_cycles_co2()
+      
 
     Parameters
     ----------
@@ -143,8 +148,10 @@ def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_
     """    
     if method == "crossing_baseline":
         cycles = detect_respiration_cycles_crossing_baseline(resp, srate, **method_kwargs)
+    elif method == "min_max":
+        cycles = detect_respiration_cycles_min_max(resp, srate, **method_kwargs)
     elif method == "co2":
-        cycles = detect_respiration_cycles_co2(resp, srate, **method_kwargs)
+        cycles = detect_respiration_cycles_co2(resp, srate, **method_kwargs)    
     else:
         raise ValueError(f"detect_respiration_cycles(): {method} do not exists")
     
@@ -244,6 +251,44 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
 
 
     return cycles
+
+
+def detect_respiration_cycles_min_max(resp, srate, min_cycle_duration_ms=100.):
+    """
+    Detect respiration by cycles based on:
+      * crossing zeros (or crossing baseline)
+      * some cleanning with euristicts
+
+    Parameters
+    ----------
+    resp: np.array
+        Preprocess traces of respiratory signal.
+    srate: float
+        Sampling rate
+    min_cycle_duration_ms: 
+    Returns
+    -------
+    cycles: np.array
+        Indices of inspiration and expiration. shape=(num_cycle, 3)
+        with [index_inspi, index_expi, index_next_inspi]
+    """
+
+    abs_threhold = 0
+    exclude_sweep_ms = min_cycle_duration_ms / 2.
+
+    ind_exp = detect_peak(resp, srate, abs_threhold=abs_threhold, exclude_sweep_ms=exclude_sweep_ms)
+    ind_insp = np.zeros(ind_exp.size - 1, dtype="int64")
+    for i in range(ind_exp.size - 1):
+        ind_insp[i] = np.argmin(resp[ind_exp[i]:ind_exp[i+1]]) + ind_exp[i]
+
+    cycles = np.zeros((ind_insp.size - 1, 3), dtype='int64')
+    cycles[:, 0] = ind_insp[:-1]
+    cycles[:, 1] = ind_exp[1:-1]
+    cycles[:, 2] = ind_insp[1:]
+
+    return cycles
+
+
 
 
 def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thresh_expi_factor=0.05,
