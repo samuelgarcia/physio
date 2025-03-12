@@ -5,6 +5,9 @@ from .tools import get_empirical_mode, compute_median_mad, detect_peak
 from .preprocess import preprocess, smooth_signal
 from .parameters import get_respiration_parameters, recursive_update
 
+
+_possible_sensor_type = ('airflow', 'co2', 'belt') 
+
 def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', parameters=None, ):
     """
     Function for respiration that:
@@ -41,6 +44,13 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
     if parameters is not None:
         recursive_update(params, parameters)
 
+    # keep backward compatibility if sensor_type is not provided : 'airflow'
+    sensor_type = params.get('sensor_type', 'airflow')
+    
+    if sensor_type not in _possible_sensor_type:
+        raise ValueError(f"sensor_type {sensor_type} is not handled shoudl in : {_possible_sensor_type}")
+    
+
     # filter and smooth : more or less 2 times a low pass
     if params['preprocess'] is not None and params['smooth'] is not None:
         center = np.mean(raw_resp)
@@ -56,8 +66,15 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
 
     baseline = get_respiration_baseline(resp, srate, **params['baseline'])
     
-    
-    detection_method = params['cycle_detection']["method"]
+
+    detection_method = params['cycle_detection'].get("method", None)
+    if detection_method is None:
+        if sensor_type == 'airflow':
+            detection_method = 'crossing_baseline'
+        elif sensor_type == 'belt':
+            detection_method = 'min_max'
+        elif sensor_type == 'co2':
+            detection_method = 'co2'
 
     if detection_method == "crossing_baseline":
         cycles = detect_respiration_cycles(resp, srate, 
@@ -67,9 +84,7 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
         cycles = detect_respiration_cycles(resp, srate, 
                                             **params['cycle_detection'])
 
-
-    resp_cycles = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, **params["features"])
-    
+    resp_cycles = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, sensor_type=sensor_type)
     
     if params['cycle_clean'] is not None:
         resp_cycles = clean_respiration_cycles(resp, srate, resp_cycles, baseline, **params['cycle_clean'])
@@ -408,7 +423,7 @@ def interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_
     return ind_insp, ind_exp
 
 
-def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, compute_volume=True, compute_amplitude=True):
+def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, sensor_type='airflow'):
     """
     Compute respiration features cycle by cycle
 
@@ -427,6 +442,18 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, compu
     resp_cycles: pd.Dataframe
         Features of all cycles.
     """
+
+
+    if sensor_type == 'airflow':
+        compute_volume = True
+        compute_amplitude = True
+    elif sensor_type == 'belt':
+        compute_volume = False
+        compute_amplitude = False
+    elif sensor_type == 'co2':
+        compute_volume = False
+        compute_amplitude = False
+
 
     if baseline is not None:
         resp = resp - baseline
