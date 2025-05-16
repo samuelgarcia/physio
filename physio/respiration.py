@@ -75,6 +75,7 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
             detection_method = 'min_max'
         elif sensor_type == 'co2':
             detection_method = 'co2'
+        params['cycle_detection']['detection_method'] = params['cycle_detection']
 
     if detection_method == "crossing_baseline":
         cycles = detect_respiration_cycles(resp, srate, 
@@ -538,6 +539,16 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
 
     if compute_volume:
         df['total_volume'] = df['inspi_volume'] + df['expi_volume']
+    
+
+    if sensor_type == 'belt':
+        for k in ('inspi_amplitude', 'expi_amplitude'):
+            df[k] = pd.Series(dtype='float64')        
+        # amplitude is different
+        for c in range(n):
+            i1, i2, i3 = ix1[c], ix2[c], ix3[c]
+            df.at[c, 'inspi_amplitude'] = resp[i2] - resp[i1]
+            df.at[c, 'expi_amplitude'] = resp[i2] - resp[i3]
     
     return resp_cycles
 
