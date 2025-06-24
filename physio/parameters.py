@@ -85,7 +85,7 @@ _resp_parameters['rat_etisens_belt'] = dict(
 
 _ecg_parameters = {}
 
-# this parameters works well with simple ecg signal with positive peaks
+# this parameter works well with simple ecg signal with positive peaks
 _ecg_parameters['human_ecg'] = dict(
     preprocess=dict(band=[5., 45.], ftype='bessel', order=5, normalize=True),
     peak_detection=dict(thresh='auto', exclude_sweep_ms=4.0),

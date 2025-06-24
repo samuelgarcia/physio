@@ -118,13 +118,13 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
     """
     Compute metrics on ecg peaks: HRV_Mean, HRV_SD, HRV_Median, ...
     
-    This metrics are a bit more robust that neurokit2 ones because strange interval
-    are skiped from the analysis.
+    This metrics are a bit more robust than neurokit2 ones because strange interval
+    are skipped from the analysis.
 
     Parameters
     ----------
-    ecg_peaks: pr.DataFrame
-        Datfarame containing ecg R peaks.
+    ecg_peaks: pd.DataFrame
+        Dataframe containing ecg R peaks.
     min_interval_ms: float (default 500ms)
         Minimum interval inter R peak
     max_interval_ms: float (default 2000ms)
@@ -134,7 +134,7 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
     Returns
     -------
     metrics: pd.Series
-        A table contaning metrics
+        A table containing metrics
     """
     
     peak_ms = ecg_peaks['peak_time'].values * 1000.
@@ -182,10 +182,10 @@ def compute_instantaneous_rate(ecg_peaks, new_times, limits=None, units='bpm', i
 
     Parameters
     ----------
-    ecg_peaks: pr.DataFrame
-        Datfarame containing ecg R peaks.
+    ecg_peaks: pd.DataFrame
+        Dataframe containing ecg R peaks.
     new_times : np.array
-        Time vector for interpolating the instanteneous rate.
+        Time vector for interpolating the instantaneous rate.
     limits : list or None
         Limits for removing outliers.
     units : 'bpm' / 'Hz' / 'ms' / 's'
@@ -228,29 +228,29 @@ def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
                                         freqency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)},
                                         window_s=250., interpolation_kind='cubic'):
     """
-    Compute hrv power spectrum density and extract some metrics:
-      * lf power
-      * hf power
+    Compute heart rate power spectrum density and extract some metrics:
+      * low-frequency (lf) power
+      * high-frequency (hf) power
     
     Please note:
         1. The duration of the signal and the window are important parameters to estimate low frequencies
-           in a spectrum. Some warnings or errors should popup if they are too short.
-        2. Given that the hrv is mainly driven by the respiration the frequency boudaries are often innacurate!
-           For instance a slow respiration at 0.1Hz is moving out from the 'hf' band wheras this band should capture
+           in a spectrum. Some warnings or errors should pop-up if they are too short.
+        2. Given that the heart rate is mainly driven by the respiration, the frequency boundaries are often innacurate!
+           For instance a slow respiration at 0.1Hz is moving out from the 'hf' band whereas this band should capture
            the respiratory part of the hrv.
-        3. The instataneous rate is computed by interpolating eccg peak interval, the interpolation method
-           'linear' or 'cubic' are a real impact of the dynamic and signal smoothness and so the spectrum should differ
-           because of the wieight of the harmonics
-        4. The units of the instantaneous hrv (bpm, interval in second, interval in ms) have a high impact on the
+        3. The instantaneous rate is computed by interpolating RR interval, the interpolation method,
+           'linear' or 'cubic', have a true impact on the dynamic and signal smoothness and therefore the spectrum should differ
+           because of the weight of the harmonics
+        4. The units of the instantaneous heart rate (bpm, interval in second, interval in ms) have a high impact on the
            magnitude of metrics. Many toolboxes (neurokit2, ) differ a lot on this important detail.
         5. Here we choose the classical welch method for spectrum density estimation. Some parameters have also small
-           impact on the results : dentend, windowing, overlap.
+           impact on the results : detrend, windowing, overlap.
     
     
     Parameters
     ----------
-    ecg_peaks: pr.DataFrame
-        Datfarame containing ecg R peaks.
+    ecg_peaks: pd.DataFrame
+        Dataframe containing ecg R peak detections.
 
     
     sample_rate=100.
@@ -288,7 +288,7 @@ def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
 
     # important note : when using welch with scaling='density'
     # then the integrale (trapz) must be aware of the dx to take in account
-    # so the metrics scale is invariant given against sampling rate and also sample_rate
+    # so that the metrics scale is invariant according to sampling rate
     nperseg = int(window_s * sample_rate)
     nfft = nperseg
     psd_freqs, psd = scipy.signal.welch(instantaneous_rate, detrend='constant', fs=sample_rate, window='hann',
