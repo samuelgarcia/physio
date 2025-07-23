@@ -45,8 +45,10 @@ def compute_ecg(raw_ecg, srate, parameter_preset='human_ecg', parameters=None):
     if parameters is not None:
         recursive_update(params, parameters)
 
-    
-    clean_ecg = preprocess(raw_ecg, srate, **params['preprocess'])
+    if 'preprocess' in params and params['preprocess'] is not None:
+        clean_ecg = preprocess(raw_ecg, srate, **params['preprocess'])
+    else:
+        clean_ecg = raw_ecg
 
     params_detection = params['peak_detection']
     if params_detection.get('thresh', None) == 'auto':
