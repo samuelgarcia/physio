@@ -2,7 +2,7 @@ import numpy as np
 
 def compute_median_mad(data, axis=0):
     """
-    Compute median and mad
+    Compute median and mad (median absolute deviation)
 
     Parameters
     ----------
@@ -80,10 +80,10 @@ def detect_peak(traces, srate, thresh=5, abs_threhold=None, exclude_sweep_ms=4.0
 
 def get_empirical_mode(traces, nbins=200):
     """
-    Get the emprical mode of a distribution.
-    This is a really lazy implementation that make an histogram
-    of the traces inside quantile [0.25, 0.75] and make an histogram
-    of 200 bins and take the max.
+    Get the empirical mode of a distribution.
+    This is a really lazy implementation that makes an histogram
+    of the traces inside quantile [0.25, 0.75] and makes an histogram
+    of 200 bins and takes the max.
 
     Parameters
     ----------
@@ -123,7 +123,7 @@ def crosscorrelogram(a, b, bins):
 
 
 
-# convoultion suff to keep in mind
+# convolution stuff to keep in mind
 # sweep = np.arange(-60, 60)
 # wfs = ecg_clean[some_peaks[:, None] + sweep]
 # wfs.shape

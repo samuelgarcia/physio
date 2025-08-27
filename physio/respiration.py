@@ -12,7 +12,7 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
     """
     Function for respiration that:
       * preprocess the signal
-      * detect cycle
+      * detect cycles
       * clean cycles
       * compute metrics cycle by cycle
     
@@ -96,8 +96,8 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
 def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None):
     """
     Get respiration baseline = respiration mid point.
-    This used for:
-      * detect_respiration_cycles() for corssing zero
+    This is used for:
+      * detect_respiration_cycles() for crossing zero
       * compute_respiration_cycle_features() for volume integration
     Parameters
     ----------
@@ -139,11 +139,11 @@ def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_
     """
     Detect respiration with several methods:
       * "crossing_baseline": method used when the respiratory signal is airflow
-        internally use detect_respiration_cycles_crossing_baseline()
+        internally uses detect_respiration_cycles_crossing_baseline()
       * "min_max" : method used when the respiratory signal is volume
-        internally use detect_respiration_cycles_min_max()
+        internally uses detect_respiration_cycles_min_max()
       * "co2" : method used when the respiratory signal is from co2 sensor
-        internally use detect_respiration_cycles_co2()
+        internally uses detect_respiration_cycles_co2()
       
 
     Parameters
@@ -155,7 +155,7 @@ def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_
     method: 'crossing_baseline' / 'co2'
         Which method for respiration.
     **method_kwargs: 
-        All other option are routed to the sub function.
+        All other options are routed to the sub-function.
     Returns
     -------
     cycles: np.array
@@ -179,7 +179,7 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     """
     Detect respiration by cycles based on:
       * crossing zeros (or crossing baseline)
-      * some cleanning with euristicts
+      * some cleaning with euristicts
 
     Parameters
     ----------
@@ -192,8 +192,8 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     baseline: float or None
         External baseline when baseline_mode='manual'
     inspration_ajust_on_derivative: bool (default False)
-        For the inspiration detection, the zero crossing can be refined to auto detect the inflection point.
-        This can be usefull when expiration ends with a long plateau.
+        For the inspiration detection, the zero crossing can be refined to auto-detect the inflection point.
+        This can be useful when expiration ends with a long plateau.
     Returns
     -------
     cycles: np.array
@@ -273,7 +273,7 @@ def detect_respiration_cycles_min_max(resp, srate, min_cycle_duration_ms=100.):
     """
     Detect respiration by cycles based on:
       * crossing zeros (or crossing baseline)
-      * some cleanning with euristicts
+      * some cleaning with euristicts
 
     Parameters
     ----------
@@ -319,9 +319,9 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
     srate: float
         Sampling rate
     thresh_inspi_factor: float, default 0.05
-        Fraction of the min derivative for sertting threshold for inspiration
+        Fraction of the min derivative for setting threshold for inspiration
     thresh_expi_factor: float, default 0.05
-        Fraction of the min derivative for sertting threshold for expiration
+        Fraction of the min derivative for setting threshold for expiration
     clean_by_mid_value: bool, default True
         Remove strange cycle by mid value.
 
@@ -382,7 +382,7 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
 
 def _ensure_interleave(ind0, ind1, remove_first=True):
     """
-    Clean ind0 so they are interlevaed into ind1.
+    Clean ind0 so they are interleaved into ind1.
     """
     keep_inds = np.searchsorted(ind1, ind0,  side='right')
     keep = np.ones(ind0.size, dtype=bool)
@@ -437,7 +437,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle + 1, 2)
     baseline: float or None
-        If not None then the baseline is substracted to resp to compute amplitudes and volumes.
+        If not None then the baseline is subtracted to resp to compute amplitudes and volumes.
     Returns
     -------
     resp_cycles: pd.Dataframe

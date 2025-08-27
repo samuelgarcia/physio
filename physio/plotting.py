@@ -9,11 +9,11 @@ def plot_cyclic_deformation(data, segment_ratios=None, two_cycles=True, ax=None)
     data: np.array
         A 2d cyclic deformed array
     segment_ratios: None or list
-        Multi multi segment deformation then vertical line are also ploted
+        Multi-segment deformation (then vertical line are also plotted at this ratio)
     two_cycles: bool (dafult True)
         Plot 2 consecutive cycles.
     ax: None or matplotlib axes
-        Optional an external ax
+        Use it to plot on an external ax
     Returns
     -------
 

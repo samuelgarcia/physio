@@ -131,14 +131,14 @@ def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=4
 
 def time_to_cycle(times, cycle_times,  segment_ratios = 0.4):
     """
-    Map absolut event time to cycle position.
+    Map absolute event time to cycle position.
     Useful for event to respiration cycle histogram
     
     Parameters
     ----------
 
     segment_ratios: None or float or list of float
-        If multi segment deformation then a list of segmetn ratio must provived.
+        If multi segment deformation then a list of segment ratio must be provived.
 
     Returns
     -------

@@ -27,7 +27,7 @@ def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', 
     order: int (default 5)
         The order
     normalize: cool (default True)
-        Aplly or not normalization
+        Apply or not normalization
     Returns
     -------
     traces_clean: np.array

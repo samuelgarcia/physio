@@ -7,37 +7,43 @@ from .cyclic_deformation import deform_traces_to_cycle_template
 
 def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None, two_segment=True, points_per_cycle=50):
     """
-    RSA = Respiratory Sinus Arrhythmia
+    RSA = Respiratory Sinus Arrhythmia (or Respiratory Heart Rate Variability / RespHRV)
 
-    Compute the RSA with the cyclic way : 
-      * compute instanteneous heart rate
+    Compute the RSA cycle-by-cycle : 
+      * compute instantaneous heart rate
       * on resp cycle basis compute peak-to-trough
 
-      Also compute the cyclic deformation of the instantaneous heart rate
+    Also compute the cyclic deformation of the instantaneous heart rate
 
     Parameters
     ----------
-    resp_cycles
+    resp_cycles : pd.DataFrame
     
-    ecg_peaks
+    ecg_peaks : pd.DataFrame
     
-    srate
-    100 is safe for both animal and human for human 10 is also OK.
+    srate : int or float
+        Sampling rate used for interpolation to get an instantaneous heart rate vector. 
+        100 is safe for both animal and human. For human 10 also works.
 
-    units
+    units : str
+        bpm / s / ms / Hz
 
-    limits
+    limits : list or None
+        Limits for removing outliers.
 
-    two_segment
+    two_segment : bool
+        True or False
 
-    points_per_cycle
+    points_per_cycle : int
+
 
     Returns
     -------
-    rsa_cycles
+    rsa_cycles : pd.DataFrame
+        Cycle-by-cycle features of Heart Rate dynamics. Ex : decay_amplitude gives the by-cycle peak-to-trough amplitude.
 
-    cyclic_cardiac_rate
-    
+    cyclic_cardiac_rate : nd.array
+        2D Matrix (respiratory cycle * respiratory phase) with instantaneous heart rate at each resp cycle and phase point.
     """
     
     
