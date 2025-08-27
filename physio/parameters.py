@@ -6,7 +6,7 @@ import copy
 
 def recursive_update(d, u):
     """
-    Recurssive dict update.
+    Recursive dict update.
     """
     for k, v in u.items():
         if isinstance(v, dict):
