@@ -22,7 +22,7 @@ def compute_median_mad(data, axis=0):
     return med, mad
 
 
-def detect_peak(traces, srate, thresh=5, abs_threhold=None, exclude_sweep_ms=4.0):
+def detect_peak(traces, srate, thresh=5, abs_threhold=None, exclude_sweep_ms=4.0, thresh_artifact=None, abs_thresh_artifact=None):
     """
     Simple positive peak detector.
 
@@ -40,6 +40,11 @@ def detect_peak(traces, srate, thresh=5, abs_threhold=None, exclude_sweep_ms=4.0
     exclude_sweep_ms: float
         Zone to exclude multiple peak detection when noisy.
         If several peaks or detected in the same sweep the best is the winner.
+    thresh_artifact: float, default None
+        ceil threhold that peaks must not exced, this is to remove big artifact
+        This is relative to mad
+    abs_thresh_artifact: float, None
+        Same as abs_thresh_artifact but absolut
     Returns
     -------
     inds: np.array
@@ -56,7 +61,13 @@ def detect_peak(traces, srate, thresh=5, abs_threhold=None, exclude_sweep_ms=4.0
         med, mad = compute_median_mad(traces)
         abs_threhold = med + thresh * mad
     
+    if abs_thresh_artifact is None and thresh_artifact is not None:
+        abs_thresh_artifact = med + thresh_artifact * mad
+    
     peak_mask = traces_center > abs_threhold
+    if abs_thresh_artifact is not None:
+        peak_mask &= (traces_center < abs_thresh_artifact)
+        
     for i in range(exclude_sweep_size):
         peak_mask &= traces_center > traces[i:i + length]
         peak_mask &= traces_center >= traces[exclude_sweep_size +
