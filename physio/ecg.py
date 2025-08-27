@@ -118,15 +118,22 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400., max_clean_lo
 
 def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., verbose = False):
     """
-    Compute metrics on ecg peaks: HRV_Mean, HRV_SD, HRV_Median, ...
-    
-    This metrics are a bit more robust that neurokit2 ones because strange interval
-    are skiped from the analysis.
+    Compute metrics from ecg peaks: 
+    - HRV_Mean : Mean of RR intervals
+    - HRV_SD : Standard-Deviation of RR intervals
+    - HRV_Median : Median of RR intervals
+    - HRV_Mad : Median Absolute Deviation (MAD) of RR intevals. MAD is more robust to outliers than a classic standard-deviation.
+    - HRV_CV : HRV_SD / HRV_Mean = Coefficient of Variation = Normalized SD
+    - HRV_MCV : HRV_Mad / HRV_Median = MAD Coefficient of Variation = Robust version of Coefficient of Variation
+    - HRV_Asymmetry = HRV_Median - HRV_Mean = Difference between Median and Mean that diverges from 0 in case of outliers / non normal distribution of RR intervals.
+    - HRV_RMSSD = Root-Mean Square of Successive Differences ~ like a 2nd derivative of RR intervals. Sensitive to fine variations of RR intervals but also very sensitive to outliers.
+
+    These metrics are a bit more robust than others toolboxes because are computed after a cleaning of RR intervals based on min and max intervals as set.
 
     Parameters
     ----------
-    ecg_peaks: pr.DataFrame
-        Datfarame containing ecg R peaks.
+    ecg_peaks: pd.DataFrame
+        DataFrame containing ecg R peaks.
     min_interval_ms: float (default 500ms)
         Minimum interval inter R peak
     max_interval_ms: float (default 2000ms)
@@ -136,7 +143,7 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
     Returns
     -------
     metrics: pd.Series
-        A table contaning metrics
+        A table containing metrics
     """
     
     peak_ms = ecg_peaks['peak_time'].values * 1000.
@@ -184,15 +191,17 @@ def compute_instantaneous_rate(ecg_peaks, new_times, limits=None, units='bpm', i
 
     Parameters
     ----------
-    ecg_peaks: pr.DataFrame
-        Datfarame containing ecg R peaks.
+    ecg_peaks: pd.DataFrame
+        DataFrame containing ecg R peaks.
     new_times : np.array
-        Time vector for interpolating the instanteneous rate.
+        Time vector for interpolating the instantaneous rate.
     limits : list or None
         Limits for removing outliers.
-    units : 'bpm' / 'Hz' / 'ms' / 's'
-        Units of the rate. can be interval or rate.
-    interpolation_kind : 'linear'/ 'cubic'
+    units : str
+        Can be : 'bpm' / 'Hz' / 'ms' / 's'.
+        Set the units of the output. Can be interval (ms or s) or rate (Hz or bpm).
+    interpolation_kind : str
+        'linear' or 'cubic'
 
     """
     peak_times = ecg_peaks['peak_time'].values
