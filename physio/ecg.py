@@ -227,7 +227,7 @@ def compute_instantaneous_rate(ecg_peaks, new_times, limits=None, units='bpm', i
     
 
 def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
-                                        freqency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)},
+                                        frequency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)},
                                         window_s=250., interpolation_kind='cubic'):
     """
     Compute hrv power spectrum density and extract some metrics:
@@ -265,7 +265,7 @@ def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
     
     """
     
-    ecg_duration_s = ecg_peaks['peak_time'].values[-1]
+    ecg_duration_s = ecg_peaks['peak_time'].values[-1] - ecg_peaks['peak_time'].values[0]
     
     
     times = np.arange(0, ecg_duration_s, 1 / sample_rate)
@@ -274,16 +274,19 @@ def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
                                                     interpolation_kind=interpolation_kind)
     
     # some check on the window
-    min_freq = min(freqs[0] for freqs in freqency_bands.values())
-    if window_s <  (1 / min_freq) * 5:
-        raise ValueError(f'The window is too short {window_s}s compared to the lowest frequency {min_freq}Hz')
-    if ecg_duration_s <  (1 / min_freq) * 5:
-        raise ValueError(f'The duration is too short {ecg_duration_s}s compared to the lowest frequency {min_freq}Hz')
+    min_freq = min(freqs[0] for freqs in frequency_bands.values())
 
-    if window_s <  (1 / min_freq) * 10 or (1 / min_freq) * 10:
-        warnings.warn(f'The window is not optimal {window_s}s compared to the lowest frequency {min_freq}Hz')
-    if ecg_duration_s <  (1 / min_freq) * 10 or (1 / min_freq) * 10:
-        warnings.warn(f'The duration is not optimal {ecg_duration_s}s compared to the lowest frequency {min_freq}Hz')
+    if window_s < (1 / min_freq) * 5:
+        raise ValueError(f'The window is too short ({round(window_s, 3)}s) compared to the lowest frequency ({round(min_freq,3)}Hz).')
+
+    if ecg_duration_s < (1 / min_freq) * 5:
+        raise ValueError(f'The duration is too short ({round(ecg_duration_s,3)}s) compared to the lowest frequency ({round(min_freq,3)}Hz).')
+
+    if window_s < (1 / min_freq) * 10:
+        warnings.warn(f'The window is not optimal ({round(window_s,3)}s) compared to the lowest frequency ({round(min_freq,3)}Hz).')
+
+    if ecg_duration_s < (1 / min_freq) * 10:
+        warnings.warn(f'The duration is not optimal ({round(ecg_duration_s,3)}s) compared to the lowest frequency ({round(min_freq,3)}Hz).')
 
     
     # See https://github.com/scipy/scipy/issues/8368 about density vs spectrum
@@ -298,7 +301,7 @@ def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
 
     metrics = pd.Series(dtype=float)
     delta_freq = np.mean(np.diff(psd_freqs))
-    for name, freq_band in freqency_bands.items():
+    for name, freq_band in frequency_bands.items():
         f0, f1 = freq_band
         area = np.trapz(psd[(psd_freqs >= f0) & (psd_freqs < f1)], dx=delta_freq)
         metrics[name] = area
