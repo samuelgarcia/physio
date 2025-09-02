@@ -8,20 +8,23 @@ Here is a quick overview of :py:mod:`physio`
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-
 import physio
 
 ##############################################################################
 # 
-# physio module overview
-# ----------------------
+# Reading data
+# ------------
 # 
-# :py:mod:`physio` has utility functions for reading some formats like:
-#  
+# :py:mod:`physio` aims to process physiological signals in NumPy format.
+# Therefore, the first step is to load your data into a NumPy array.
+# :py:mod:`physio` provides utility functions for reading certain formats, such as:
 #    * micromed
-#    * brainvision
+#    * brainVision
 #
-# Here, we use an internal file in the numpy format for the demo
+# For example, cardiac activity recorded by a BrainVision system with the channel name "ECG" can be read using
+# :py:func:`~physio.read_one_channel` by specifying: 1) the path to the file (`filename`), 2) the format ("micromed" or "brainvision"), and 3) the channel name (`"ECG"`).
+#
+# For this tutorial, we use an internal file already stored in NumPy format for demonstration purposes.
 
 raw_resp = np.load('resp1.npy')
 raw_ecg = np.load('ecg1.npy')
@@ -31,11 +34,15 @@ times = np.arange(raw_resp.size) / srate
 fig, axs = plt.subplots(nrows=2, sharex=True)
 ax = axs[0]
 ax.plot(times, raw_resp)
-ax.set_ylabel('raw resp')
+ax.set_title('Raw respiratory airflow signal')
+ax.set_ylabel('Amplitude (AU)')
+ax.set_ylim(-1750, -1500)
 
 ax = axs[1]
 ax.plot(times, raw_ecg)
-ax.set_ylabel('raw ECG')
+ax.set_title('Raw ECG (electrocardiogram)')
+ax.set_ylabel('Amplitude (V)')
+ax.set_ylim(0.011, 0.016)
 
 ax.set_xlim(185, 225)
 
@@ -45,11 +52,14 @@ ax.set_xlim(185, 225)
 # Analyze respiration
 # -------------------
 # 
-# :py:func:`~physio.compute_respiration` is an easy function to:
+# :py:func:`~physio.compute_respiration` is a high-level wrapper function that simplifies respiratory signal analysis.
+# To use this function, you must provide:
+#    * `raw_resp` : the raw respiratory signal as a NumPy array
+#    * `srate` : the sampling rate of the respiratory signal
 #
-#    * preprocess the respiratory signal (resp)
-#    * compute cycle features (resp_cycles)
-
+# When called, :py:func:`~physio.compute_respiration` performs the following:
+#    * Preprocesses the respiratory signal (returns a NumPy array `resp`)
+#    * Computes cycle-by-cycle features (returns a `pd.DataFrame` `resp_cycles`)
 
 resp, resp_cycles = physio.compute_respiration(raw_resp, srate)
 
@@ -57,30 +67,30 @@ fig, ax = plt.subplots()
 ax.plot(times, raw_resp)
 ax.plot(times, resp)
 ax.set_xlim(185, 225)
+ax.set_ylim(-1750, -1500)
 
 ##############################################################################
 # 
 # Respiration cycles and features
 # ------------------------------
-#  
-# resp_cycles is a dataframe containing all respiratory cycles as rows.
-# Columns contain features like duration, amplitudes, volumes.
-# 
+#
+# `resp_cycles` is a `pd.DataFrame` where each row corresponds to a respiratory cycle.
+# Columns contain cycle-specific features such as duration, amplitude, volume ... (see respiration tutorial for a complete description of the columns).
 
 print(resp_cycles.shape)
 print(resp_cycles.columns)
 
-columns = ['cycle_duration', 'inspi_volume', 'expi_volume', 'total_amplitude' ]
+columns = ['cycle_duration', 'inspi_volume', 'expi_volume', 'total_amplitude']
 resp_cycles[columns].plot(kind='hist', subplots=True, sharex=False, layout=(2, 2), bins=50)
 
 resp_cycles
 
 
 ##############################################################################
-# 
+# All these metrics highly depend on the qualitative detection of the start points of inspiration and expiration, which can be verified by visual inspection: 
 
-inspi_ind = resp_cycles['inspi_index'].values
-expi_ind = resp_cycles['expi_index'].values
+inspi_ind = resp_cycles['inspi_index'].values # get index of inspiration start points
+expi_ind = resp_cycles['expi_index'].values # get index of expiration start points
 
 fig, ax = plt.subplots()
 ax.plot(times, resp)
