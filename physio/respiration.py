@@ -585,7 +585,6 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_r
 
     cols = ['inspi_index', 'expi_index', 'next_inspi_index']
 
-
     # remove small inspi volumes: remove the current cycle
     log_vol = np.log(resp_cycles['inspi_volume'].values)
     med, mad = compute_median_mad(log_vol)
@@ -596,25 +595,27 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_r
     new_cycles = resp_cycles.iloc[keep, :].loc[:, cols].values
     new_cycles[:-1, 2] = new_cycles[1:, 0]
 
-    #~ import matplotlib.pyplot as plt
-    #~ fig, axs = plt.subplots(ncols=3)
-    #~ ax = axs[0]
-    #~ ax.plot(resp)
-    #~ inspi_index = resp_cycles['inspi_index'].values
-    #~ expi_index = resp_cycles['expi_index'].values
-    #~ ax.scatter(inspi_index, resp[inspi_index], marker='o', color='green')
-    #~ ax.scatter(expi_index, resp[expi_index], marker='o', color='red')
-    #~ ax.scatter(inspi_index[~keep], resp[inspi_index[~keep]], marker='*', color='k', s=500)
-    #~ ax = axs[1]
-    #~ ax.hist(log_vol, bins=200)
-    #~ ax.axvline(limit, color='orange')
-    #~ ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
-    #~ ax = axs[2]
-    #~ vol = resp_cycles['inspi_volume'].values
-    #~ med2, mad2 = compute_median_mad(vol)
-    #~ ax.hist(vol, bins=200)
-    #~ ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.1, color='orange')
-    #~ plt.show()
+    # import matplotlib.pyplot as plt
+    # fig, axs = plt.subplots(ncols=3)
+    # ax = axs[0]
+    # ax.plot(resp)
+    # inspi_index = resp_cycles['inspi_index'].values
+    # expi_index = resp_cycles['expi_index'].values
+    # ax.scatter(inspi_index, resp[inspi_index], marker='o', color='green')
+    # ax.scatter(expi_index, resp[expi_index], marker='o', color='red')
+    # ax.scatter(inspi_index[~keep], resp[inspi_index[~keep]], marker='*', color='k', s=500)
+    # ax = axs[1]
+    # ax.set_title('log vol')
+    # ax.hist(log_vol, bins=200)
+    # ax.axvline(limit, color='orange')
+    # ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
+    # ax = axs[2]
+    # ax.set_title('vol')
+    # vol = resp_cycles['inspi_volume'].values
+    # med2, mad2 = compute_median_mad(vol)
+    # ax.hist(vol, bins=200)
+    # ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.1, color='orange')
+    # plt.show()
 
     # recompute new volumes and amplitudes
     resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
