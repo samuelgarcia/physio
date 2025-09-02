@@ -30,9 +30,9 @@ def test_compute_ecg():
     print(ecg_peaks)
 
     # compute LF/HF
-    freqency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)}
+    frequency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)}
     psd_freqs, psd, hrv_freq_metrics = compute_hrv_psd(ecg_peaks,  sample_rate=100., limits=None, units='bpm',
-                                    freqency_bands=freqency_bands, window_s=500.)
+                                    frequency_bands=frequency_bands, window_s=250.)
     print(hrv_freq_metrics)
 
 
