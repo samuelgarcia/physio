@@ -303,7 +303,10 @@ def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
     delta_freq = np.mean(np.diff(psd_freqs))
     for name, freq_band in frequency_bands.items():
         f0, f1 = freq_band
-        area = np.trapz(psd[(psd_freqs >= f0) & (psd_freqs < f1)], dx=delta_freq)
+        if hasattr(np, "trapezoid"):
+            area = np.trapezoid(psd[(psd_freqs >= f0) & (psd_freqs < f1)], dx=delta_freq)
+        else:
+            area = np.trapz(psd[(psd_freqs >= f0) & (psd_freqs < f1)], dx=delta_freq)
         metrics[name] = area
 
     return psd_freqs, psd, metrics
