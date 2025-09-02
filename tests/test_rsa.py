@@ -5,7 +5,7 @@ from physio import compute_respiration, compute_ecg, compute_rsa
 
 # read signals
 example_folder = Path(__file__).parents[1] / 'examples'
-raw_resp = np.load(example_folder / 'resp1.npy')
+raw_resp = np.load(example_folder / 'resp_airflow1.npy')
 raw_ecg = np.load(example_folder / 'ecg1.npy')
 srate = 1000.
 

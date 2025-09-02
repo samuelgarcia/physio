@@ -211,17 +211,17 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     baseline_insp = baseline - epsilon * epsilon_factor2
 
     resp0 = resp[:-1]
-    resp1 = resp[1:]
+    resp_airflow1 = resp[1:]
 
-    ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp1 < baseline_dw))
+    ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp_airflow1 < baseline_dw))
     
-    ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
+    ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp_airflow1 < baseline_insp))
     ind_insp_no_clean = ind_insp.copy()
     keep_inds = np.searchsorted(ind_insp, ind_dw, side='right')
     keep_inds = keep_inds[keep_inds > 0]
     ind_insp = ind_insp[keep_inds - 1]
     ind_insp = np.unique(ind_insp)
-    ind_exp, = np.nonzero((resp0 < baseline) & (resp1 >= baseline))
+    ind_exp, = np.nonzero((resp0 < baseline) & (resp_airflow1 >= baseline))
     
     
     ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_exp=False)
