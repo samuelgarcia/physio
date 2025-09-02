@@ -289,10 +289,10 @@ def detect_respiration_cycles_min_max(resp, srate, min_cycle_duration_ms=100.):
         with [index_inspi, index_expi, index_next_inspi]
     """
 
-    abs_threhold = 0
+    abs_threshold = 0
     exclude_sweep_ms = min_cycle_duration_ms / 2.
 
-    ind_exp = detect_peak(resp, srate, abs_threhold=abs_threhold, exclude_sweep_ms=exclude_sweep_ms)
+    ind_exp = detect_peak(resp, srate, abs_threshold=abs_threshold, exclude_sweep_ms=exclude_sweep_ms)
     ind_insp = np.zeros(ind_exp.size - 1, dtype="int64")
     for i in range(ind_exp.size - 1):
         ind_insp[i] = np.argmin(resp[ind_exp[i]:ind_exp[i+1]]) + ind_exp[i]
