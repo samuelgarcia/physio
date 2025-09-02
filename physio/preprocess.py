@@ -3,6 +3,8 @@ import scipy.signal
 
 from .tools import compute_median_mad
 
+import warnings
+
 def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', order=5, normalize=True):
     """
     Apply simple filter using scipy
@@ -70,6 +72,9 @@ def smooth_signal(trace, srate, win_shape='gaussian', sigma_ms=5.0):
     """
 
     size = int(srate * sigma_ms / 1000.)
+    if size < 1:
+        size = 1
+        warnings.warn(f'sigma_ms is too short for srate = {srate}. sigma_ms should be at least {round(1000./srate, 1)} ms')
     if win_shape == 'gaussian':
         times = np.arange(- 5 * size, 5 * size + 1)
         kernel = np.exp(- times ** 2 / size ** 2)
