@@ -5,6 +5,8 @@ from .tools import get_empirical_mode, compute_median_mad, detect_peak
 from .preprocess import preprocess, smooth_signal
 from .parameters import get_respiration_parameters, recursive_update
 
+import warnings
+
 
 _possible_sensor_type = ('airflow', 'co2', 'belt') 
 
@@ -64,18 +66,26 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
         resp = raw_resp
 
 
-    baseline = get_respiration_baseline(resp, srate, **params['baseline'])
     
 
     detection_method = params['cycle_detection'].get("method", None)
     if detection_method is None:
         if sensor_type == 'airflow':
             detection_method = 'crossing_baseline'
+            
         elif sensor_type == 'belt':
             detection_method = 'min_max'
+            baseline = None
         elif sensor_type == 'co2':
             detection_method = 'co2'
-        params['cycle_detection']['detection_method'] = params['cycle_detection']
+            baseline = None
+        params['cycle_detection']['detection_method'] = detection_method
+    
+    if detection_method == 'crossing_baseline':
+        baseline = get_respiration_baseline(resp, srate, **params['baseline'])
+    else:
+        baseline = None
+
 
     if detection_method == "crossing_baseline":
         cycles = detect_respiration_cycles(resp, srate, 
@@ -86,9 +96,17 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
                                             **params['cycle_detection'])
 
     resp_cycles = compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, sensor_type=sensor_type)
+
     
-    if params['cycle_clean'] is not None:
-        resp_cycles = clean_respiration_cycles(resp, srate, resp_cycles, baseline, **params['cycle_clean'])
+    if params.get('cycle_clean', None) is not None:
+        if isinstance(params['cycle_clean'], dict):
+            resp_cycles = clean_respiration_cycles(resp, srate, resp_cycles, baseline=baseline, sensor_type=sensor_type, **params['cycle_clean'])
+        elif isinstance(params['cycle_clean'], list):
+            
+            for p in params['cycle_clean']:
+                resp_cycles = clean_respiration_cycles(resp, srate, resp_cycles, baseline=baseline, sensor_type=sensor_type, **p)
+        else:
+            raise ValueError('params cycle_clean is wrong')
     
     return resp, resp_cycles
 
@@ -448,12 +466,17 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
     if sensor_type == 'airflow':
         compute_volume = True
         compute_amplitude = True
+        compute_inflation = False
     elif sensor_type == 'belt':
         compute_volume = False
         compute_amplitude = False
+        compute_inflation = True
     elif sensor_type == 'co2':
         compute_volume = False
         compute_amplitude = False
+        compute_inflation = False
+    else:
+        raise ValueError("compute_respiration_cycle_features need sensor_type")
 
 
     if baseline is not None:
@@ -517,11 +540,15 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
         for k in ('total_amplitude', 'inspi_amplitude', 'expi_amplitude'):
             df[k] = pd.Series(dtype='float64')
     
+    if compute_inflation:
+        for k in ('inflation_amplitude', 'deflation_amplitude'):
+            df[k] = pd.Series(dtype='float64')
+
     #missing cycle
     mask = (ix2 == -1)
     df.loc[mask, ['expi_time', 'cycle_duration', 'inspi_duration', 'expi_duration', 'cycle_freq']] = np.nan
     
-    if compute_volume or compute_amplitude:
+    if compute_volume or compute_amplitude or compute_inflation:
         for c in range(n):
             i1, i2, i3 = ix1[c], ix2[c], ix3[c]
             if i2 == -1:
@@ -533,6 +560,9 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
             if compute_amplitude:
                 df.at[c, 'inspi_amplitude'] = np.max(np.abs(resp[i1:i2]))
                 df.at[c, 'expi_amplitude'] = np.max(np.abs(resp[i2:i3]))
+            if compute_inflation:
+                df.at[c, 'inflation_amplitude'] = resp[i2] - resp[i1]
+                df.at[c, 'deflation_amplitude'] = resp[i2] - resp[i3]
     
     if compute_amplitude:
         df['total_amplitude'] = df['inspi_amplitude'] + df['expi_amplitude']
@@ -541,19 +571,19 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
         df['total_volume'] = df['inspi_volume'] + df['expi_volume']
     
 
-    if sensor_type == 'belt':
-        for k in ('inspi_amplitude', 'expi_amplitude'):
-            df[k] = pd.Series(dtype='float64')        
-        # amplitude is different
-        for c in range(n):
-            i1, i2, i3 = ix1[c], ix2[c], ix3[c]
-            df.at[c, 'inspi_amplitude'] = resp[i2] - resp[i1]
-            df.at[c, 'expi_amplitude'] = resp[i2] - resp[i3]
+    # if sensor_type == 'belt':
+    #     for k in ('inspi_amplitude', 'expi_amplitude'):
+    #         df[k] = pd.Series(dtype='float64')        
+    #     # amplitude is different
+    #     for c in range(n):
+    #         i1, i2, i3 = ix1[c], ix2[c], ix3[c]
+    #         df.at[c, 'inspi_amplitude'] = resp[i2] - resp[i1]
+    #         df.at[c, 'expi_amplitude'] = resp[i2] - resp[i3]
     
     return resp_cycles
 
 
-def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_ratio=3):
+def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_name=None, low_limit_log_ratio=3, sensor_type=None):
     """
     Remove outlier cycles.
     
@@ -583,10 +613,17 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_r
 
     """
 
+    print('variable_name', variable_name, resp_cycles.columns, resp_cycles.shape)
+
+    if variable_name is None:
+        warnings.warn("clean_respiration_cycles() need variable_name=XX, variable_name is set to 'inspi_volume' for backward compatibility")
+        variable_name = 'inspi_volume'
+
+
     cols = ['inspi_index', 'expi_index', 'next_inspi_index']
 
     # remove small inspi volumes: remove the current cycle
-    log_vol = np.log(resp_cycles['inspi_volume'].values)
+    log_vol = np.log(resp_cycles.loc[:, variable_name].values)
     med, mad = compute_median_mad(log_vol)
     limit = med - mad * low_limit_log_ratio
     bad_cycle, = np.nonzero(log_vol < limit)
@@ -611,7 +648,7 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_r
     # ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
     # ax = axs[2]
     # ax.set_title('vol')
-    # vol = resp_cycles['inspi_volume'].values
+    # vol = resp_cycles[variable_name].values
     # med2, mad2 = compute_median_mad(vol)
     # ax.hist(vol, bins=200)
     # ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.1, color='orange')
@@ -644,6 +681,6 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_r
     new_cycles = resp_cycles.iloc[keep, :].loc[:, cols].values
     new_cycles[:-1, 2] = new_cycles[1:, 0]
     # recompute new volumes and amplitudes
-    resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
+    resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline, sensor_type=sensor_type)
 
     return resp_cycles

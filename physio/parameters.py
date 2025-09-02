@@ -43,7 +43,7 @@ _resp_parameters['human_airflow'] = dict(
     smooth=dict(win_shape='gaussian', sigma_ms=60.0),
     cycle_detection=dict(method="crossing_baseline", inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='median'),
-    cycle_clean=dict(low_limit_log_ratio=4.),
+    cycle_clean=dict(variable_name='inspi_volume', low_limit_log_ratio=4.),
 )
 
 _resp_parameters['human_co2'] = dict(
@@ -64,7 +64,7 @@ _resp_parameters['rat_plethysmo'] = dict(
     #~ smooth=None,
     cycle_detection=dict(method="crossing_baseline", inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='manual', baseline=0.),
-    cycle_clean=dict(low_limit_log_ratio=5.),
+    cycle_clean=dict(variable_name='inspi_volume', low_limit_log_ratio=5.),
 )
 
 # belt form etisens https://etisense.com/
