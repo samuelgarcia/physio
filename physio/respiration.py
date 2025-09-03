@@ -45,7 +45,7 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
         params = get_respiration_parameters(parameter_preset)
     if parameters is not None:
         recursive_update(params, parameters)
-
+    
     # keep backward compatibility if sensor_type is not provided : 'airflow'
     sensor_type = params.get('sensor_type', 'airflow')
     
@@ -54,7 +54,7 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
     
 
     # filter and smooth : more or less 2 times a low pass
-    if params['preprocess'] is not None and params['smooth'] is not None:
+    if params['preprocess'] is not None or params['smooth'] is not None:
         center = np.mean(raw_resp)
         resp = raw_resp - center
         if params['preprocess'] is not None:
@@ -193,7 +193,7 @@ def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_
 
 
 def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manual', baseline=None, 
-                              epsilon_factor1=10, epsilon_factor2=5, inspiration_adjust_on_derivative=False):
+                              epsilon_factor1=10., epsilon_factor2=5., inspiration_adjust_on_derivative=False):
     """
     Detect respiration by cycles based on:
       * crossing zeros (or crossing baseline)
@@ -219,6 +219,7 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
         with [index_inspi, index_expi, index_next_inspi]
     """
 
+
     baseline = get_respiration_baseline(resp, srate, baseline_mode=baseline_mode, baseline=baseline)
 
     #~ q90 = np.quantile(resp, 0.90)
@@ -229,29 +230,35 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     baseline_insp = baseline - epsilon * epsilon_factor2
 
     resp0 = resp[:-1]
-    resp_airflow1 = resp[1:]
+    resp1 = resp[1:]
 
-    ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp_airflow1 < baseline_dw))
+    ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp1 < baseline_dw))
     
-    ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp_airflow1 < baseline_insp))
-    ind_insp_no_clean = ind_insp.copy()
+    ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
+    # ind_insp_no_clean = ind_insp.copy()
     keep_inds = np.searchsorted(ind_insp, ind_dw, side='right')
     keep_inds = keep_inds[keep_inds > 0]
     ind_insp = ind_insp[keep_inds - 1]
     ind_insp = np.unique(ind_insp)
-    ind_exp, = np.nonzero((resp0 < baseline) & (resp_airflow1 >= baseline))
+    # ind_insp_no_clean2 = ind_insp.copy()
+    ind_exp, = np.nonzero((resp0 < baseline) & (resp1 >= baseline))
     
     
-    ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_exp=False)
+    # ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=True, remove_first_exp=False)
+    ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=False, remove_first_exp=False)
 
     # import matplotlib.pyplot as plt
     # fig, ax = plt.subplots()
     # ax.plot(resp)
+    # ax.scatter(ind_dw, resp[ind_dw], color='k', marker='*')
+    # # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='k', marker='^')
+    # ax.scatter(ind_insp_no_clean2, resp[ind_insp_no_clean2], color='m', marker='*', s=80)
     # ax.scatter(ind_insp, resp[ind_insp], color='g')
     # ax.scatter(ind_exp, resp[ind_exp], color='r')
-    # ax.axhline(baseline_dw)
-    # ax.axhline(baseline_insp)
-    # ax.axhline(baseline)
+    # ax.axhline(baseline_dw, color='C2', label='baseline_insp (esp1)')
+    # ax.axhline(baseline_insp, color='C1', label='baseline_insp (esp2)')
+    # ax.axhline(baseline, color='C0', label='baseline')
+    # ax.legend()
     # plt.show()
     
 
@@ -307,7 +314,9 @@ def detect_respiration_cycles_min_max(resp, srate, min_cycle_duration_ms=100.):
         with [index_inspi, index_expi, index_next_inspi]
     """
 
-    abs_threshold = 0
+    # abs_threshold = 0
+    abs_threshold = np.min(resp)
+    
     exclude_sweep_ms = min_cycle_duration_ms / 2.
 
     ind_exp = detect_peak(resp, srate, abs_threshold=abs_threshold, exclude_sweep_ms=exclude_sweep_ms)
@@ -583,7 +592,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
     return resp_cycles
 
 
-def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_name=None, low_limit_log_ratio=3, sensor_type=None):
+def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_names=None, low_limit_log_ratio=3, sensor_type=None):
     """
     Remove outlier cycles.
     
@@ -613,74 +622,104 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_n
 
     """
 
-    print('variable_name', variable_name, resp_cycles.columns, resp_cycles.shape)
 
-    if variable_name is None:
-        warnings.warn("clean_respiration_cycles() need variable_name=XX, variable_name is set to 'inspi_volume' for backward compatibility")
-        variable_name = 'inspi_volume'
+    if variable_names is None:
+        warnings.warn("clean_respiration_cycles() need variable_names to be set, variable_name=['inspi_volume', 'expi_volumne'] is set to  for backward compatibility")
+        variable_names = ['inspi_volume', 'expi_volumne']
+
+    assert isinstance(variable_names, list), "variable_names must be a list of columns"
+
+    index_cols = ['inspi_index', 'expi_index', 'next_inspi_index']
+
+    for variable_name in variable_names:
+        log_values = np.log(resp_cycles.loc[:, variable_name].values)
+        med, mad = compute_median_mad(log_values)
+        limit = med - mad * low_limit_log_ratio
+        bad_cycle, = np.nonzero(log_values < limit)
 
 
-    cols = ['inspi_index', 'expi_index', 'next_inspi_index']
+        keep = np.ones(resp_cycles.shape[0], dtype=bool)
+        new_cycles = resp_cycles.loc[:, index_cols].values
 
-    # remove small inspi volumes: remove the current cycle
-    log_vol = np.log(resp_cycles.loc[:, variable_name].values)
-    med, mad = compute_median_mad(log_vol)
-    limit = med - mad * low_limit_log_ratio
-    bad_cycle, = np.nonzero(log_vol < limit)
-    keep = np.ones(resp_cycles.shape[0], dtype=bool)
-    keep[bad_cycle] = False
-    new_cycles = resp_cycles.iloc[keep, :].loc[:, cols].values
-    new_cycles[:-1, 2] = new_cycles[1:, 0]
+        # import matplotlib.pyplot as plt
+        # fig, axs = plt.subplots(ncols=3)
+        # ax = axs[0]
+        # ax.plot(resp)
+        # inspi_index = resp_cycles['inspi_index'].values
+        # expi_index = resp_cycles['expi_index'].values
+        # ax.scatter(inspi_index, resp[inspi_index], marker='o', color='green')
+        # ax.scatter(expi_index, resp[expi_index], marker='o', color='red')
+        # keep2 = keep.copy()
+        # keep2[bad_cycle] = False
+        # ax.scatter(inspi_index[~keep2], resp[inspi_index[~keep2]], marker='*', color='k', s=500)
+        # ax = axs[1]
+        # ax.set_title(f'log {variable_name}')
+        # ax.hist(log_values, bins=200)
+        # ax.axvline(limit, color='orange')
+        # ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
+        # ax = axs[2]
+        # ax.set_title(f'{variable_name} {bad_cycle.size}')
+        # vol = resp_cycles[variable_name].values
+        # med2, mad2 = compute_median_mad(vol)
+        # ax.hist(vol, bins=200)
+        # ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.1, color='orange')
+        # ax.axvline(np.exp(limit), color='orange')
+        # plt.show()
 
-    # import matplotlib.pyplot as plt
-    # fig, axs = plt.subplots(ncols=3)
-    # ax = axs[0]
-    # ax.plot(resp)
-    # inspi_index = resp_cycles['inspi_index'].values
-    # expi_index = resp_cycles['expi_index'].values
-    # ax.scatter(inspi_index, resp[inspi_index], marker='o', color='green')
-    # ax.scatter(expi_index, resp[expi_index], marker='o', color='red')
-    # ax.scatter(inspi_index[~keep], resp[inspi_index[~keep]], marker='*', color='k', s=500)
-    # ax = axs[1]
-    # ax.set_title('log vol')
-    # ax.hist(log_vol, bins=200)
-    # ax.axvline(limit, color='orange')
-    # ax.axvspan(med - mad, med + mad, alpha=0.2, color='orange')
-    # ax = axs[2]
-    # ax.set_title('vol')
-    # vol = resp_cycles[variable_name].values
-    # med2, mad2 = compute_median_mad(vol)
-    # ax.hist(vol, bins=200)
-    # ax.axvspan(med2 - mad2, med2 + mad2, alpha=0.1, color='orange')
-    # plt.show()
 
-    # recompute new volumes and amplitudes
-    resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline)
-    
-    # remove small expi volumes: remove the next cycle
-    log_vol = np.log(resp_cycles['expi_volume'].values)
-    med, mad = compute_median_mad(log_vol)
-    limit = med - mad * low_limit_log_ratio
-    bad_cycle, = np.nonzero(log_vol < limit)
-    
-    # last cycle cannot be removed
-    bad_cycle = bad_cycle[bad_cycle < (resp_cycles.shape[0] -1) ]
+        for c in bad_cycle:
+            if not keep[c]:
+                # already remove
+                continue
 
-    # find next good cycle to take expi_index
-    for c in bad_cycle:
-        next_cycle = c + 1
-        while next in bad_cycle:
+            prev_cycle = c - 1
+            while prev_cycle in bad_cycle:
+                prev_cycle -= 1
+            
+            prev_cycle = max(prev_cycle, 0)
+            
             next_cycle = c + 1
-        #~ if next_cycle < resp_cycles.shape[0]:
-        resp_cycles['expi_index'].iat[c] = resp_cycles['expi_index'].iat[next_cycle]
-        resp_cycles['next_inspi_index'].iat[c] = resp_cycles['next_inspi_index'].iat[next_cycle]
+            while next_cycle in bad_cycle:
+                next_cycle += 1
+            prev_cycle = min(prev_cycle, resp_cycles.shape[0] -1 )
 
-    bad_cycle += 1
-    keep = np.ones(resp_cycles.shape[0], dtype=bool)
-    keep[bad_cycle] = False
-    new_cycles = resp_cycles.iloc[keep, :].loc[:, cols].values
-    new_cycles[:-1, 2] = new_cycles[1:, 0]
-    # recompute new volumes and amplitudes
-    resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline, sensor_type=sensor_type)
+            if sensor_type == 'airflow':
+                # cycle remove
+                if 'inspi' in variable_name:
+                    new_cycles[prev_cycle, 2] = new_cycles[next_cycle, 0]
+                elif 'expi' in variable_name:
+                    new_cycles[prev_cycle, 2] = new_cycles[next_cycle, 0]
+                    # new_cycles[next_cycle, 0] = new_cycles[prev_cycle, 2]
+                else:
+                    raise ValueError(f'clean_respiration_cycle do not support variable_name={variable_name}')
 
+                # new_cycles[prev_cycle, 1] = new_cycles[c, 1]
+                
+            elif sensor_type == 'belt':
+                # find minima and move inspi_index
+                possible_inds = np.arange(prev_cycle+1, next_cycle+1)
+                best = np.argmin(resp[new_cycles[possible_inds, 0]])
+                best_ind = possible_inds[best]
+                new_cycles[prev_cycle, 2] = new_cycles[best_ind, 0]
+                new_cycles[next_cycle, 0] = new_cycles[best_ind, 0]
+                # find maxima and move expi_index for next and prev
+                ind = np.argmax(resp[new_cycles[prev_cycle, 0]:new_cycles[prev_cycle, 2]])
+                new_cycles[prev_cycle, 1] = new_cycles[prev_cycle, 0] + ind
+                ind = np.argmax(resp[new_cycles[next_cycle, 0]:new_cycles[next_cycle, 2]])
+                new_cycles[next_cycle, 1] = new_cycles[next_cycle, 0] + ind
+
+            elif sensor_type == 'co2':
+                # TODO 
+                raise NotImplementedError("Clean resp cycle with CO2 is not implemented yet")
+            
+            # remove it
+            keep[prev_cycle+1:next_cycle] = False
+
+        
+
+        keep[bad_cycle] = False
+        new_cycles = new_cycles[keep, :]
+
+        resp_cycles = compute_respiration_cycle_features(resp, srate, new_cycles, baseline=baseline, sensor_type=sensor_type)
+            
     return resp_cycles
