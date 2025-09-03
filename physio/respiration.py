@@ -681,7 +681,7 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_n
             next_cycle = c + 1
             while next_cycle in bad_cycle:
                 next_cycle += 1
-            prev_cycle = min(prev_cycle, resp_cycles.shape[0] -1 )
+            next_cycle = min(next_cycle, resp_cycles.shape[0] -1 )
 
             if sensor_type == 'airflow':
                 # cycle remove
