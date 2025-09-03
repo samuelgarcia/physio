@@ -33,6 +33,7 @@ def test_detect_respiration_cycles_airflow():
 
     # airflow : parameter preset
     resp, resp_cycles = compute_respiration(raw_resp1, srate, parameter_preset='human_airflow')
+    # print(resp_cycles.shape)
     resp, resp_cycles = compute_respiration(raw_resp2, srate, parameter_preset='human_airflow')
 
     # airflow : parameters manual
@@ -42,18 +43,18 @@ def test_detect_respiration_cycles_airflow():
         smooth=dict(win_shape='gaussian', sigma_ms=60.0),
         cycle_detection=dict(method="crossing_baseline", epsilon_factor1=20, epsilon_factor2=5., inspiration_adjust_on_derivative=False),
         baseline=dict(baseline_mode='median'),
-        cycle_clean=dict(variable_names=['inspi_volume', 'expi_volume'], low_limit_log_ratio=3.),
+        cycle_clean=dict(variable_names=['inspi_volume', 'expi_volume'], low_limit_log_ratio=4.5),
     )
     resp, resp_cycles = compute_respiration(raw_resp2, srate, parameter_preset=None, parameters=parameters)
 
-    inspi_inds = resp_cycles['inspi_index'].values
-    expi_inds = resp_cycles['expi_index'].values
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-    ax.plot(resp)
-    ax.scatter(inspi_inds, resp[inspi_inds], color='g')
-    ax.scatter(expi_inds, resp[expi_inds], color='r')
-    plt.show()
+    # inspi_inds = resp_cycles['inspi_index'].values
+    # expi_inds = resp_cycles['expi_index'].values
+    # import matplotlib.pyplot as plt
+    # fig, ax = plt.subplots()
+    # ax.plot(resp)
+    # ax.scatter(inspi_inds, resp[inspi_inds], color='g')
+    # ax.scatter(expi_inds, resp[expi_inds], color='r')
+    # plt.show()
 
 
 
@@ -107,5 +108,5 @@ def test_detect_respiration_cycles_belt():
 
 if __name__ == '__main__':
     # test_compute_respiration()
-    # test_detect_respiration_cycles_airflow()
-    test_detect_respiration_cycles_belt()
+    test_detect_respiration_cycles_airflow()
+    # test_detect_respiration_cycles_belt()

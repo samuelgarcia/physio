@@ -592,7 +592,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
     return resp_cycles
 
 
-def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_names=None, low_limit_log_ratio=3, sensor_type=None):
+def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_names=None, low_limit_log_ratio=3., sensor_type=None):
     """
     Remove outlier cycles.
     
@@ -613,13 +613,17 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_n
     resp_cycles: pd.Dataframe
         Features of all cycles given by compute_respiration_cycle_features before clean.
     baseline: 
-        The baseline used to recompute resp_cycles
-
+        The baseline used to recompute resp_cycles, this is needed when sensor_type="airflow"
+    variable_names: list of str
+        Which columns used to search for small deviant
+    low_limit_log_ratio: float
+        Used to compute low limit with "limit = med - mad * low_limit_log_ratio"
+    sensor_type: 'airflow' | 'belt' | 'co2'
+        sensor type
     Returns
     -------
     cleaned_cycles: 
         Clean version of cycles.
-
     """
 
 

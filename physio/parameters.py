@@ -43,7 +43,7 @@ _resp_parameters['human_airflow'] = dict(
     smooth=dict(win_shape='gaussian', sigma_ms=60.0),
     cycle_detection=dict(method="crossing_baseline", epsilon_factor1=10., epsilon_factor2=5., inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='median'),
-    cycle_clean=dict(variable_names=['inspi_volume', 'expi_volume'], low_limit_log_ratio=4.),
+    cycle_clean=dict(variable_names=['inspi_volume', 'expi_volume'], low_limit_log_ratio=4.5),
 )
 _resp_parameters['human_belt'] = dict(
     sensor_type='belt',
