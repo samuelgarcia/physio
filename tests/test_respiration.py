@@ -92,15 +92,15 @@ def test_detect_respiration_cycles_belt():
 
 
 
-    inspi_inds = resp_cycles['inspi_index'].values
-    expi_inds = resp_cycles['expi_index'].values
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-    ax.plot(raw_resp3)
-    ax.plot(resp)
-    ax.scatter(inspi_inds, resp[inspi_inds], color='g')
-    ax.scatter(expi_inds, resp[expi_inds], color='r')
-    plt.show()
+    # inspi_inds = resp_cycles['inspi_index'].values
+    # expi_inds = resp_cycles['expi_index'].values
+    # import matplotlib.pyplot as plt
+    # fig, ax = plt.subplots()
+    # ax.plot(raw_resp3)
+    # ax.plot(resp)
+    # ax.scatter(inspi_inds, resp[inspi_inds], color='g')
+    # ax.scatter(expi_inds, resp[expi_inds], color='r')
+    # plt.show()
 
 
 
