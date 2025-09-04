@@ -43,7 +43,7 @@ times = np.arange(raw_resp.size) / srate # build time vector
 # the easiest way is to use predefined parameters
 resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_preset='human_airflow')  # set 'human_airflow' as preset because example resp is an airflow from humans
 
-# resp_cycles is a dataframe containing all cycles and related fetaures (duration, amplitude, volume, timing).
+# resp_cycles is a dataframe containing all cycles and related features (duration, amplitude, volume, timing, etc...).
 print(resp_cycles)
 
 inspi_ind = resp_cycles['inspi_index'].values # get index of inspiration start points
@@ -76,9 +76,9 @@ ax.set_xlim(110, 170)
 # 
 # Here is an example showing the set of parameters applied in the case of a human airflow signal.
 
-
 parameters = physio.get_respiration_parameters('human_airflow') # parameters is a nested dictionary of parameters used at each processing step.
 pprint(parameters) # pprint to "pretty print"
+
 
 ##############################################################################
 # 
@@ -90,8 +90,8 @@ pprint(parameters) # pprint to "pretty print"
 # 
 # In this situation, you can tune certain parameters by re-assigning values to the keys of the `parameters` dictionary.
 # You may also tune multiple parameters at once if necessary. 
-# To fine-tune parameters properly, a good understanding of each parameter's role is required. 
-# For this reason, we have dedicated a whole section to this topic — see the "Parameters" section.
+# **To fine-tune parameters properly, a good understanding of each parameter's role is required. 
+# For this reason, we have dedicated a whole section to this topic — see the "Parameters" section.**
 # 
 # For example, here we modify the length of the smoothing parameter, which corresponds to the duration in milliseconds
 # of the Gaussian smoothing kernel (the width of the bell-shaped curve), usually referred to as sigma.
@@ -130,10 +130,10 @@ cycles = physio.detect_respiration_cycles(resp, srate, baseline_mode='manual', b
 print(cycles[:10])
 
 # this will return a dataframe with all cycles and features before cleaning
-resp_cycles = physio.compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline) # compute cycle-by-cycle resp features
+resp_cycles = physio.compute_respiration_cycle_features(resp, srate, cycles, baseline=baseline, sensor_type = 'airflow') # compute cycle-by-cycle resp features on airflow sensor type
 
 # this will remove outliers cycles based on log ratio distribution
-resp_cycles = physio.clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_ratio=3) # clean features
+resp_cycles = physio.clean_respiration_cycles(resp, srate, resp_cycles, baseline, low_limit_log_ratio=4.5, sensor_type = 'airflow') # clean features
 print(resp_cycles.head(10))
 
 
@@ -142,8 +142,8 @@ expi_ind = resp_cycles['expi_index'].values # get index of expiration start poin
 
 fig, ax = plt.subplots()
 ax.plot(times, resp, label = 'preprocessed resp signal')
-ax.scatter(times[inspi_ind], resp[inspi_ind], marker='o', color='green')
-ax.scatter(times[expi_ind], resp[expi_ind], marker='o', color='red')
+ax.scatter(times[inspi_ind], resp[inspi_ind], marker='o', color='green', label = 'inspiration start')
+ax.scatter(times[expi_ind], resp[expi_ind], marker='o', color='red', label = 'inspiration start')
 ax.axhline(baseline, color='Coral', label = 'baseline', ls = '--', alpha = 0.9)
 ax.set_ylabel('Amplitude (AU)')
 ax.set_xlabel('Time (s)')
