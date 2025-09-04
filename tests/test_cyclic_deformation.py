@@ -6,7 +6,7 @@ from physio import compute_respiration, deform_traces_to_cycle_template
 
 # read signals
 example_folder = Path(__file__).parents[1] / 'examples'
-raw_resp = np.load(example_folder / 'resp1.npy')
+raw_resp = np.load(example_folder / 'resp_airflow1.npy')
 srate = 1000.
 
 

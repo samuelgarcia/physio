@@ -26,7 +26,7 @@ import physio
 #  
 # 
 
-raw_resp = np.load('resp2.npy')
+raw_resp = np.load('resp_airflow2.npy')
 raw_ecg = np.load('ecg2.npy')
 srate = 1000.
 times = np.arange(raw_resp.size) / srate
