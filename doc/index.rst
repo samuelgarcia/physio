@@ -2,7 +2,7 @@ Documentation of toolbox physio
 ==============================
 
 
-:py:mod:`physio` is a python toolbox to analyse physiological signals : respiration and ECG
+:py:mod:`physio` is a python toolbox to analyse physiological signals : respiration and ECG (electrocardiogram).
 
 
 Authors
@@ -27,11 +27,11 @@ Features
   * respiration cycle features (amplitude, duration, volumes ...)
   * simple preprocess on signal : filter using scipy and smoothing
   * ecg peak detection
-  * ecg/hrv metrics (time domain and frequency domain)
-  * rsa : new approach to get cycle-by-cycle metrics
-  * cyclic deformation machinery : a simple stretcher of any signal to cycle template
+  * Heart Rate Variability (HRV) metrics (time-domain and frequency-domain)
+  * RespHRV (ex-RSA) : new approach to get cycle-by-cycle metrics of heart rate dynamics
+  * cyclic deformation machinery : a simple tool to stretch any signal to a cycle template
   * simple reader of micromed and brainvision using neo
-  * "auto-magic" parameters for different species
+  * "auto-magic" parameters for different species (rats, humans)
 
 
 .. toctree::

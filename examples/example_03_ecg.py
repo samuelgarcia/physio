@@ -130,13 +130,13 @@ ax.set_xlim(100, 150)
 #
 # 
 
-freqency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)}
+frequency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)}
 psd_freqs, psd, psd_metrics = physio.compute_hrv_psd(
     ecg_peaks,
     sample_rate=100.,
     limits=None,
     units='bpm',
-    freqency_bands=freqency_bands,
+    frequency_bands=frequency_bands,
     window_s=250.,
     interpolation_kind='cubic',
 )
@@ -146,7 +146,7 @@ fig, ax = plt.subplots()
 # ax.semilogy(psd_freqs, psd)
 ax.plot(psd_freqs, psd)
 colors = {'lf': '#B8860B', 'hf' : '#D2691E'}
-for name, freq_band in freqency_bands.items():
+for name, freq_band in frequency_bands.items():
     ax.axvspan(*freq_band, alpha=0.1, color=colors[name], label=f'{name} : {psd_metrics[name]}')
 ax.set_xlim(0, 0.6)
 ax.set_xlabel('freq [Hz]')
