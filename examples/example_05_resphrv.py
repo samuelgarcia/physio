@@ -65,7 +65,7 @@ ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg'
 
 points_per_cycle = 50
 
-rsa_cycles, cyclic_cardiac_rate = physio.compute_rsa(
+resphrv_cycles, cyclic_cardiac_rate = physio.compute_resphrv(
     resp_cycles,
      ecg_peaks,
      srate=10.,
@@ -74,7 +74,7 @@ rsa_cycles, cyclic_cardiac_rate = physio.compute_rsa(
 )
 
 some_features = ['rising_amplitude', 'decay_amplitude', 'rising_duration', 'decay_duration', 'rising_slope', 'decay_slope']
-print(rsa_cycles[some_features].head(9))
+print(resphrv_cycles[some_features].head(9))
 
 
 ##############################################################################

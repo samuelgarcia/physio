@@ -30,12 +30,12 @@ Cylic tools
 
     .. autofunction:: deform_traces_to_cycle_template
 
-RSA
----
+RespHRV
+-------
 
-.. automodule:: physio.rsa
+.. automodule:: physio.resphrv
 
-    .. autofunction:: compute_rsa
+    .. autofunction:: compute_resphrv
 
 
 reader

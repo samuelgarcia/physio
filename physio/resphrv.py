@@ -4,8 +4,10 @@ import pandas as pd
 from .ecg import compute_instantaneous_rate
 from .cyclic_deformation import deform_traces_to_cycle_template
 
+import warnings
 
-def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None, two_segment=True, points_per_cycle=50):
+
+def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None, two_segment=True, points_per_cycle=50):
     """
     RSA = Respiratory Sinus Arrhythmia (or Respiratory Heart Rate Variability / RespHRV)
 
@@ -39,7 +41,7 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None, tw
 
     Returns
     -------
-    rsa_cycles : pd.DataFrame
+    resphrv_cycles : pd.DataFrame
         Cycle-by-cycle features of Heart Rate dynamics. Ex : decay_amplitude gives the by-cycle peak-to-trough amplitude.
 
     cyclic_cardiac_rate : nd.array
@@ -66,11 +68,11 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None, tw
                                                     points_per_cycle=points_per_cycle, segment_ratios=segment_ratios)
     
 
-    rsa_cycles = pd.DataFrame(index=resp_cycles.index)
+    resphrv_cycles = pd.DataFrame(index=resp_cycles.index)
 
     n = resp_cycles.shape[0]
-    rsa_cycles['peak_index'] = pd.Series(np.zeros(n), dtype='int64')
-    rsa_cycles['trough_index'] = pd.Series(np.zeros(n), dtype='int64')
+    resphrv_cycles['peak_index'] = pd.Series(np.zeros(n), dtype='int64')
+    resphrv_cycles['trough_index'] = pd.Series(np.zeros(n), dtype='int64')
 
     columns=['peak_time', 'trough_time',
              'peak_value', 'trough_value',
@@ -79,7 +81,7 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None, tw
              'rising_slope', 'decay_slope',
              ]
     for col in columns:
-        rsa_cycles[col] = pd.Series(dtype='float64')
+        resphrv_cycles[col] = pd.Series(dtype='float64')
     
     for c, cycle in resp_cycles.iterrows():
         t0, t1 = cycle['inspi_time'], cycle['next_inspi_time']
@@ -89,22 +91,28 @@ def compute_rsa(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None, tw
         ind_max = np.argmax(chunk)
         ind_min = np.argmin(chunk[ind_max:]) + ind_max
 
-        rsa_cycles.at[c, 'peak_index'] = i0 + ind_max
-        rsa_cycles.at[c, 'trough_index'] = i0 + ind_min
-        rsa_cycles.at[c, 'peak_time'] = t0 + ind_max / srate
-        rsa_cycles.at[c, 'trough_time'] = t0 + ind_min / srate
+        resphrv_cycles.at[c, 'peak_index'] = i0 + ind_max
+        resphrv_cycles.at[c, 'trough_index'] = i0 + ind_min
+        resphrv_cycles.at[c, 'peak_time'] = t0 + ind_max / srate
+        resphrv_cycles.at[c, 'trough_time'] = t0 + ind_min / srate
 
-    rsa_cycles['peak_value'] = instantaneous_cardiac_rate[rsa_cycles['peak_index'].values]
-    rsa_cycles['trough_value'] = instantaneous_cardiac_rate[rsa_cycles['trough_index'].values]
+    resphrv_cycles['peak_value'] = instantaneous_cardiac_rate[resphrv_cycles['peak_index'].values]
+    resphrv_cycles['trough_value'] = instantaneous_cardiac_rate[resphrv_cycles['trough_index'].values]
 
-    rsa_cycles['decay_amplitude'] = rsa_cycles['peak_value'] - rsa_cycles['trough_value']
-    rsa_cycles['rising_amplitude'].values[1:] = rsa_cycles['peak_value'].values[1:] - rsa_cycles['trough_value'].values[:-1]
+    resphrv_cycles['decay_amplitude'] = resphrv_cycles['peak_value'] - resphrv_cycles['trough_value']
+    resphrv_cycles['rising_amplitude'].values[1:] = resphrv_cycles['peak_value'].values[1:] - resphrv_cycles['trough_value'].values[:-1]
 
-    rsa_cycles['rising_duration'].values[1:] = rsa_cycles['peak_time'].values[1:] - rsa_cycles['trough_time'].values[:-1]
-    rsa_cycles['decay_duration'] = rsa_cycles['trough_time'] - rsa_cycles['peak_time']
+    resphrv_cycles['rising_duration'].values[1:] = resphrv_cycles['peak_time'].values[1:] - resphrv_cycles['trough_time'].values[:-1]
+    resphrv_cycles['decay_duration'] = resphrv_cycles['trough_time'] - resphrv_cycles['peak_time']
 
-    rsa_cycles['rising_slope'] = rsa_cycles['rising_amplitude'] / rsa_cycles['rising_duration']
-    rsa_cycles['decay_slope'] = rsa_cycles['decay_amplitude'] / rsa_cycles['decay_duration']
+    resphrv_cycles['rising_slope'] = resphrv_cycles['rising_amplitude'] / resphrv_cycles['rising_duration']
+    resphrv_cycles['decay_slope'] = resphrv_cycles['decay_amplitude'] / resphrv_cycles['decay_duration']
 
     
-    return rsa_cycles, cyclic_cardiac_rate
+    return resphrv_cycles, cyclic_cardiac_rate
+
+
+
+def compute_rsa(*args, **kwargs):
+    warnings.warn('compute_rsa() has been renamed to compute_resphrv(). compute_rsa() will be removed')
+    return compute_resphrv(*args, **kwargs)
