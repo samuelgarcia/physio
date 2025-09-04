@@ -235,12 +235,12 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp1 < baseline_dw))
     
     ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
-    # ind_insp_no_clean = ind_insp.copy()
+    ind_insp_no_clean = ind_insp.copy()
     keep_inds = np.searchsorted(ind_insp, ind_dw, side='right')
     keep_inds = keep_inds[keep_inds > 0]
     ind_insp = ind_insp[keep_inds - 1]
     ind_insp = np.unique(ind_insp)
-    # ind_insp_no_clean2 = ind_insp.copy()
+    ind_insp_no_clean2 = ind_insp.copy()
     ind_exp, = np.nonzero((resp0 < baseline) & (resp1 >= baseline))
     
     
@@ -294,7 +294,7 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     return cycles
 
 
-def detect_respiration_cycles_min_max(resp, srate, min_cycle_duration_ms=100.):
+def detect_respiration_cycles_min_max(resp, srate, exclude_sweep_ms=50.):
     """
     Detect respiration by cycles based on:
       * crossing zeros (or crossing baseline)
@@ -306,7 +306,7 @@ def detect_respiration_cycles_min_max(resp, srate, min_cycle_duration_ms=100.):
         Preprocess traces of respiratory signal.
     srate: float
         Sampling rate
-    min_cycle_duration_ms: 
+    exclude_sweep_ms: 
     Returns
     -------
     cycles: np.array
@@ -317,7 +317,6 @@ def detect_respiration_cycles_min_max(resp, srate, min_cycle_duration_ms=100.):
     # abs_threshold = 0
     abs_threshold = np.min(resp)
     
-    exclude_sweep_ms = min_cycle_duration_ms / 2.
 
     ind_exp = detect_peak(resp, srate, abs_threshold=abs_threshold, exclude_sweep_ms=exclude_sweep_ms)
     ind_insp = np.zeros(ind_exp.size - 1, dtype="int64")
@@ -475,15 +474,15 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
     if sensor_type == 'airflow':
         compute_volume = True
         compute_amplitude = True
-        compute_inflation = False
+        compute_belt_amplitude = False
     elif sensor_type == 'belt':
         compute_volume = False
         compute_amplitude = False
-        compute_inflation = True
+        compute_belt_amplitude = True
     elif sensor_type == 'co2':
         compute_volume = False
         compute_amplitude = False
-        compute_inflation = False
+        compute_belt_amplitude = False
     else:
         raise ValueError("compute_respiration_cycle_features need sensor_type")
 
@@ -548,47 +547,55 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
     if compute_amplitude:
         for k in ('total_amplitude', 'inspi_amplitude', 'expi_amplitude'):
             df[k] = pd.Series(dtype='float64')
-    
-    if compute_inflation:
-        for k in ('inflation_amplitude', 'deflation_amplitude'):
+        for k in ('inspi_peak_index', 'expi_peak_index'):
+            df[k] = pd.Series(np.zeros(n, dtype='int64'), dtype='int64')
+        for k in ('inspi_peak_time', 'expi_peak_time'):
+            df[k] = pd.Series(dtype='float64')
+
+
+    if compute_belt_amplitude:
+        for k in ('inspi_amplitude', 'expi_amplitude'):
             df[k] = pd.Series(dtype='float64')
 
     #missing cycle
     mask = (ix2 == -1)
     df.loc[mask, ['expi_time', 'cycle_duration', 'inspi_duration', 'expi_duration', 'cycle_freq']] = np.nan
     
-    if compute_volume or compute_amplitude or compute_inflation:
+    if compute_volume or compute_amplitude or compute_belt_amplitude:
         for c in range(n):
             i1, i2, i3 = ix1[c], ix2[c], ix3[c]
             if i2 == -1:
                 #this is a missing cycle in the middle
                 continue
             if compute_volume:
-                df.at[c, 'inspi_volume'] = np.abs(np.sum(resp[i1:i2])) / srate
-                df.at[c, 'expi_volume'] = np.abs(np.sum(resp[i2:i3])) / srate
+                mask = resp[i1:i2] < 0.
+                df.at[c, 'inspi_volume'] = np.abs(np.sum(resp[i1:i2][mask])) / srate
+                mask = resp[i2:i3] > 0.
+                df.at[c, 'expi_volume'] = np.abs(np.sum(resp[i2:i3][mask])) / srate
             if compute_amplitude:
-                df.at[c, 'inspi_amplitude'] = np.max(np.abs(resp[i1:i2]))
-                df.at[c, 'expi_amplitude'] = np.max(np.abs(resp[i2:i3]))
-            if compute_inflation:
-                df.at[c, 'inflation_amplitude'] = resp[i2] - resp[i1]
-                df.at[c, 'deflation_amplitude'] = resp[i2] - resp[i3]
+                ind_max = np.argmax(np.abs(resp[i1:i2]))
+                df.at[c, 'inspi_amplitude'] = np.abs(resp[i1+ind_max])
+                df.at[c, 'inspi_peak_index'] = i1 + ind_max
+
+                ind_max = np.argmax(np.abs(resp[i2:i3]))
+                df.at[c, 'expi_amplitude'] = np.abs(resp[i2+ind_max])
+                df.at[c, 'expi_peak_index'] = i2 + ind_max
+
+            if compute_belt_amplitude:
+                df.at[c, 'inspi_amplitude'] = resp[i2] - resp[i1]
+                df.at[c, 'expi_amplitude'] = resp[i2] - resp[i3]
     
     if compute_amplitude:
         df['total_amplitude'] = df['inspi_amplitude'] + df['expi_amplitude']
 
     if compute_volume:
         df['total_volume'] = df['inspi_volume'] + df['expi_volume']
+
+    if 'inspi_peak_index' in df.columns:
+        df.loc[:, 'inspi_peak_time'] = times[df.loc[:, 'inspi_peak_index'].values]
+        df.loc[:, 'expi_peak_time'] = times[df.loc[:, 'expi_peak_index'].values]
     
 
-    # if sensor_type == 'belt':
-    #     for k in ('inspi_amplitude', 'expi_amplitude'):
-    #         df[k] = pd.Series(dtype='float64')        
-    #     # amplitude is different
-    #     for c in range(n):
-    #         i1, i2, i3 = ix1[c], ix2[c], ix3[c]
-    #         df.at[c, 'inspi_amplitude'] = resp[i2] - resp[i1]
-    #         df.at[c, 'expi_amplitude'] = resp[i2] - resp[i3]
-    
     return resp_cycles
 
 
@@ -628,8 +635,8 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_n
 
 
     if variable_names is None:
-        warnings.warn("clean_respiration_cycles() need variable_names to be set, variable_name=['inspi_volume', 'expi_volumne'] is set to  for backward compatibility")
-        variable_names = ['inspi_volume', 'expi_volumne']
+        warnings.warn("clean_respiration_cycles() need variable_names to be set, variable_name=['inspi_volume', 'expi_volume'] is set to  for backward compatibility")
+        variable_names = ['inspi_volume', 'expi_volume']
 
     assert isinstance(variable_names, list), "variable_names must be a list of columns"
 

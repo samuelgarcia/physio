@@ -41,11 +41,11 @@ def test_detect_respiration_cycles_airflow():
         sensor_type='airflow',
         preprocess=dict(band=7., btype='lowpass', ftype='bessel', order=5, normalize=False),
         smooth=dict(win_shape='gaussian', sigma_ms=60.0),
-        cycle_detection=dict(method="crossing_baseline", epsilon_factor1=20, epsilon_factor2=5., inspiration_adjust_on_derivative=False),
+        cycle_detection=dict(method="crossing_baseline", epsilon_factor1=20, epsilon_factor2=3., inspiration_adjust_on_derivative=False),
         baseline=dict(baseline_mode='median'),
         cycle_clean=dict(variable_names=['inspi_volume', 'expi_volume'], low_limit_log_ratio=4.5),
     )
-    resp, resp_cycles = compute_respiration(raw_resp2, srate, parameter_preset=None, parameters=parameters)
+    resp, resp_cycles = compute_respiration(raw_resp1, srate, parameter_preset=None, parameters=parameters)
 
     # inspi_inds = resp_cycles['inspi_index'].values
     # expi_inds = resp_cycles['expi_index'].values
@@ -71,42 +71,41 @@ def test_detect_respiration_cycles_belt():
     # expi_inds = cycles[:, 1]    
 
     # belt preset
-
-    
     resp, resp_cycles = compute_respiration(raw_resp3, srate, parameter_preset='human_belt')
+
 
     # belt  params
     params = dict(
         sensor_type='belt',
         preprocess=dict(band=5., btype='lowpass', ftype='bessel', order=5, normalize=False),
         smooth=dict(win_shape='gaussian', sigma_ms=40.0),
-        cycle_detection=dict(method="min_max", min_cycle_duration_ms=400.),
+        cycle_detection=dict(method="min_max", exclude_sweep_ms=200.),
         # cycle_clean=None,
-        cycle_clean=dict(variable_names=["inflation_amplitude", "deflation_amplitude"], low_limit_log_ratio=8.),
-        # cycle_clean=dict(variable_names=["inflation_amplitude",], low_limit_log_ratio=8.),
-        # cycle_clean=dict(variable_names=["deflation_amplitude",], low_limit_log_ratio=8.),
+        cycle_clean=dict(variable_names=["inspi_amplitude", "expi_amplitude"], low_limit_log_ratio=8.),
+        # cycle_clean=dict(variable_names=["inspi_amplitude",], low_limit_log_ratio=8.),
+        # cycle_clean=dict(variable_names=["expi_amplitude",], low_limit_log_ratio=8.),
     )
     resp, resp_cycles = compute_respiration(raw_resp3, srate, parameter_preset=None, parameters=params)
     
     # print(resp_cycles.shape)
-    # print(resp_cycles[['inflation_amplitude', 'deflation_amplitude']])
+    # print(resp_cycles[['inspi_amplitude', 'expi_amplitude']])
 
 
 
-    # inspi_inds = resp_cycles['inspi_index'].values
-    # expi_inds = resp_cycles['expi_index'].values
-    # import matplotlib.pyplot as plt
-    # fig, ax = plt.subplots()
-    # ax.plot(raw_resp3)
-    # ax.plot(resp)
-    # ax.scatter(inspi_inds, resp[inspi_inds], color='g')
-    # ax.scatter(expi_inds, resp[expi_inds], color='r')
-    # plt.show()
+    inspi_inds = resp_cycles['inspi_index'].values
+    expi_inds = resp_cycles['expi_index'].values
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots()
+    ax.plot(raw_resp3)
+    ax.plot(resp)
+    ax.scatter(inspi_inds, resp[inspi_inds], color='g')
+    ax.scatter(expi_inds, resp[expi_inds], color='r')
+    plt.show()
 
 
 
 
 if __name__ == '__main__':
     # test_compute_respiration()
-    test_detect_respiration_cycles_airflow()
-    # test_detect_respiration_cycles_belt()
+    # test_detect_respiration_cycles_airflow()
+    test_detect_respiration_cycles_belt()

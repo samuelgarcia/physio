@@ -49,9 +49,9 @@ _resp_parameters['human_belt'] = dict(
     sensor_type='belt',
     preprocess=dict(band=5., btype='lowpass', ftype='bessel', order=5, normalize=False),
     smooth=dict(win_shape='gaussian', sigma_ms=40.0),
-    cycle_detection=dict(method="min_max", min_cycle_duration_ms=400.),
+    cycle_detection=dict(method="min_max", exclude_sweep_ms=200.),
     baseline=None,
-    cycle_clean=dict(variable_names=['inflation_amplitude', 'deflation_amplitude'], low_limit_log_ratio=8.),
+    cycle_clean=dict(variable_names=['inspi_amplitude', 'expi_amplitude'], low_limit_log_ratio=8.),
 )
 
 _resp_parameters['human_co2'] = dict(
@@ -72,7 +72,7 @@ _resp_parameters['rat_plethysmo'] = dict(
     #~ smooth=None,
     cycle_detection=dict(method="crossing_baseline", epsilon_factor1=10., epsilon_factor2=4., inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='manual', baseline=0.),
-    cycle_clean=dict(variable_names=['inflation_amplitude', 'deflation_amplitude'], low_limit_log_ratio=8.),
+    cycle_clean=dict(variable_names=['inspi_amplitude', 'expi_amplitude'], low_limit_log_ratio=8.),
 )
 
 # belt form etisens https://etisense.com/
@@ -81,11 +81,9 @@ _resp_parameters['rat_etisens_belt'] = dict(
     preprocess=dict(band=30., btype='lowpass', ftype='bessel', order=5, normalize=False),
     # smooth=dict(win_shape='gaussian', sigma_ms=5.0),
     smooth=None,
-    cycle_detection=dict(method="min_max", min_cycle_duration_ms=50.),
+    cycle_detection=dict(method="min_max", exclude_sweep_ms=30.),
     baseline=None,
-    cycle_clean=None,
-    # this need to be tested
-    # cycle_clean=dict(variable_names=["inflation_amplitude", "deflation_amplitude"], low_limit_log_ratio=8.),
+    cycle_clean=dict(variable_names=["inspi_amplitude", "expi_amplitude"], low_limit_log_ratio=8.),
 )
 
 
