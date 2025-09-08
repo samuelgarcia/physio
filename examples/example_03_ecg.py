@@ -124,9 +124,32 @@ ax.set_xlim(95, 125)
 
 ##############################################################################
 # 
-# ECG: compute time-domain heart rate variability (HRV) metrics
-# --------------------
+# Heart Rate Variability metrics (time-domain)
+# ---------------------------------------------
+# :py:func:`~physio.compute_ecg_metrics`  is a high-level wrapper function that computes time-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
+# To use this function, you must provide the previously detected R peaks, `ecg_peaks`:
+#    * `ecg_peaks` : pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
 #
+# We can visualize these metrics and the RR interval distribution. See :ref:`sphx_glr_examples_example_03_ecg.py` for a complete description of the metrics.
+
+ecg_metrics = physio.compute_ecg_metrics(ecg_peaks) # ecg_metrics = a pd.Series containing HRV time domain results
+
+peak_times = ecg_peaks['peak_time'].values # get R peak times of detection
+rri_s = np.diff(peak_times) # compute RR intervals in seconds
+rri_ms = rri_s * 1000 # seconds to milliseconds
+
+fig, ax = plt.subplots()
+ax.hist(rri_ms, bins=np.arange(500, 1400, 25), edgecolor = 'k') # plot distribution of RR intervals
+ax.axvline(ecg_metrics['HRV_Mean'], color='orange', label='Mean RRi') # vertical line at the mean RRi
+ax.axvline(ecg_metrics['HRV_Median'], color='violet', label='Median RRi') # vertical line at the median RRi
+ax.axvspan(ecg_metrics['HRV_Median'] - 2*ecg_metrics['HRV_Mad'], ecg_metrics['HRV_Median'] + 2*ecg_metrics['HRV_Mad'], color = 'orange', alpha = 0.1, label = 'Median +/- 2 * Median Absolute Deviation') # vertical span at the med + 2*mad
+ax.axvspan(ecg_metrics['HRV_Mean'] - 2*ecg_metrics['HRV_SD'], ecg_metrics['HRV_Mean'] + 2*ecg_metrics['HRV_SD'], color = 'violet', alpha = 0.1, label = 'Mean +/- 2 * Standard-Deviation') # vertical span at the mean + 2*sd
+ax.set_xlabel('RR interval (ms)')
+ax.set_ylabel('Count')
+ax.set_ylim(-5, 90)
+ax.legend(loc = 'upper center', ncols = 2)
+ax.set_title('Distribution or RR intervals + Heart Rate Variability metrics')
+print(ecg_metrics)
 
 
 metrics = physio.compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000.)
@@ -134,73 +157,119 @@ print(metrics)
 
 ##############################################################################
 # 
-# ECG : compute instantaneous rate
-# --------------------------------
-#
-# The RR-interval (aka rri) time series is a common tool to analyse the heart rate variability (HRV).
-# This is equivalent to compute the instantaneous heart rate.
-# Heart rate [bpm] = 1 / rri * 60
-#
-# Most people use rri in ms, we feel that the use of heart rate in bpm is more intuitive. 
-# With bpm unit, an increase in the curve means heart rate acceleration. 
-# With ms unit, an increase in the curve means heart rate deceleration. 
-#
-# Feel free to use the units you prefer (bpm or ms)
+# Heart Rate Variability metrics (frequency-domain)
+# ---------------------------------------------
+# :py:func:`~physio.compute_hrv_psd`  is a high-level wrapper function that computes frequency-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
+# To use this function, you must provide the previously detected R peaks, `ecg_peaks`:
+#    * `ecg_peaks` : pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
+# 
+# Many others parameters can be set for this function (frequency bands, size of the Welch's window, etc...). See :ref:`sphx_glr_examples_example_03_ecg.py` for more information about these.
+# When called, :py:func:`~physio.compute_hrv_psd` performs the following:
+#    * Compute an instantaneous heart rate vector from ecg peaks and compute a Fourier transform using Welch method (returns two NumPy arrays: `psd_freqs` and `psd` giving frequency vector and power vector, respectively).
+#    * Compute HRV frequency metrics by getting power for each frequency band using trapezoïdal rule (returns a pd.Series: `psd_metrics`)
+# 
+# We can visualize these metrics and the RR interval distribution. See :ref:`sphx_glr_examples_example_03_ecg.py` for a complete description of the metrics.
 
-new_times = times[::10]
-instantaneous_rate = physio.compute_instantaneous_rate(
+frequency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)} # set classical cutoffs of low and high frequency bands, in a dictionnary
+psd_freqs, psd, psd_metrics = physio.compute_hrv_psd(ecg_peaks=ecg_peaks, frequency_bands=frequency_bands)
+
+print(psd_metrics)
+fig, ax = plt.subplots()
+ax.plot(psd_freqs, psd)
+colors = {'lf': '#B8860B', 'hf' : '#D2691E'}
+for name, freq_band in frequency_bands.items():
+    ax.axvspan(*freq_band, alpha=0.1, color=colors[name], label=f'{name} : {round(psd_metrics[name], 2)}') # plot one vertical span for each frequency band
+ax.set_xlim(0, 0.6)
+ax.set_xlabel('Frequency (Hz)')
+ax.set_ylabel('Power Spectral Density')
+ax.legend(loc = 'upper right')
+ax.set_title('HRV Power Spectral Density\n-> Frequency-Domain metrics')
+
+
+##############################################################################
+#
+# From R Peaks to Instantaneous Heart Rate
+# ----------------------------------------
+#
+# Computing HRV metrics in the frequency domain first requires computing an
+# instantaneous heart rate vector, regularly sampled. You may want to explore
+# this reconstructed time series.
+#
+# This can be done using the RR intervals (RRi), which are naturally a time
+# series. To move from time units (RR interval duration) to frequency, recall
+# that Frequency (F) = 1 / T, where T is a period such as RRi.
+#
+# Concerning heart rate, the standard is not to count how many heartbeats we
+# have per second, but per minute. The idea is to compute, for each RRi, how
+# many of them would occur in one minute.
+#
+# The formula is the following:
+#
+#    * Heart rate [bpm] = 60 / RRi (s)
+#
+# where "bpm" stands for "beats per minute" and "s" for "seconds".
+#
+# However, most toolboxes work with "RRi in ms," while heart rate in bpm is
+# often more intuitive:
+#
+#    * With bpm units, an increase in the time series means a heart rate
+#      acceleration.
+#    * With ms units, an increase in the time series means a heart rate
+#      deceleration.
+#
+# That said, feel free to use whichever units you prefer (bpm or ms).
+#
+# The :py:mod:`physio` module provides the function
+# :py:func:`~physio.compute_instantaneous_rate` to obtain instantaneous heart
+# rate (in bpm) or heart period (in ms) from previously detected R peaks using
+# interpolation.
+#
+# To use this function, you must provide:
+#
+#    * `ecg_peaks` : pd.DataFrame, output of :py:func:`~physio.compute_ecg`
+#    * `new_times` : np.array, the regularly sampled time series on which to
+#      compute instantaneous heart rate. This can be the ECG time vector, or a
+#      down-sampled version to reduce computation.
+#    * `limits` : list or None, range in the chosen units for removing outliers
+#      (e.g. [30, 200] to exclude bpm outside this range). Default is None,
+#      meaning no cleaning.
+#    * `units` : str ('bpm' / 'Hz' / 'ms' / 's'), sets the output units
+#      (default = 'bpm').
+#    * `interpolation_kind` : str ('linear' or 'cubic'). Linear interpolation
+#      uses straight lines, while cubic interpolation uses smooth curves.
+#      Default is "linear".
+#
+# When called, :py:func:`~physio.compute_ecg` performs the following:
+#
+#    * Converts units according to the "units" parameter
+#    * Removes outliers if `limits` are provided
+#    * Interpolates the time series according to the `new_times` vector
+#
+# Let's use it.
+
+new_times = times[::10] # time vector used for interpolation, here the time vector of the raw ECG but down sampeld 10 times
+instantaneous_heart_rate = physio.compute_instantaneous_rate(
     ecg_peaks,
     new_times,
     limits=None,
-    units='bpm',
+    units='bpm', # units in beats per minute
     interpolation_kind='linear',
 )
-rri = physio.compute_instantaneous_rate(
+instantaneous_heart_period = physio.compute_instantaneous_rate(
     ecg_peaks,
     new_times,
     limits=None,
-    units='ms',
+    units='ms', # units in milliseconds
     interpolation_kind='linear',
 )
 
 fig, axs = plt.subplots(nrows=2, sharex=True)
+fig.suptitle('From R peaks to Instantaneous Heart Rate')
 ax = axs[0]
-ax.plot(new_times, instantaneous_rate)
-ax.set_ylabel('heart rate [bpm]')
+ax.plot(new_times, instantaneous_heart_rate)
+ax.set_ylabel('Heart Rate (bpm)')
 ax = axs[1]
-ax.plot(new_times, rri)
-ax.set_ylabel('rri [ms]')
-ax.set_xlabel('time [s]')
+ax.plot(new_times, instantaneous_heart_period)
+ax.set_ylabel('Heart Period (ms)')
+ax.set_xlabel('Time (s)')
 ax.set_xlim(100, 150)
-
-##############################################################################
-# 
-# ECG: compute frequency-domain heart rate variability (HRV) metrics
-# -------------------------
-#
-# 
-
-frequency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)}
-psd_freqs, psd, psd_metrics = physio.compute_hrv_psd(
-    ecg_peaks,
-    sample_rate=100.,
-    limits=None,
-    units='bpm',
-    frequency_bands=frequency_bands,
-    window_s=250.,
-    interpolation_kind='cubic',
-)
-
-print(psd_metrics)
-fig, ax = plt.subplots()
-# ax.semilogy(psd_freqs, psd)
-ax.plot(psd_freqs, psd)
-colors = {'lf': '#B8860B', 'hf' : '#D2691E'}
-for name, freq_band in frequency_bands.items():
-    ax.axvspan(*freq_band, alpha=0.1, color=colors[name], label=f'{name} : {psd_metrics[name]}')
-ax.set_xlim(0, 0.6)
-ax.set_xlabel('freq [Hz]')
-ax.set_ylabel('HRV PSD')
-ax.legend()
-
-plt.show()
