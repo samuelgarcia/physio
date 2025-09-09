@@ -1,22 +1,19 @@
 '''
-RSA tutorial
-============
+RespHRV Tutorial
+================
 
-Respiratory sinus arrhythmia (RSA) can be analysed with the physio toolbox with
-an innovative method to extract parameters of the heart rate dynamic on a respiratory
-cycle-to-cycle basis.
+Respiratory Heart Rate Variability (RespHRV; previously called Respiratory Sinus Arrhythmia, RSA — see this paper explaining the redefinition of the term: 10.1038/s41569-025-01160-z) can be analyzed using the :py:mod:`physio` toolbox, which provides an innovative method to extract features from heart rate dynamics on a respiratory cycle-by-cycle basis.
 
 The method consists of:
-  * detect respiratory cycle
-  * detect ECG peaks
-  * compute instanteneous heart rate in BPM
-  * extract parameters in this heart timeseries for each respiratory cycle
-  * use cyclic deformation of this heart rate signal and stack all cycles.
+  * Detecting respiratory cycles
+  * Detecting ECG peaks
+  * Computing instantaneous heart rate in beats per minute
+  * Extracting features of this heart rate time series for each respiratory cycle
+  * Using cyclic deformation of the heart rate time series and stacking all epochs
 
-This method has 2 important advantages:
-  * the dynamic of th RSA can be finely analysed
-  * features of RSA can be analysed using respiratory cycle-by-cycle
-
+This method has two important advantages:
+  * RespHRV features can be finely obtained for each respiratory cycle
+  * Heart rate dynamics can be analyzed at each phase bin of the respiratory cycle
 '''
 
 
@@ -32,36 +29,53 @@ import physio
 ##############################################################################
 # 
 # Read data
-# ---------
+# ----------
 #  
-# 
+# For this tutorial, we will use an internal file stored in NumPy format for demonstration purposes.
+# See :ref:`sphx_glr_examples_example_01_getting_started.py`, first section, for a description of 
+# the capabilities of :py:mod:`physio` for reading raw data formats.
 
-raw_resp = np.load('resp_airflow1.npy')
-raw_ecg = np.load('ecg1.npy')
-srate = 1000.
-times = np.arange(raw_resp.size) / srate
+
+raw_resp = np.load('resp_airflow1.npy') # load respi
+raw_ecg = np.load('ecg1.npy') # load ecg
+srate = 1000. # our example signals have been recorded at 1000 Hz
+
+times = np.arange(raw_resp.size) / srate # build time vector
 
 
 ##############################################################################
 # 
-# Get respiratory cycle and ECG peaks
-# -----------------------------------
+# Get respiratory cycles and ECG peaks using `parameter_preset`
+# -------------------------------------------------------------
 #  
-#
+# See :ref:`sphx_glr_examples_example_02_respiration.py` and 
+# :ref:`sphx_glr_examples_example_03_ecg.py` for a detailed explanation of how to use 
+# :py:func:`~physio.compute_respiration` and :py:func:`~physio.compute_ecg`, respectively.
 
-resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
-ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg')
+resp, resp_cycles = physio.compute_respiration(raw_resp, srate, parameter_preset='human_airflow') # set 'human_airflow' as preset because example resp is an airflow from human
+ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg') # set 'human_ecg' as preset because example ecg is from human
 
 
 ##############################################################################
 # 
-# Compute RSA
+# Compute RespHRV
 # -----------
 #  
-# This is done with one unique function that returns:
-#   
-#   * One dataframe with all RSA features
-#   * The cyclically deformed cardiac rate
+# :py:func:`~physio.compute_resphrv` is a high-level wrapper function that computes 
+# RespHRV metrics from previously detected R peaks (`ecg_peaks`) and respiratory cycles (`resp_cycles`).
+# To use this function, you must provide the previously detected R peaks and respiratory cycles, along with other optional parameters:
+#    * `resp_cycles`: pd.DataFrame, output of the function :py:func:`~physio.compute_respiration`
+#    * `ecg_peaks`: pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
+#    * `srate`: int or float. (optional) Sampling rate used for interpolation to get an instantaneous heart rate vector from RR intervals. 100 Hz is safe for both animal and human. For human 10 also works.
+#    * units : str (bpm / s / ms / Hz), sets the output units (optional, default = 'bpm').
+#    * limits : list or None, (optional) range in the chosen units for removing outliers (e.g., [30, 200] to exclude bpm values outside this range). Default is None, meaning no cleaning..
+#    * two_segment : bool, (optional, default = True), True or False, to perform cyclical deformation deviding each respiratory cycle in 2 (if True) segments or 1 (if False).  See :ref:`sphx_glr_examples_example_04_cyclic_deformation.py` for more informations.
+#    * points_per_cycle : int, (optional, default = 50), number of points per cycle used for linear resampling during cyclical deformation (see :ref:`sphx_glr_examples_example_04_cyclic_deformation.py`).
+#
+# When called, :py:func:`~physio.compute_resphrv` performs the following:
+#    * Computes instantaneous heart rate (IHR) vector from RR intervals computed from `ecg_peaks`.
+#    * Perform cyclic deformation of the IHR vector according to respiratory time points (returns a NumPy array: `cyclic_cardiac_rate` of shape (n_resp_cycles * points_per_cycle))
+#    * Computes Heart-Rate features for each respiratory cycle period (returns a pd.DataFrame array: `resphrv_cycles`)
 
 points_per_cycle = 50
 
