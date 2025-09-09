@@ -126,13 +126,54 @@ ax.set_xlim(95, 125)
 # 
 # Heart Rate Variability metrics (time-domain)
 # ---------------------------------------------
-# :py:func:`~physio.compute_ecg_metrics`  is a high-level wrapper function that computes time-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
+# :py:func:`~physio.compute_ecg_metrics` is a high-level wrapper function that computes 
+# time-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
 # To use this function, you must provide the previously detected R peaks, `ecg_peaks`:
-#    * `ecg_peaks` : pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
+#    * `ecg_peaks`: pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
+#    * `min_interval_ms`: float, minimum RR interval in milliseconds (optional, default = 500 ms)
+#    * `max_interval_ms`: float, maximum RR interval in milliseconds (optional, default = 2000 ms)
 #
-# We can visualize these metrics and the RR interval distribution. See :ref:`sphx_glr_examples_example_03_ecg.py` for a complete description of the metrics.
+# When called, :py:func:`~physio.compute_ecg_metrics` performs the following:
+#    * Computes the time differences between successive RR intervals.
+#    * Cleans the RR intervals according to `min_interval_ms` and `max_interval_ms`.
+#    * Computes HRV time-domain metrics from the cleaned RR intervals.
+#
+# Computed metrics are:
+#    * `HRV_Mean`: Mean of the RR intervals. Note that the "HRV" terminology can be misleading here,
+#      as it is inspired by other toolboxes and does not strictly measure variability, but rather
+#      an estimation of the position in the distribution.
+#    * `HRV_SD`: Standard deviation of the RR intervals.
+#    * `HRV_Median`: Median of the RR intervals. As RR interval distributions are rarely normal,
+#      we recommend using `HRV_Median` instead of `HRV_Mean` for estimating central tendency.
+#    * `HRV_Mad`: Median absolute deviation (MAD) of the RR intervals. `HRV_Mad` is more robust
+#      to outliers than `HRV_SD` and is therefore recommended for variability estimation
+#      (see 10.1016/j.jesp.2013.03.013).
+#    * `HRV_CV`: Coefficient of variation of RR intervals = `HRV_SD` / `HRV_Mean`. This provides
+#      a standardized measure of variability, reducing the effect of the central tendency on
+#      dispersion.
+#    * `HRV_MCV`: "MAD" coefficient of variation = `HRV_Mad` / `HRV_Median`. This robust measure
+#      standardizes variability while being less sensitive to outliers.
+#    * `HRV_Asymmetry`: Difference between `HRV_Mean` and `HRV_Median`. This provides a simple
+#      measure of skewness or non-normality in the RR interval distribution and can highlight
+#      potential outlier effects.
+#    * `HRV_RMSSD`: Root mean square of successive differences (RMSSD). RMSSD is calculated as
+#      the square root of the mean of the squared differences between successive RR intervals.
+#      Conceptually, it is similar to a second derivative of the RR intervals (if RR intervals are considered as a
+#      first derivative). RMSSD is very sensitive to outliers, which can artificially increase its value.
+#
+# Some of these metrics can be visualized on the RR interval distribution below, which provides
+# a simple way to identify potential outliers in the detection.
+#
+# Note that the impact of outliers in R peak detection on HRV metrics—often due to poor ECG quality—can be mitigated in three ways:
+#    1) By using optimal parameters during R peak detection with :py:func:`~physio.compute_ecg`
+#    2) By setting appropriate `min_interval_ms` and `max_interval_ms` when using :py:func:`~physio.compute_ecg_metrics`
+#    3) By interpreting results using robust metrics such as `HRV_Median`, `HRV_Mad`, or `HRV_MCV`
+#
+# While these three steps can reduce the impact of outliers, careful ECG data recording is no substitute for quality optimization.
 
-ecg_metrics = physio.compute_ecg_metrics(ecg_peaks) # ecg_metrics = a pd.Series containing HRV time domain results
+
+
+ecg_metrics = physio.compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000) # ecg_metrics = a pd.Series containing HRV time domain results. Here we set 500 to 2000 ms as a normal range of RRi for a human quietly sitting on a chair.
 
 peak_times = ecg_peaks['peak_time'].values # get R peak times of detection
 rri_s = np.diff(peak_times) # compute RR intervals in seconds
@@ -151,24 +192,36 @@ ax.legend(loc = 'upper center', ncols = 2)
 ax.set_title('Distribution or RR intervals + Heart Rate Variability metrics')
 print(ecg_metrics)
 
-
-metrics = physio.compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000.)
-print(metrics)
-
 ##############################################################################
 # 
 # Heart Rate Variability metrics (frequency-domain)
 # ---------------------------------------------
-# :py:func:`~physio.compute_hrv_psd`  is a high-level wrapper function that computes frequency-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
-# To use this function, you must provide the previously detected R peaks, `ecg_peaks`:
-#    * `ecg_peaks` : pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
+# :py:func:`~physio.compute_hrv_psd` is a high-level wrapper function that computes 
+# frequency-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
 # 
-# Many others parameters can be set for this function (frequency bands, size of the Welch's window, etc...). See :ref:`sphx_glr_examples_example_03_ecg.py` for more information about these.
+# To use this function, you must provide the previously detected R peaks (`ecg_peaks`) along with other optional parameters:
+#    * `ecg_peaks`: pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
+#    * `sample_rate`: float, sampling frequency of the reconstructed instantaneous heart rate (IHR) vector 
+#      through interpolation (optional, default = 100 Hz). This vector is used internally by the function, so 
+#      this parameter usually does not need adjustment. 100 Hz works well for both humans and rodents.
+#    * `limits`: list or None, range in the chosen units for removing outliers 
+#      (e.g., [30, 200] to exclude bpm values outside this range). Default is None, meaning no cleaning.
+#    * `units`: str ('bpm', 'Hz', 'ms', 's'), sets the output units (default = 'bpm').
+#    * `frequency_bands`: dict. Example: {'lf': (0.04, 0.15), 'hf': (0.15, 0.4)} (default). 
+#      Frequency band names and ranges are defined using this dictionary. You may explore lower frequencies if 
+#      your signal duration is sufficient.
+#    * `window_s`: float, default = 250 seconds. Duration of the window used for power spectral density 
+#      estimation via Welch's method. It must be long enough to cover at least 5 cycles of the lowest frequency 
+#      you wish to analyze; otherwise, :py:func:`~physio.compute_hrv_psd` will raise an error.
+#    * `interpolation_kind`: str ('linear' or 'cubic'). Method to reconstruct the IHR vector. 
+#      Linear interpolation uses straight lines, while cubic interpolation produces smooth curves. 
+#      Default is "cubic". The choice affects signal smoothness and dynamics, and therefore influences 
+#      the power spectrum due to differences in harmonic content.
+#    
 # When called, :py:func:`~physio.compute_hrv_psd` performs the following:
 #    * Compute an instantaneous heart rate vector from ecg peaks and compute a Fourier transform using Welch method (returns two NumPy arrays: `psd_freqs` and `psd` giving frequency vector and power vector, respectively).
 #    * Compute HRV frequency metrics by getting power for each frequency band using trapezoïdal rule (returns a pd.Series: `psd_metrics`)
 # 
-# We can visualize these metrics and the RR interval distribution. See :ref:`sphx_glr_examples_example_03_ecg.py` for a complete description of the metrics.
 
 frequency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)} # set classical cutoffs of low and high frequency bands, in a dictionnary
 psd_freqs, psd, psd_metrics = physio.compute_hrv_psd(ecg_peaks=ecg_peaks, frequency_bands=frequency_bands)
