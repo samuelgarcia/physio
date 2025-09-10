@@ -274,7 +274,7 @@ deformed_resp_2seg = physio.deform_traces_to_cycle_template(resp, # resp trace t
                                                              cycle_times,  # times of resp cycles, used to strech
                                                              points_per_cycle=40,  # number of points per cycle used for linear resampling
                                                              segment_ratios=segment_ratios, # ratio between 0 and 1 where cycle is divided into 2 segments
-                                                             output_mode='stacked' # choose a stacked version of 
+                                                             output_mode='stacked' # choose a stacked version of the returned matrix (see docstrings)
                                                              )
 print(deformed_resp_2seg.shape, cycle_times.shape)
 
