@@ -41,7 +41,7 @@ times = np.arange(raw_ecg.size) / srate # build time vector
 
 ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg') # set 'human_ecg' as preset because example ecg is from human
 
-# ecg_peaks is a dataframe containing 2 columns : 1) the indices of detection and 2) the times of detections of the R peaks
+# ecg_peaks is a dataframe containing 2 columns : 1) the indices of detection and 2) the times in seconds of detections of the R peaks
 print(ecg_peaks)
 
 r_peak_ind = ecg_peaks['peak_index'].values # get index of detected R peaks
@@ -139,24 +139,24 @@ ax.set_xlim(95, 125)
 #    * Computes HRV time-domain metrics from the cleaned RR intervals.
 #
 # Computed metrics are:
-#    * `HRV_Mean`: Mean of the RR intervals. Note that the "HRV" terminology can be misleading here,
+#    * `HRV_Mean`: (units = `ms` for `milliseconds`) Mean of the RR intervals. Note that the "HRV" terminology can be misleading here,
 #      as it is inspired by other toolboxes and does not strictly measure variability, but rather
 #      an estimation of the position in the distribution.
-#    * `HRV_SD`: Standard deviation of the RR intervals.
-#    * `HRV_Median`: Median of the RR intervals. As RR interval distributions are rarely normal,
+#    * `HRV_SD`: (units = `ms`) Standard deviation of the RR intervals.
+#    * `HRV_Median`: (units = `ms`) Median of the RR intervals. As RR interval distributions are rarely normal,
 #      we recommend using `HRV_Median` instead of `HRV_Mean` for estimating central tendency.
-#    * `HRV_Mad`: Median absolute deviation (MAD) of the RR intervals. `HRV_Mad` is more robust
+#    * `HRV_Mad`: (units = `ms`) Median absolute deviation (MAD) of the RR intervals. `HRV_Mad` is more robust
 #      to outliers than `HRV_SD` and is therefore recommended for variability estimation
 #      (see 10.1016/j.jesp.2013.03.013).
-#    * `HRV_CV`: Coefficient of variation of RR intervals = `HRV_SD` / `HRV_Mean`. This provides
+#    * `HRV_CV`: (units = `AU`) Coefficient of variation of RR intervals = `HRV_SD` / `HRV_Mean`. This provides
 #      a standardized measure of variability, reducing the effect of the central tendency on
 #      dispersion.
-#    * `HRV_MCV`: "MAD" coefficient of variation = `HRV_Mad` / `HRV_Median`. This robust measure
+#    * `HRV_MCV`: (units = `AU`) "MAD" coefficient of variation = `HRV_Mad` / `HRV_Median`. This robust measure
 #      standardizes variability while being less sensitive to outliers.
-#    * `HRV_Asymmetry`: Difference between `HRV_Mean` and `HRV_Median`. This provides a simple
+#    * `HRV_Asymmetry`: (units = `ms`)  Difference between `HRV_Mean` and `HRV_Median`. This provides a simple
 #      measure of skewness or non-normality in the RR interval distribution and can highlight
 #      potential outlier effects.
-#    * `HRV_RMSSD`: Root mean square of successive differences (RMSSD). RMSSD is calculated as
+#    * `HRV_RMSSD`: (units = `ms`) Root mean square of successive differences (RMSSD). RMSSD is calculated as
 #      the square root of the mean of the squared differences between successive RR intervals.
 #      Conceptually, it is similar to a second derivative of the RR intervals (if RR intervals are considered as a
 #      first derivative). RMSSD is very sensitive to outliers, which can artificially increase its value.
@@ -220,7 +220,7 @@ print(ecg_metrics)
 #    
 # When called, :py:func:`~physio.compute_hrv_psd` performs the following:
 #    * Compute an instantaneous heart rate vector from ecg peaks and compute a Fourier transform using Welch method (returns two NumPy arrays: `psd_freqs` and `psd` giving frequency vector and power vector, respectively).
-#    * Compute HRV frequency metrics by getting power for each frequency band using trapezoïdal rule (returns a pd.Series: `psd_metrics`)
+#    * Compute HRV frequency metrics by getting power for each frequency band using trapezoïdal rule (returns a pd.Series: `psd_metrics`, with units in the set units² / Hz)
 # 
 
 frequency_bands = {'lf': (0.04, .15), 'hf' : (0.15, .4)} # set classical cutoffs of low and high frequency bands, in a dictionnary
