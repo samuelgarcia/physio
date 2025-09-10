@@ -24,14 +24,14 @@ Features
 --------
 
   * respiration cycle detection
-  * respiration cycle features (amplitude, duration, volumes ...)
-  * simple preprocess on signal : filter using scipy and smoothing
-  * ecg peak detection
-  * Heart Rate Variability (HRV) metrics (time-domain and frequency-domain)
-  * RespHRV (ex-RSA) : new approach to get cycle-by-cycle metrics of heart rate dynamics
-  * cyclic deformation machinery : a simple tool to stretch any signal to a cycle template
-  * simple reader of micromed and brainvision using neo
-  * "auto-magic" parameters for different species (rats, humans)
+  * respiration cycle features (amplitude, duration, volumes, …)
+  * simple preprocessing on signals: filtering with SciPy and smoothing
+  * ECG peak detection
+  * ECG/HRV metrics (time domain and frequency domain)
+  * RespHRV: a new approach to compute cycle-by-cycle metrics
+  * cyclic deformation machinery: a simple stretcher of any signal to a cycle template
+  * simple readers for Micromed and BrainVision using Neo
+  * “auto-magic” parameters for different species (human, rat)
 
 
 .. toctree::
@@ -41,6 +41,7 @@ Features
    overview
    api
    release_notes
+   handling_parameters
 
 .. include:: examples/index.rst
 
