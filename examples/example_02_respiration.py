@@ -54,7 +54,6 @@ ax.plot(times, raw_resp)
 ax.plot(times, resp)
 ax.scatter(times[inspi_ind], resp[inspi_ind], color='green', label = 'inspiration start')
 ax.scatter(times[expi_ind], resp[expi_ind], color='red', label = 'expiration start')
-ax.set_xlim(185, 225)
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Amplitude (AU)')
 ax.set_ylim(-1750, -1450)
@@ -221,3 +220,59 @@ plt.show()
 pprint(f'{resp_cycles.shape[0]} detected cycles')
 pprint(f'{resp_cycles.shape[1]} computed features, which are the following :')
 pprint(resp_cycles.columns.to_list())
+
+
+##############################################################################
+# 
+# Quick example with respiration recorded using a belt
+# ----------------------------------------------------
+# 
+# For this tutorial, we will use an internal file already stored in NumPy 
+# format for demonstration purposes. This file corresponds to 5 minutes of 
+# signal recorded with a belt on a human subject. The belt is a sensor of trunk 
+# circumference: the signal rises when the trunk dilates and decreases when the 
+# trunk retracts.
+# 
+# Therefore, the detection method does not rely on a "baseline-crossing" 
+# approach, but rather on a "min-max" approach. This `min_max` method is 
+# activated via the `parameter_preset` dedicated to this situation.
+# 
+# Note that respiratory signals recorded with belts are often of poor quality. 
+# In addition, some participants may present paradoxical respiration, with the 
+# trunk retracting during inspiration and dilating during expiration. In such 
+# cases, the metrics returned in `resp_cycles_belt` will not be meaningful.
+# 
+# Let's run a short example.
+# 
+
+
+
+raw_resp_belt = np.load('resp_belt3.npy') # load respi belt
+srate = 1000. # our example signals have been recorded at 1000 Hz
+
+times = np.arange(raw_resp.size) / srate # build time vector
+
+
+# the easiest way is to use predefined parameters
+resp_belt, resp_cycles_belt = physio.compute_respiration(raw_resp_belt, srate, parameter_preset='human_belt')  # set 'human_belt' as preset because example resp is an airflow from humans
+
+# print human_belt params
+pprint(physio.get_respiration_parameters('human_belt'))
+
+# resp_cycles_belt is a dataframe containing all cycles and related features (duration, amplitude, timing, etc...). In the case of belt, volumes are not computed.
+print(resp_cycles_belt)
+
+inspi_ind = resp_cycles_belt['inspi_index'].values # get index of inspiration start points
+expi_ind = resp_cycles_belt['expi_index'].values # get index of expiration start points
+
+fig, ax = plt.subplots()
+ax.plot(times, raw_resp_belt)
+ax.plot(times, resp_belt)
+ax.scatter(times[inspi_ind], resp_belt[inspi_ind], color='green', label = 'inspiration start')
+ax.scatter(times[expi_ind], resp_belt[expi_ind], color='red', label = 'expiration start')
+ax.set_xlim(195, 215)
+ax.set_xlabel('Time (s)')
+ax.set_ylabel('Amplitude (AU)')
+ax.set_title('Respiratory cycle detection on a belt signal (min-max signal)')
+ax.legend(loc = 'upper right')
+
