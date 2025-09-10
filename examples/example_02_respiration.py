@@ -172,44 +172,44 @@ plt.show()
 #    * `expi_index`: Index of the start of expiration (red point in the figure below).
 #    * `next_inspi_index`: Index of the start of the next inspiration (equal to the
 #      `inspi_index` of cycle n+1).
-#    * `inspi_time`: Time of the start of inspiration (green point in the figure below).
-#    * `expi_time`: Time of the start of expiration (red point in the figure below).
-#    * `next_inspi_time`: Time of the start of the next inspiration.
+#    * `inspi_time`: (units = `s`) Time of the start of inspiration (green point in the figure below).
+#    * `expi_time`: (units = `s`) Time of the start of expiration (red point in the figure below).
+#    * `next_inspi_time`: (units = `s`) Time of the start of the next inspiration.
 #    * `inspi_peak_index`: Index of the inspiratory peak = position of the minimum
 #      sample of the cycle in the respiratory time series (computed only if
 #      `sensor_type` = `airflow`).
 #    * `expi_peak_index`: Index of the expiratory peak = position of the maximum
 #      sample of the cycle in the respiratory time series (computed only if
 #      `sensor_type` = `airflow`).
-#    * `inspi_peak_time`: Time of the inspiratory peak = timestamp of the minimum
+#    * `inspi_peak_time`: (units = `s`) Time of the inspiratory peak = timestamp of the minimum
 #      sample of the cycle (computed only if `sensor_type` = `airflow`).
-#    * `expi_peak_time`: Time of the expiratory peak = timestamp of the maximum
+#    * `expi_peak_time`: (units = `s`) Time of the expiratory peak = timestamp of the maximum
 #      sample of the cycle (computed only if `sensor_type` = `airflow`).
 # 
 # From these points, many derived features of interest (e.g., for statistics) are computed:
 # 
-#    * `cycle_duration`: Duration of the cycle in seconds = `next_inspi_time` - `inspi_time`
-#    * `inspi_duration`: Duration of inspiration in seconds = `expi_time` - `inspi_time`
-#    * `expi_duration`: Duration of expiration in seconds = `next_inspi_time` - `expi_time`
-#    * `cycle_freq`: Breathing frequency in Hertz = 1 / `cycle_duration`
-#    * `cycle_ratio`: Ratio of inspiration duration to total cycle duration
+#    * `cycle_duration`: (units = `s`) Duration of the cycle in seconds = `next_inspi_time` - `inspi_time`
+#    * `inspi_duration`: (units = `s`) Duration of inspiration in seconds = `expi_time` - `inspi_time`
+#    * `expi_duration`: (units = `s`) Duration of expiration in seconds = `next_inspi_time` - `expi_time`
+#    * `cycle_freq`: (units = `Hz`) Breathing frequency in Hertz = 1 / `cycle_duration`
+#    * `cycle_ratio`: (units = AU because proportion) Ratio of inspiration duration to total cycle duration
 #      = `inspi_duration` / `cycle_duration`. Equivalent to the relative position
 #      of the transition from inspiration to expiration.
-#    * `inspi_amplitude`: Amplitude difference of the respiratory signal from baseline
+#    * `inspi_amplitude`: (units = AU, the units of the recorded respiratory signal) Amplitude difference of the respiratory signal from baseline
 #      at `inspi_peak_index` (computed only if `sensor_type` = `airflow` or `belt`).
 #      Equivalent to peak inspiratory flow (black descending arrow in the figure below).
-#    * `expi_amplitude`: Amplitude difference of the respiratory signal from baseline
+#    * `expi_amplitude`: (units = AU, the units of the recorded respiratory signal) Amplitude difference of the respiratory signal from baseline
 #      at `expi_peak_index` (computed only if `sensor_type` = `airflow`' or `belt`).
 #      Equivalent to peak expiratory flow (black ascending arrow in the figure below).
-#    * `total_amplitude`: Sum of `inspi_amplitude` + `expi_amplitude` (computed only if
+#    * `total_amplitude`: (units = AU, the units of the recorded respiratory signal) Sum of `inspi_amplitude` + `expi_amplitude` (computed only if
 #      `sensor_type` = `airflow` or `belt`).
-#    * `inspi_volume`: Integral of the respiratory signal below baseline during
+#    * `inspi_volume`: (units = AU * `s`, depending on units the recorded respiratory signal) Integral of the respiratory signal below baseline during
 #      inspiration (computed only if `sensor_type` = `airflow`). Equivalent to the
 #      green area in the figure below.
-#    * `expi_volume`: Integral of the respiratory signal above baseline during
+#    * `expi_volume`: (units = AU * `s`, depending on units the recorded respiratory signal) Integral of the respiratory signal above baseline during
 #      expiration (computed only if `sensor_type` = `airflow`). Equivalent to the
 #      red area in the figure below.
-#    * `total_volume`: Sum of `inspi_volume` + `expi_volume` (computed only if
+#    * `total_volume`: (units = AU * `s`, depending on units the recorded respiratory signal) Sum of `inspi_volume` + `expi_volume` (computed only if
 #      `sensor_type` = `airflow`). Equivalent to the sum of the green + red areas
 #      in the figure below.
 #
