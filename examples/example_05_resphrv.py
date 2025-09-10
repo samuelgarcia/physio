@@ -64,31 +64,88 @@ ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg'
 # :py:func:`~physio.compute_resphrv` is a high-level wrapper function that computes 
 # RespHRV metrics from previously detected R peaks (`ecg_peaks`) and respiratory cycles (`resp_cycles`).
 # To use this function, you must provide the previously detected R peaks and respiratory cycles, along with other optional parameters:
-#    * `resp_cycles`: pd.DataFrame, output of the function :py:func:`~physio.compute_respiration`
-#    * `ecg_peaks`: pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
-#    * `srate`: int or float. (optional) Sampling rate used for interpolation to get an instantaneous heart rate vector from RR intervals. 100 Hz is safe for both animal and human. For human 10 also works.
-#    * units : str (bpm / s / ms / Hz), sets the output units (optional, default = 'bpm').
-#    * limits : list or None, (optional) range in the chosen units for removing outliers (e.g., [30, 200] to exclude bpm values outside this range). Default is None, meaning no cleaning..
-#    * two_segment : bool, (optional, default = True), True or False, to perform cyclical deformation deviding each respiratory cycle in 2 (if True) segments or 1 (if False).  See :ref:`sphx_glr_examples_example_04_cyclic_deformation.py` for more informations.
-#    * points_per_cycle : int, (optional, default = 50), number of points per cycle used for linear resampling during cyclical deformation (see :ref:`sphx_glr_examples_example_04_cyclic_deformation.py`).
+#    * `resp_cycles`: `pd.DataFrame`, output of the function :py:func:`~physio.compute_respiration`
+#    * `ecg_peaks`: `pd.DataFrame`, output of the function :py:func:`~physio.compute_ecg`
+#    * `srate`: `int` or `float`. (optional) Sampling rate used for interpolation to get an instantaneous heart rate vector from RR intervals. 100 Hz is safe for both animal and human. For human 10 also works.
+#    * `units` : `str` (`bpm` / `s` / `ms` / `Hz`), sets the output units (optional, default = 'bpm').
+#    * `limits` : `list` or `None`, (optional) range in the chosen units for removing outliers (e.g., [30, 200] to exclude bpm values outside this range). Default is None, meaning no cleaning..
+#    * `two_segment` : `bool`, (optional, default = `True`), `True` or `False`, to perform cyclical deformation deviding each respiratory cycle in 2 (if `True`) segments (with the mean `cycle_ratio` of the respiratory cycles as a `segment_ratios`) or 1 (if `False`).  See :ref:`sphx_glr_examples_example_04_cyclic_deformation.py` for more informations.
+#    * `points_per_cycle` : `int`, (optional, default = 50), number of points per cycle used for linear resampling during cyclical deformation (see :ref:`sphx_glr_examples_example_04_cyclic_deformation.py`).
 #
 # When called, :py:func:`~physio.compute_resphrv` performs the following:
 #    * Computes instantaneous heart rate (IHR) vector from RR intervals computed from `ecg_peaks`.
-#    * Perform cyclic deformation of the IHR vector according to respiratory time points (returns a NumPy array: `cyclic_cardiac_rate` of shape (n_resp_cycles * points_per_cycle))
+#    * Perform cyclic deformation of the IHR vector according to respiratory time points (returns a NumPy array: `cyclic_cardiac_rate` of shape (`n_resp_cycles` * `points_per_cycle`))
 #    * Computes Heart-Rate features for each respiratory cycle period (returns a pd.DataFrame array: `resphrv_cycles`)
 
-points_per_cycle = 50
+points_per_cycle = 50 # set number of points per cycle, future number of resp phase points of cyclic_cardiac_rate matrix
 
 resphrv_cycles, cyclic_cardiac_rate = physio.compute_resphrv(
-    resp_cycles,
-     ecg_peaks,
-     srate=10.,
-     two_segment=True,
-     points_per_cycle=points_per_cycle,
+    resp_cycles, # give resp_cycles
+     ecg_peaks, # give ecg_peaks
+     srate=10., # here we set 10 for faster computing for the documentation compilation. 10 works for human but is not sufficient for rodents
+     two_segment=True, # perform cyclical deformation deviding each respiratory cycle in 2 segments
+     points_per_cycle=points_per_cycle, # set number of points per cycle
 )
 
-some_features = ['rising_amplitude', 'decay_amplitude', 'rising_duration', 'decay_duration', 'rising_slope', 'decay_slope']
-print(resphrv_cycles[some_features].head(9))
+print('RespHRV features :')
+print(resphrv_cycles)
+print()
+print('cyclic_cardiac_rate shape :')
+print(cyclic_cardiac_rate.shape)
+
+##############################################################################
+# 
+# RespHRV Features / Metrics
+# ---------------------------------
+# 
+# `resphrv_cycles` is a dataframe containing one row per respiratory cycle and one
+# column per heart rate feature.
+# 
+# Some features are related to the position (index) or time of specific points
+# within the cycle (see figure below for a graphical view of these timepoints/metrics):
+# 
+#    * `peak_index`: Index of the maximum heart rate during the current respiratory cycle `n` 
+#      (usually during inspiration). The index refers to the sequential position of the sample 
+#      in the entire instantaneous heart rate time series.
+#    * `trough_index`: Index of the minimum heart rate during the current respiratory cycle `n` 
+#      (usually during expiration).
+#    * `peak_time`: Time in seconds of the maximum heart rate during the current respiratory cycle `n` 
+#      (usually during inspiration).
+#    * `trough_time`: Time in seconds of the minimum heart rate during the current respiratory cycle `n` 
+#      (usually during expiration).
+# 
+# From these points, several derived features of interest (e.g., for statistical analysis) are computed. 
+# Note that they are based on the expected heart rate dynamics under physiological conditions: 
+# an increase in heart rate during inspiration (which already begins during the previous respiratory cycle) 
+# and a decrease in heart rate during expiration (i.e., the transition from inspiration to expiration).
+# 
+#    * `peak_value`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
+#      Instantaneous heart rate at `peak_index` / `peak_time`, i.e., the maximum heart rate 
+#      during the ongoing respiratory cycle (usually during inspiration). 
+#    * `trough_value`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
+#      Instantaneous heart rate at `trough_index` / `trough_time`, i.e., the minimum heart rate 
+#      during the ongoing respiratory cycle (usually during expiration).
+#    * `rising_amplitude`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
+#      Difference in heart rate between the maximum of cycle `n` and the minimum of cycle `n-1` 
+#      (see figure below).
+#    * `decay_amplitude`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
+#      Difference in heart rate between the maximum and the minimum of cycle `n` (see figure below).  
+#      **This corresponds to "how much the heart rate decreases during the current respiratory cycle," 
+#      usually at the transition from inspiration to expiration of cycle `n`. Under physiological 
+#      conditions, this is considered the primary measure of RespHRV, but here it is computed for each cycle.**
+#    * `rising_duration`: (units = `s`) Duration of the `rising_amplitude` period, i.e., 
+#      (`peak_time` of cycle `n` – `trough_time` of cycle `n-1`). 
+#    * `decay_duration`: (units = `s`) Duration of the `decay_amplitude` period, i.e., 
+#      (`trough_time` of cycle `n` – `peak_time` of cycle `n`). 
+#    * `rising_slope`: (units = `bpm/s` by default) Slope of the increase in heart rate, 
+#      defined as `rising_amplitude` / `rising_duration`.
+#    * `decay_slope`: (units = `bpm/s` by default) Slope of the decrease in heart rate, 
+#      defined as `decay_amplitude` / `decay_duration`.
+#
+# .. image:: ../_static/images/resphrv_features_doc_physio.png
+#    :alt: RespHRV features
+#    :align: center
+#    :scale: 70%
 
 
 ##############################################################################
