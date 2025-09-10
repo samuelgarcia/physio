@@ -262,7 +262,7 @@ cyclic_cardiac_rate_centered = cyclic_cardiac_rate - np.mean(cyclic_cardiac_rate
 im = ax.pcolormesh(resp_cycles['inspi_time'], one_cycle, cyclic_cardiac_rate_centered.T, cmap = 'viridis') # plot 2D view of heart rate dynamic for each cycle (in abscissa) and each phase point (in ordinate)
 fig.colorbar(im, ax=ax).set_label('Heart Rate centered (bpm)')
 ax.set_title('cyclic_cardiac_rate has been centered\nby the mean computed along axis = 1, meaning phase axis')
-ax.set_xlabel('Time (seconds) (inspi_time of the resp_cycles)\n(same than upper plot but in time instead of N° of cycle)')
+ax.set_xlabel('Time (seconds) (inspi_time of the resp_cycles)\n(~same than upper plot but in time instead of N° of cycle)')
 
 for ax in axs:
     ax.set_ylabel('Respi phase (0-1)')
