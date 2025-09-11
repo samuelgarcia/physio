@@ -3,14 +3,14 @@ import pandas as pd
 
 from .tools import get_empirical_mode, compute_median_mad, detect_peak
 from .preprocess import preprocess, smooth_signal
-from .parameters import get_respiration_parameters, recursive_update
+from .parameters import get_respiration_parameters, recursive_update, possible_resp_preset_txt
 
 import warnings
 
 
 _possible_sensor_type = ('airflow', 'co2', 'belt') 
 
-def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', parameters=None, ):
+def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None, ):
     """
     Function for respiration that:
       * preprocess the signal
@@ -18,31 +18,44 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
       * clean cycles
       * compute metrics cycle by cycle
     
+    This function works with 3 types of possible sensors : airflow, belt and co2.
+    Depending on these parameters, 3 differents algo will be internatlly used.
+    So the `parameters` dict must contain `sensor_type`
+    Note that the `resp_cycles`dataframe will contains cycles boundaries and features.
+    Features will depend on sensor type.
+
+    See :ref:`handling_parameters` for parameters details.
+
     Parameters
     ----------
+
     raw_resp: np.array
-        Raw traces of respiratory signal
+        Raw respiratory signal
     srate: float
-        Sampling rate
+        Sampling rate of the raw respiratory signal
     parameter_preset: str or None
-        Name of parameters set 'human_airflow'
-        This use the automatic parameters you can also have with get_respiration_parameters('human')
+        Possible presets are : {}
+        This string specifies the type of respiratory data, which determines the set of parameters used for processing.
+        This set equivalent of the one you get using physio.get_respiration_parameters(preset) with preset being the same one.
     parameters : dict or None
-        When not None this overwrite the parameter set.
+        When not None this updates the parameter set.
 
     Returns
     -------
+
     resp: np.array
-        A preprocess traces
-    cycles: pd.Dataframe
-        Table that contain all  cycle information : inspiration/expiration indexes, 
-        amplitudes, volumes, durations, ...
+        A preprocess respiratory trace
+    resp_cycles: pd.Dataframe
+        resp_cycles is a dataframe containing one row per respiratory cycle and one column per feature (timings, durations, amplitudes, volumnes ...).
     """
-    
+    if parameter_preset is None and parameters is None:
+        raise ValueError("compute_respiration(): you must give either parameter_preset or parameters (or both!)")
+
     if parameter_preset is None:
         params = {}
     else:
         params = get_respiration_parameters(parameter_preset)
+    
     if parameters is not None:
         recursive_update(params, parameters)
     
@@ -111,12 +124,19 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
     return resp, resp_cycles
 
 
+
+compute_respiration.__doc__ = compute_respiration.__doc__.format(possible_resp_preset_txt)
+
+
 def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None):
     """
     Get respiration baseline = respiration mid point.
+
     This is used for:
+
       * detect_respiration_cycles() for crossing zero
       * compute_respiration_cycle_features() for volume integration
+    
     Parameters
     ----------
 
@@ -128,10 +148,12 @@ def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None)
         How to compute the baseline for zero crossings.
     baseline: float or None
         External baseline when baseline_mode='manual'
+
     Returns
     -------
     
-    
+    baseline: float
+        Value of the computed baseline level
     """
     if baseline_mode == 'manual':
         assert baseline is not None
@@ -155,7 +177,7 @@ def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None)
 
 def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_kwargs):
     """
-    Detect respiration with several methods:
+    Detect respiration with several possible methods:
       * "crossing_baseline": method used when the respiratory signal is airflow
         internally uses detect_respiration_cycles_crossing_baseline()
       * "min_max" : method used when the respiratory signal is volume
@@ -166,16 +188,19 @@ def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_
 
     Parameters
     ----------
+
     resp: np.array
-        Preprocess traces of respiratory signal.
+        Preprocessed respiratory signal.
     srate: float
         Sampling rate
-    method: 'crossing_baseline' / 'co2'
-        Which method for respiration.
+    method: 'crossing_baseline' | 'co2' | 'min_max'
+        Which method is used for respiratory cycle detection respiration.
     **method_kwargs: 
         All other options are routed to the sub-function.
+
     Returns
     -------
+    
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle, 3)
         with [index_inspi, index_expi, index_next_inspi]
@@ -201,6 +226,7 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
 
     Parameters
     ----------
+
     resp: np.array
         Preprocess traces of respiratory signal.
     srate: float
@@ -209,11 +235,19 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
         How to compute the baseline for zero crossings.
     baseline: float or None
         External baseline when baseline_mode='manual'
-    inspration_ajust_on_derivative: bool (default False)
+    epsilon_factor1: float, default 10.
+        Defines a horizontal confidence zone just below the true baseline, where the low part = 
+        baseline - `epsilon` * `epsilon_factor1`, with `epsilon` = (baseline - np.quantile(resp, 0.1)) / 100.
+    epsilon_factor2: float, default 5.
+        Defines the higher part of the confidence zone: baseline - `epsilon` * `epsilon_factor2`. `epsilon_factor1` 
+        is higher than `epsilon_factor2` to search the upper part of the confidence zone.
+    inspiration_adjust_on_derivative: bool, default False
         For the inspiration detection, the zero crossing can be refined to auto-detect the inflection point.
-        This can be useful when expiration ends with a long plateau.
+        This can be useful when expiration ends with a long and shortly drifting plateau.
+
     Returns
     -------
+
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle, 3)
         with [index_inspi, index_expi, index_next_inspi]
@@ -235,12 +269,12 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp1 < baseline_dw))
     
     ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
-    ind_insp_no_clean = ind_insp.copy()
+    # ind_insp_no_clean = ind_insp.copy()
     keep_inds = np.searchsorted(ind_insp, ind_dw, side='right')
     keep_inds = keep_inds[keep_inds > 0]
     ind_insp = ind_insp[keep_inds - 1]
     ind_insp = np.unique(ind_insp)
-    ind_insp_no_clean2 = ind_insp.copy()
+    # ind_insp_no_clean2 = ind_insp.copy()
     ind_exp, = np.nonzero((resp0 < baseline) & (resp1 >= baseline))
     
     
@@ -248,18 +282,31 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=False, remove_first_exp=False)
 
     # import matplotlib.pyplot as plt
-    # fig, ax = plt.subplots()
-    # ax.plot(resp)
-    # ax.scatter(ind_dw, resp[ind_dw], color='k', marker='*')
-    # # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='k', marker='^')
-    # ax.scatter(ind_insp_no_clean2, resp[ind_insp_no_clean2], color='m', marker='*', s=80)
-    # ax.scatter(ind_insp, resp[ind_insp], color='g')
-    # ax.scatter(ind_exp, resp[ind_exp], color='r')
-    # ax.axhline(baseline_dw, color='C2', label='baseline_insp (esp1)')
-    # ax.axhline(baseline_insp, color='C1', label='baseline_insp (esp2)')
-    # ax.axhline(baseline, color='C0', label='baseline')
-    # ax.legend()
-    # plt.show()
+    # myparams = {
+    #     'axes.titlesize' : 14,
+    #     'axes.labelsize' : 14,
+    #     'xtick.labelsize' : 14,
+    #     'ytick.labelsize' : 14
+    # }
+    # import matplotlib as mpl
+    # with mpl.rc_context(myparams):
+    #     fig, ax = plt.subplots()
+    #     ax.plot(resp, color='black', lw=3)
+    #     ax.axhline(baseline_dw, color='C2', label='epsilon 1', lw=3)
+    #     ax.axhline(baseline_insp, color='C1', label='epsilon 2', lw=3)
+    #     ax.axhline(baseline, color='C0', label='baseline', lw=3)
+    #     # ax.axhspan(baseline, baseline_insp, color='C1', alpha=0.3 )
+    #     ax.axhspan(baseline, baseline_dw, color='C2', alpha=0.2 )
+    #     ax.scatter(ind_exp, resp[ind_exp], color='r', s=120, zorder=100)
+    #     ax.scatter(ind_dw, resp[ind_dw], color="#00BD1F", marker='^', s=120, zorder=100)
+    #     # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='k', marker='^')
+    #     ax.scatter(ind_insp_no_clean2, resp[ind_insp_no_clean2], color='m', marker='*', s=120, zorder=100)
+    #     ax.scatter(ind_insp, resp[ind_insp], color='g', s=120, zorder=100)
+    #     ax.set_xticks([])
+    #     ax.set_yticks([])
+
+    #     ax.legend(fontsize=14)
+    #     plt.show()
     
 
     if inspiration_adjust_on_derivative:
@@ -302,13 +349,17 @@ def detect_respiration_cycles_min_max(resp, srate, exclude_sweep_ms=50.):
 
     Parameters
     ----------
+
     resp: np.array
         Preprocess traces of respiratory signal.
     srate: float
         Sampling rate
-    exclude_sweep_ms: 
+    exclude_sweep_ms: float
+        Duration in milliseconds of a window sept on the signal to remove too narrow peaks (transition points) in term of horizontal distance.
+
     Returns
     -------
+
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle, 3)
         with [index_inspi, index_expi, index_next_inspi]
@@ -340,6 +391,7 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
 
     Parameters
     ----------
+
     co2_raw: np.array
         Preprocess traces of respiratory signal.
     srate: float
@@ -353,6 +405,7 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
 
     Returns
     -------
+
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle, 3)
         with [index_inspi, index_expi, index_next_inspi]
@@ -388,14 +441,16 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
     # import matplotlib.pyplot as plt
     # fig, axs = plt.subplots(nrows=2, sharex=True)
     # ax = axs[0]
+    # ax.set_title('CO2 signal')
     # ax.plot(co2_raw)
-    # ax.plot(smoothed_co2)
-    # ax.scatter(ind_insp, smoothed_co2[ind_insp], color='g')
-    # ax.scatter(ind_exp, smoothed_co2[ind_exp], color='r')
+    # ax.scatter(ind_insp, co2_raw[ind_insp], color='g')
+    # ax.scatter(ind_exp, co2_raw[ind_exp], color='r')
     # ax = axs[1]
+    # ax.set_title('CO2 derivative signal')
     # ax.plot(co2_gradient)
-    # ax.axhline(thresh_inspi, color='g')
-    # ax.axhline(thresh_expi, color='r')
+    # ax.axhline(thresh_inspi, color='g', label=f"thresh_inspi_factor={thresh_inspi_factor}")
+    # ax.axhline(thresh_expi, color='r', label=f"thresh_expi_factor={thresh_expi_factor}")
+    # ax.legend(fontsize=14)
     # plt.show()
 
     cycles = np.zeros((ind_insp.size - 1, 3), dtype='int64')
@@ -456,6 +511,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
 
     Parameters
     ----------
+
     resp: np.array
         Preprocess traces of respiratory signal.
     srate: float
@@ -464,8 +520,12 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
         Indices of inspiration and expiration. shape=(num_cycle + 1, 2)
     baseline: float or None
         If not None then the baseline is subtracted to resp to compute amplitudes and volumes.
+    sensor_type: str
+        The sensor type. Can be one of : 'airflow' | 'belt' | 'co2' 
+
     Returns
     -------
+
     resp_cycles: pd.Dataframe
         Features of all cycles.
     """
@@ -613,6 +673,7 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_n
 
     Parameters
     ----------
+    
     resp: np.array
         Preprocess traces of respiratory signal.
     srate: float
@@ -627,8 +688,10 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_n
         Used to compute low limit with "limit = med - mad * low_limit_log_ratio"
     sensor_type: 'airflow' | 'belt' | 'co2'
         sensor type
+
     Returns
     -------
+
     cleaned_cycles: 
         Clean version of cycles.
     """

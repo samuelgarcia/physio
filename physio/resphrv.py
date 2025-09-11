@@ -19,35 +19,29 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
 
     Parameters
     ----------
+
     resp_cycles : pd.DataFrame
-    
+        DataFrame of detected respiratory cycles
     ecg_peaks : pd.DataFrame
-    
+        DataFrame of detected ecg R peaks
     srate : int or float
         Sampling rate used for interpolation to get an instantaneous heart rate vector. 
         100 is safe for both animal and human. For human 10 also works.
-
     units : str
         bpm / s / ms / Hz
-
     limits : list or None
-        Limits for removing outliers.
-
+        Limits for removing outliers. To set according to the units parameter. Ex : [30, 200] to remove RR intervals out of this range set in bpm.
     two_segment : bool
         True or False
-
     points_per_cycle : int
-
 
     Returns
     -------
     resphrv_cycles : pd.DataFrame
         Cycle-by-cycle features of Heart Rate dynamics. Ex : decay_amplitude gives the by-cycle peak-to-trough amplitude.
-
     cyclic_cardiac_rate : nd.array
         2D Matrix (respiratory cycle * respiratory phase) with instantaneous heart rate at each resp cycle and phase point.
     """
-    
     
 
     duration_s = resp_cycles['next_inspi_time'].values[-1]

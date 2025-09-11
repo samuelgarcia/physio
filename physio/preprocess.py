@@ -5,17 +5,18 @@ from .tools import compute_median_mad
 
 import warnings
 
-def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', order=5, normalize=True):
+def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', order=5, normalize=False):
     """
     Apply simple filter using scipy
     
     For ECG bessel 5-50Hz and order 5 is maybe a good choice.
 
-    By default also normalize the signal using median and mad.
+    Optionally also normalize the signal using median and mad.
 
 
     Parameters
     ----------
+
     traces: np.array
         Input signal.
     srate: float
@@ -28,10 +29,12 @@ def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', 
         The filter type used to generate coefficient using scipy.signal.iirfilter
     order: int (default 5)
         The order
-    normalize: cool (default True)
+    normalize: bool (default False)
         Apply or not normalization
+
     Returns
     -------
+    
     traces_clean: np.array
         The preprocess traces
     """
@@ -57,6 +60,7 @@ def smooth_signal(trace, srate, win_shape='gaussian', sigma_ms=5.0):
 
     Parameters
     ----------
+
     traces: np.array
         Input signal.
     srate: float
@@ -65,8 +69,10 @@ def smooth_signal(trace, srate, win_shape='gaussian', sigma_ms=5.0):
         The shape of the kernel
     sigma_ms: float (default 5ms)
         The length of the kernel. Sigma for the gaussian case.
+
     Returns
     -------
+
     trace_smooth: np.array
         The smoothed traces
     """

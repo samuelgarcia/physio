@@ -2,7 +2,7 @@ Documentation of toolbox physio
 ==============================
 
 
-:py:mod:`physio` is a python toolbox to analyse physiological signals : respiration and ECG
+:py:mod:`physio` is a python toolbox to analyse physiological signals : respiration and ECG (electrocardiogram).
 
 
 Authors
@@ -24,14 +24,14 @@ Features
 --------
 
   * respiration cycle detection
-  * respiration cycle features (amplitude, duration, volumes ...)
-  * simple preprocess on signal : filter using scipy and smoothing
-  * ecg peak detection
-  * ecg/hrv metrics (time domain and frequency domain)
-  * rsa : new approach to get cycle-by-cycle metrics
-  * cyclic deformation machinery : a simple stretcher of any signal to cycle template
-  * simple reader of micromed and brainvision using neo
-  * "auto-magic" parameters for different species
+  * respiration cycle features (amplitude, duration, volumes, …)
+  * simple preprocessing on signals: filtering with SciPy and smoothing
+  * ECG peak detection
+  * ECG/HRV metrics (time domain and frequency domain)
+  * RespHRV: a new approach to compute cycle-by-cycle metrics
+  * cyclic deformation machinery: a simple stretcher of any signal to a cycle template
+  * simple readers for Micromed and BrainVision using Neo
+  * “auto-magic” parameters for different species (human, rat)
 
 
 .. toctree::
@@ -39,23 +39,39 @@ Features
    :caption: Contents:
 
    overview
+   examples/example_01_getting_started.rst
+   examples/example_02_respiration.rst
+   examples/example_03_ecg.rst
+   examples/example_04_cyclic_deformation.rst
+   examples/example_05_resphrv.rst
+   examples/example_06_cardio_respiratory_synchronization.rst
+   handling_parameters
    api
    release_notes
 
-.. include:: examples/index.rst
+
+..
+   .. include:: examples/index.rst
 
 
 Installation
 ------------
 
-Installation from pypi:
+Installation from pypi (releases only):
 
 .. code-block:: bash
 
    pip install physio
 
 
-Installation from sources:
+Installation from (github) sources (more up-to-date):
+
+.. code-block:: bash
+   
+   pip install https://github.com/samuelgarcia/physio/archive/main.zip
+
+
+Installation with local clone of sources (for dev mode):
 
 .. code-block:: bash
 
@@ -63,16 +79,12 @@ Installation from sources:
    cd physio
    pip install -e .
 
-Update from source:
+Update local sources:
 
 .. code-block:: bash
 
    cd physio
    git pull origin main
-
-
-
-
 
 
 

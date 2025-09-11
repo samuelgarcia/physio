@@ -5,6 +5,19 @@ Release notes
 =============
 
 
+Version 0.3.0
+=============
+
+2025-09-11
+
+  * Doc massive improvement
+  * Add sensor_type concept for respiration 
+  * Add sensor_type=belt with min_max method for cycle detection
+  * Refactor the clean_respiration_cycles() for cleaning small cycles
+  * Rename compute_rsa() to compute_resphrv()
+  * Refine parameters and add new presets
+
+
 Version 0.2.0
 =============
 

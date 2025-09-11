@@ -20,13 +20,38 @@ def recursive_update(d, u):
 def get_respiration_parameters(parameter_preset):
     """
     Get parameters nested dict for a given predefined parameter preset.
+
+    Parameters
+    ----------
+
+    parameter_preset : str
+        Possible presets are : 'human_airflow' | 'human_belt' | 'human_co2' | 'rat_etisens_belt' | 'rat_plethysmo'
+
+    Returns
+    -------
+
+    preset : dict
+        Dictionary of predefined parameters
     """
     return copy.deepcopy(_resp_parameters[parameter_preset])
 
+# get_respiration_parameters.__doc__ = get_respiration_parameters.__doc__.format(possible_resp_preset_txt)
 
 def get_ecg_parameters(parameter_preset):
     """
     Get parameters nested dict for a given predefined parameter preset.
+
+    Parameters
+    ----------
+
+    parameter_preset : str
+        Possible presets are : 'human_ecg' | 'rat_ecg'
+
+    Returns
+    -------
+    
+    preset : dict
+        Dictionary of predefined parameters
     """
     return copy.deepcopy(_ecg_parameters[parameter_preset])
 
@@ -39,7 +64,7 @@ _resp_parameters = {}
 # this parameters works with airflow sensor for a human
 _resp_parameters['human_airflow'] = dict(
     sensor_type='airflow',
-    preprocess=dict(band=7., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    preprocess=dict(band=7., btype='lowpass', ftype='bessel', order=5),
     smooth=dict(win_shape='gaussian', sigma_ms=60.0),
     cycle_detection=dict(method="crossing_baseline", epsilon_factor1=10., epsilon_factor2=5., inspiration_adjust_on_derivative=False),
     baseline=dict(baseline_mode='median'),
@@ -47,7 +72,7 @@ _resp_parameters['human_airflow'] = dict(
 )
 _resp_parameters['human_belt'] = dict(
     sensor_type='belt',
-    preprocess=dict(band=5., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    preprocess=dict(band=5., btype='lowpass', ftype='bessel', order=5),
     smooth=dict(win_shape='gaussian', sigma_ms=40.0),
     cycle_detection=dict(method="min_max", exclude_sweep_ms=200.),
     baseline=None,
@@ -56,10 +81,10 @@ _resp_parameters['human_belt'] = dict(
 
 _resp_parameters['human_co2'] = dict(
     sensor_type='co2',
-    preprocess=dict(band=10., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    preprocess=dict(band=10., btype='lowpass', ftype='bessel', order=5),
     smooth=dict(win_shape='gaussian', sigma_ms=40.0),
     cycle_detection=dict(method="co2", thresh_inspi_factor=0.08, thresh_expi_factor=0.05, clean_by_mid_value=True),
-    baseline=dict(baseline_mode='median'),
+    baseline=None,
     cycle_clean=None, # no clean because no volume
 )
 
@@ -67,7 +92,7 @@ _resp_parameters['human_co2'] = dict(
 
 _resp_parameters['rat_plethysmo'] = dict(
     sensor_type='airflow',
-    preprocess=dict(band=30., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    preprocess=dict(band=30., btype='lowpass', ftype='bessel', order=5),
     smooth=dict(win_shape='gaussian', sigma_ms=5.0),
     #~ smooth=None,
     cycle_detection=dict(method="crossing_baseline", epsilon_factor1=10., epsilon_factor2=4., inspiration_adjust_on_derivative=False),
@@ -78,7 +103,7 @@ _resp_parameters['rat_plethysmo'] = dict(
 # belt form etisens https://etisense.com/
 _resp_parameters['rat_etisens_belt'] = dict(
     sensor_type='belt',
-    preprocess=dict(band=30., btype='lowpass', ftype='bessel', order=5, normalize=False),
+    preprocess=dict(band=30., btype='lowpass', ftype='bessel', order=5),
     # smooth=dict(win_shape='gaussian', sigma_ms=5.0),
     smooth=None,
     cycle_detection=dict(method="min_max", exclude_sweep_ms=30.),
@@ -86,6 +111,8 @@ _resp_parameters['rat_etisens_belt'] = dict(
     cycle_clean=dict(variable_names=["inspi_amplitude", "expi_amplitude"], low_limit_log_ratio=8.),
 )
 
+
+possible_resp_preset_txt = " | ".join(f"'{k}'" for k in _resp_parameters.keys())
 
 
 ###################################################

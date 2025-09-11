@@ -6,7 +6,7 @@ from physio import compute_respiration, deform_traces_to_cycle_template
 
 # read signals
 example_folder = Path(__file__).parents[1] / 'examples'
-raw_resp = np.load(example_folder / 'resp_airflow1.npy')
+raw_resp = np.load(example_folder / 'resp1_airflow.npy')
 srate = 1000.
 
 
@@ -15,7 +15,7 @@ def test_deform_traces_to_cycle_template():
     # test with resp deform iself
     times = np.arange(raw_resp.size) / srate
 
-    resp, resp_cycles = compute_respiration(raw_resp, srate)
+    resp, resp_cycles = compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
 
     # one segment
     cycle_times = resp_cycles[['inspi_time', 'next_inspi_time']].values
