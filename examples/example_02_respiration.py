@@ -212,7 +212,7 @@ plt.show()
 #      `sensor_type` = `airflow`). Equivalent to the sum of the green + red areas
 #      in the figure below.
 #
-# .. image:: ../_static/images/resp_features_doc_physio.png
+# .. image:: ./img/resp_features_doc_physio.png
 #    :alt: Respiration Parameters
 #    :align: center
 #    :scale: 70%
