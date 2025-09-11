@@ -9,6 +9,8 @@ raw_resp1 = np.load(example_folder / 'resp1_airflow.npy')
 raw_resp2 = np.load(example_folder / 'resp2_airflow.npy')
 raw_resp3 = np.load(example_folder / 'resp3_belt.npy')
 srate = 1000.
+raw_resp4 = np.load(example_folder / 'resp4_CO2.npy')
+srate4_co2 = 60.
 
 
 
@@ -58,6 +60,19 @@ def test_detect_respiration_cycles_airflow():
 
 
 
+def test_detect_respiration_cycles_co2():
+
+    resp, resp_cycles = compute_respiration(raw_resp4, srate4_co2, parameter_preset='human_co2')
+
+    # inspi_inds = resp_cycles['inspi_index'].values
+    # expi_inds = resp_cycles['expi_index'].values
+    # import matplotlib.pyplot as plt
+    # fig, ax = plt.subplots()
+    # ax.plot(raw_resp4)
+    # ax.plot(resp)
+    # ax.scatter(inspi_inds, resp[inspi_inds], color='g')
+    # ax.scatter(expi_inds, resp[expi_inds], color='r')
+    # plt.show()
 
 
 def test_detect_respiration_cycles_belt():
@@ -108,4 +123,5 @@ def test_detect_respiration_cycles_belt():
 if __name__ == '__main__':
     # test_compute_respiration()
     # test_detect_respiration_cycles_airflow()
-    test_detect_respiration_cycles_belt()
+    test_detect_respiration_cycles_co2()
+    # test_detect_respiration_cycles_belt()
