@@ -48,6 +48,8 @@ This tutorial is organized into two major sections, each of which is divided int
 
 For now, we have developed capabilities in :py:mod:`physio` to process respiration recorded with three types of sensors: `airflow`, `belt`, and `co2`.  
 The sensor type drives many of the subsequent parameters, from preprocessing to metric computation, and therefore affects which metrics can be computed.  
+Note that for the `rat` species, `rat_plethysmo` is equivalent to an `airflow` signal, even though it is much faster. 
+Similarly, `rat_etisens_belt` is equivalent to a human `belt` signal.
 
 This section will detail the parameter settings for each of these sensor types.
 
@@ -56,7 +58,9 @@ This section will detail the parameter settings for each of these sensor types.
 
 a. `airflow`
 
-Default parameters dictionary for `airflow` sensor:
+Default parameters dictionary for `airflow` sensor (for `human` species). 
+In the case of `rat_plethysmo`, our description is not detailed because the approach is the same; only the parameters are optimized to match the rat’s respiratory frequency.
+
 ::
 
     {
@@ -77,7 +81,6 @@ Default parameters dictionary for `airflow` sensor:
             'band': 7.0,
             'btype': 'lowpass',
             'ftype': 'bessel',
-            'normalize': False,
             'order': 5
         },
         'sensor_type': 'airflow',
@@ -96,7 +99,6 @@ Several subkeys relate to controlling this filtering:
   - `band`: The cutoff frequency. For a `lowpass`, this is the high cutoff, set to 7 Hz by default. **This parameter strongly affects the precise timing of respiratory cycle timepoint detection.** Decreasing this value increases signal smoothness but may artificially shift the inspiration-expiration transition.  
   - `ftype`: The type of filter. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
-  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful to scale the respiratory signal into a "normal" range, for example, to compare it to another normalized signal.  
 
 - `smooth`:
 
@@ -132,6 +134,7 @@ Controls how the baseline of the signal is computed:
 b. `belt`
 
 Default parameters dictionary for `belt` sensor:
+In the case of `rat_etisens_belt`, our description is not detailed because the approach is the same; only the parameters are optimized to match the rat’s respiratory frequency.
 
 ::
 
@@ -149,7 +152,6 @@ Default parameters dictionary for `belt` sensor:
             'band': 5.0,
             'btype': 'lowpass',
             'ftype': 'bessel',
-            'normalize': False,
             'order': 5
         },
         'sensor_type': 'belt',
@@ -168,7 +170,6 @@ Several subkeys control this filtering:
   - `band`: The cutoff frequency. For a `lowpass`, this is the high cutoff, set to 5 Hz by default. **This parameter strongly affects the precise timing of respiratory cycle timepoint detection.** Decreasing this value increases smoothness but may artificially shift the inspiration–expiration transitions.  
   - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is less steep in frequency cutoff.  
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but with increased risk of phase distortion.  
-  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful to scale the respiratory signal into a "normal" range, for example to compare it to another normalized signal.  
 
 - `smooth`:  
 
@@ -220,7 +221,6 @@ Default parameters dictionary for `co2` sensor:
            'band': 10.0,
            'btype': 'lowpass',
            'ftype': 'bessel',
-           'normalize': False,
            'order': 5
        },
        'sensor_type': 'co2',
@@ -240,7 +240,6 @@ Several subkeys control this filtering:
   - `band`: The cutoff frequency. For a `lowpass`, this is the high cutoff, set to 10 Hz by default. **This parameter strongly affects the precise timing of respiratory cycle timepoint detection.** Decreasing this value increases smoothness but may artificially shift the inspiration–expiration transitions.  
   - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
-  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful for scaling the respiratory signal into a "normal" range, for example to compare it with another normalized signal.  
 
 - `smooth`:
 
@@ -301,7 +300,6 @@ Default parameters dictionary for `human_ecg`:
         'preprocess': {
             'band': [5.0, 45.0],
             'ftype': 'bessel',
-            'normalize': True,
             'order': 5
         }
     }
@@ -314,8 +312,7 @@ Several subkeys control this filtering:
   - `band`: The cutoff frequencies of the filter. Set to [5.0, 45.0] Hz by default. The aim of this frequency band is to increase the signal-to-noise ratio, where the signal corresponds to the R peaks and the noise is the rest. The 5–45 Hz range isolates the human R-peak frequency band, facilitating subsequent R-peak detection.  
   - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
-  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful for scaling the ECG signal into a "normal" range, for example to compare it with another normalized signal.  
-
+  
 - `peak_detection`:
 
 The `peak_detection` key controls the methods by which R peaks are detected. The idea is to set a threshold above which peaks (hopefully R peaks) are detected.  
@@ -350,7 +347,6 @@ Default parameters dictionary for `rat_ecg`:
         'preprocess': {
             'band': [5.0, 200.0],
             'ftype': 'bessel',
-            'normalize': True,
             'order': 5
         }
     }
@@ -363,7 +359,6 @@ Several subkeys control this filtering:
   - `band`: The cutoff frequencies of the filter. Set to [5.0, 200.0] Hz by default. The aim of this frequency band is to increase the signal-to-noise ratio, where the signal corresponds to the R peaks and the noise is the rest. The 5-200 Hz range isolates the rat R-peak frequency band, facilitating subsequent R-peak detection.  
   - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
-  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful for scaling the ECG signal into a "normal" range, for example to compare it with another normalized signal.  
 
 - `peak_detection`:
 
