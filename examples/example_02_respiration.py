@@ -17,13 +17,13 @@ import physio
 ##############################################################################
 # 
 # Respiration cycle detection. The faster way: using `parameter_preset`.
-# ------------------------------------------
+# ----------------------------------------------------------------------
 #
 # The fastest way to process respiration with :py:mod:`physio` is to use :py:func:`~physio.compute_respiration` which is a high-level wrapper function that simplifies respiratory signal analysis.
 # To use this function, you must provide:
 #    * `raw_resp` : the raw respiratory signal as a NumPy array.
 #    * `srate` : the sampling rate of the respiratory signal
-#    * `parameter_preset` : a string specifying the type of respiratory data, which determines the set of parameters used for processing. Can be one of: `human_airflow`, `human_co2`, `rat_plethysmo`, or `rat_etisens_belt`.
+#    * `parameter_preset` : a string specifying the type of respiratory data, which determines the set of parameters used for processing. Can be one of: `human_airflow`, `human_co2`, `human_belt`, `rat_plethysmo`, or `rat_etisens_belt`.
 # When called, :py:func:`~physio.compute_respiration` performs the following:
 #    * Preprocesses the respiratory signal (returns a NumPy array: `resp`)
 #    * Computes cycle-by-cycle features (returns a pd.DataFrame: `resp_cycles`)
@@ -65,7 +65,7 @@ ax.set_xlim(110, 170)
 ##############################################################################
 # 
 # What is `parameter_preset` ?
-# ---------------------------
+# ----------------------------
 # 
 # Using `parameter_preset` tells :py:func:`~physio.compute_respiration` to process respiration
 # according to a predefined set of parameters already optimized by :py:mod:`physio`.
@@ -82,7 +82,7 @@ pprint(parameters) # pprint to "pretty print"
 ##############################################################################
 # 
 # Tuning parameters if unsatisfied
-# ---------------------------------
+# --------------------------------
 # 
 # Variability during data acquisition (subject, acquisition system) can affect the recorded respiratory signal.
 # Such variability may make some predefined parameters of :py:mod:`physio` inappropriate. 
@@ -156,7 +156,7 @@ plt.show()
 ##############################################################################
 # 
 # Respiration features / metrics
-# ---------------------------------
+# ------------------------------
 # 
 # `resp_cycles` is a dataframe containing one row per respiratory cycle and one
 # column per feature. Depending on the sensor type, **each cycle is described by
