@@ -18,20 +18,20 @@ got from the :py:func:`physio.get_ecg_parameters` or :py:func:`physio.get_respir
 Organization
 ------------
 
-This tutorial is organized into two major sections, each one divided in multiple ones:
+This tutorial is organized into two major sections, each of which is divided into multiple subsections:
   * Respiration parameters
      - sentor_type = airflow
         - preprocess
         - smooth
         - cycle_detection
-        - baseline
         - cycle_clean
+        - baseline
      - sentor_type = belt
         - preprocess
         - smooth
         - cycle_detection
-        - baseline
         - cycle_clean
+        - baseline
      - sentor_type = co2
         - preprocess
         - smooth
@@ -39,11 +39,8 @@ This tutorial is organized into two major sections, each one divided in multiple
         - baseline
         - cycle_clean
   * ECG parameters
-     - overview of the controllable parameters
-     - preprocess
-     - peak_detection
-     - peak_clean
-
+     - human
+     - rat
 
 
 1) Respiration Parameters
@@ -162,6 +159,45 @@ Default parameters dictionary for `belt` sensor:
         }
     }
 
+- `preprocess`:  
+
+The `preprocess` key controls how the raw respiratory signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
+Several subkeys control this filtering:  
+
+  - `btype`: The type of filter. In this context, we set a `lowpass`, but it could also be `bandpass` to remove slow drifts by setting low and high cutoffs.  
+  - `band`: The cutoff frequency. For a `lowpass`, this is the high cutoff, set to 5 Hz by default. **This parameter strongly affects the precise timing of respiratory cycle timepoint detection.** Decreasing this value increases smoothness but may artificially shift the inspiration–expiration transitions.  
+  - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is less steep in frequency cutoff.  
+  - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but with increased risk of phase distortion.  
+  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful to scale the respiratory signal into a "normal" range, for example to compare it to another normalized signal.  
+
+- `smooth`:  
+
+The `smooth` key controls how the filtered respiratory signal is smoothed again using convolution with a kernel.  
+Subkeys define the size and shape of this kernel:  
+
+  - `win_shape`: Default = `gaussian`. The kernel shape is Gaussian. It can be set to `rect` for a rectangular kernel, but we recommend `gaussian` because it reduces temporal discontinuities, even if its frequency response is less steep than `rect`.  
+  - `sigma_ms`: Kernel size in milliseconds. Higher → smoother; lower → less smooth. Default = 40 ms.  
+
+- `cycle_detection`:  
+
+This key controls how the main timepoints (inspiration and expiration) are detected:  
+
+  - `method`: `min_max` in this case, because the signal captures trunk circumference. The signal reaches its maximum at the inspi–expi transition and its minimum at the expi–inspi transition.  
+  - `exclude_sweep_ms`: Time window in milliseconds swept along the signal to prevent detecting multiple peaks (maxima and minima) in noisy data. Higher = risk of losing true peaks and cycles; lower = risk of detecting spurious small outlier cycles.  
+
+- `cycle_clean`:  
+
+This key controls how already detected timepoints are cleaned.  
+Small oscillations in a noisy signal can cause very small cycles to be detected. Subkeys specify criteria for identifying these outliers:  
+
+  - `variable_names`: Names of respiratory features used to detect outliers. Default = ['inspi_amplitude', 'expi_amplitude']. Amplitudes are chosen because they capture cycles that are too small in both time and amplitude.  
+  - `low_limit_log_ratio`: Features are often non-normally distributed and are log-transformed before threshold estimation. The outlier threshold is computed as median - MAD * `low_limit_log_ratio`. Higher `low_limit_log_ratio` → smaller detected cycles → fewer outliers detected. See Fig X.  
+
+- `baseline`:  
+
+`None`, because this is not a `crossing_baseline` signal.  
+
+
 
 c. `CO2`
 
@@ -195,7 +231,152 @@ Default parameters dictionary for `co2` sensor:
    }
 
 
-1) ECG parameters
+- `preprocess`:
+
+The `preprocess` key controls how the raw respiratory signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
+Several subkeys control this filtering:
+
+  - `btype`: The type of filter. In this context, we set a `lowpass`, but it could also be `bandpass` to remove slow drifts by setting both low and high cutoffs.  
+  - `band`: The cutoff frequency. For a `lowpass`, this is the high cutoff, set to 10 Hz by default. **This parameter strongly affects the precise timing of respiratory cycle timepoint detection.** Decreasing this value increases smoothness but may artificially shift the inspiration–expiration transitions.  
+  - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
+  - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
+  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful for scaling the respiratory signal into a "normal" range, for example to compare it with another normalized signal.  
+
+- `smooth`:
+
+The `smooth` key controls how the filtered respiratory signal is further smoothed using convolution with a kernel.  
+Subkeys define the size and shape of this kernel:
+
+  - `win_shape`: Default = `gaussian`. The kernel shape is Gaussian. It can be set to `rect` for a rectangular kernel, but we recommend `gaussian` because it reduces temporal discontinuities, even if its frequency response is less steep than `rect`.  
+  - `sigma_ms`: Kernel size in milliseconds. Higher → smoother; lower → less smooth. Default = 40 ms.  
+
+- `cycle_detection`:
+
+This key controls how the main timepoints (inspiration and expiration) are detected:
+
+  - `method`: `co2` in this case, meaning a dedicated method (not a true `min_max`). The goal is to detect transitions from expiration to inspiration at the end of the expiration plateau, and transitions from inspiration to expiration at the end of the inspiration plateau, using the first derivative of the signal.  
+  - `thresh_expi_factor`: To detect expiration timepoints, we search for crossings in the first derivative just above 0 using a threshold. Indeed, nspiration–expiration transitions appear as upward-oriented peaks in the derivative. The threshold is computed as `thresh_expi = max_ * thresh_expi_factor`, where `max_` is the maximum of the derivative signal. Thus, `thresh_expi_factor` defines the fraction of the maximum derivative used to set the threshold. See Fig X.  
+  - `thresh_inspi_factor`: To detect inspiration timepoints, we search for crossings in the first derivative just below 0 using a threshold. Indeed, expiration–inspiration transitions appear as downward-oriented peaks in the derivative. The threshold is computed as `thresh_inspi = min_ * thresh_inspi_factor`, where `min_` is the minimum of the derivative signal. Thus, `thresh_inspi_factor` defines the fraction of the minimum derivative used to set the threshold. See Fig X.  
+  - `clean_by_mid_value`: Occasionally, abnormal cycles are detected where expiration points are too high to be real transitions. To correct this, a cleaning step computes `mid_value = (np.median(insp_values) + np.median(exp_values)) / 2`. If the expiration point lies above this value, the cycle is removed. Default = True. See Fig X.  
+
+- `cycle_clean`:
+
+None. We did not develop a dedicated `cycle_clean` method for CO2 signals, because they are generally clean enough, and partial cleaning is already performed in the `cycle_detection` step. Moreover, volumes are not computed for this type of signal and therefore cannot be used as criteria for cleaning.  
+
+- `baseline`:
+
+Controls how the baseline of the signal is computed:  
+
+  - `baseline_mode`: Default = `median`. why ??
+
+
+
+2) ECG parameters
 -------------------------
 
-blablabla
+For now, we have developed capabilities in :py:mod:`physio` to process ECG recordings from two species: `human` and `rat`.  
+The species type determines many of the preprocessing parameters, mainly because the expected heart rate is much higher in rodents than in humans.  
+
+Note that we did not develop a preset dedicated to mice, as we did not have data available to generate one. However, the `rat` parameters can likely be slightly tuned to fit the higher expected heart rate of mice.  
+
+In addition, any heart rate range (from any species or under any behavioral condition) can theoretically be processed by :py:mod:`physio` simply by tuning the parameters accordingly. Feel free to do so.  
+
+This section details the parameter settings for each of the two species predefined in :py:mod:`physio`.  
+
+
+a. `human`
+
+Default parameters dictionary for `human_ecg`:
+
+::
+
+    {
+        'peak_clean': {
+            'min_interval_ms': 400.0
+        },
+        'peak_detection': {
+            'exclude_sweep_ms': 4.0,
+            'thresh': 'auto'
+        },
+        'preprocess': {
+            'band': [5.0, 45.0],
+            'ftype': 'bessel',
+            'normalize': True,
+            'order': 5
+        }
+    }
+
+- `preprocess`:
+
+The `preprocess` key controls how the raw ECG signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
+Several subkeys control this filtering:
+
+  - `band`: The cutoff frequencies of the filter. Set to [5.0, 45.0] Hz by default. The aim of this frequency band is to increase the signal-to-noise ratio, where the signal corresponds to the R peaks and the noise is the rest. The 5–45 Hz range isolates the human R-peak frequency band, facilitating subsequent R-peak detection.  
+  - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
+  - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
+  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful for scaling the ECG signal into a "normal" range, for example to compare it with another normalized signal.  
+
+- `peak_detection`:
+
+The `peak_detection` key controls the methods by which R peaks are detected. The idea is to set a threshold above which peaks (hopefully R peaks) are detected.  
+The two questions are: "which threshold?" and "how to remove extra peaks that are above the threshold but are not R peaks?".  
+Subkeys address these questions:
+
+  - `thresh`: Default = `auto`. If a float is passed, this float value is used as a horizontal threshold above which R peaks are detected. `auto` means the threshold is automatically computed as half of the 99th percentile of the signal: thresh = np.quantile(clean_ecg, 0.99) / 2.  
+  - `exclude_sweep_ms`: Default = 4 milliseconds. Time window in milliseconds swept along the signal to prevent detecting multiple noisy peaks. Higher = risk of losing true R peaks; lower = risk of detecting extra non-R peaks.  
+
+- `peak_clean`:
+
+This key controls post-cleaning of detected R peaks by setting a minimum horizontal distance between R peaks (RR intervals) below which RR intervals are removed.  
+The only subkey is:
+
+  - `min_interval_ms`: Default = 400 milliseconds in this case of a human. A higher value risks removing true RR intervals, which may happen in individuals with fast heart rates.  
+
+
+b. `rat`
+
+Default parameters dictionary for `rat_ecg`:
+
+::
+
+    {
+        'peak_clean': {
+            'min_interval_ms': 50.0
+        },
+        'peak_detection': {
+            'exclude_sweep_ms': 4.0,
+            'thresh': 'auto'
+        },
+        'preprocess': {
+            'band': [5.0, 200.0],
+            'ftype': 'bessel',
+            'normalize': True,
+            'order': 5
+        }
+    }
+
+- `preprocess`:
+
+The `preprocess` key controls how the raw ECG signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
+Several subkeys control this filtering:
+
+  - `band`: The cutoff frequencies of the filter. Set to [5.0, 200.0] Hz by default. The aim of this frequency band is to increase the signal-to-noise ratio, where the signal corresponds to the R peaks and the noise is the rest. The 5-200 Hz range isolates the rat R-peak frequency band, facilitating subsequent R-peak detection.  
+  - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
+  - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
+  - `normalize`: True or False. If True, the signal is normalized by subtracting its mean and dividing by its MAD (Median Absolute Deviation). Default = False. Useful for scaling the ECG signal into a "normal" range, for example to compare it with another normalized signal.  
+
+- `peak_detection`:
+
+The `peak_detection` key controls the methods by which R peaks are detected. The idea is to set a threshold above which peaks (hopefully R peaks) are detected.  
+The two questions are: "which threshold?" and "how to remove extra peaks that are above the threshold but are not R peaks?".  
+Subkeys address these questions:
+
+  - `thresh`: Default = `auto`. If a float is passed, this float value is used as a horizontal threshold above which R peaks are detected. `auto` means the threshold is automatically computed as half of the 99th percentile of the signal: thresh = np.quantile(clean_ecg, 0.99) / 2.  
+  - `exclude_sweep_ms`: Default = 4 milliseconds. Time window in milliseconds swept along the signal to prevent detecting multiple noisy peaks. Higher = risk of losing true R peaks; lower = risk of detecting extra non-R peaks.  
+
+- `peak_clean`:
+
+This key controls post-cleaning of detected R peaks by setting a minimum horizontal distance between R peaks (RR intervals) below which RR intervals are removed.  
+The only subkey is:
+
+  - `min_interval_ms`: Default = 50 milliseconds in this case of a rat. A higher value risks removing true RR intervals, which may happen in individuals with fast heart rates.  
