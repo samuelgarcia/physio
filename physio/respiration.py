@@ -188,6 +188,7 @@ def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_
 
     Parameters
     ----------
+
     resp: np.array
         Preprocessed respiratory signal.
     srate: float
@@ -196,8 +197,10 @@ def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_
         Which method is used for respiratory cycle detection respiration.
     **method_kwargs: 
         All other options are routed to the sub-function.
+
     Returns
     -------
+    
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle, 3)
         with [index_inspi, index_expi, index_next_inspi]
