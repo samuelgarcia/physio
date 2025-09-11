@@ -19,6 +19,8 @@ def compute_ecg(raw_ecg, srate, parameter_preset='human_ecg', parameters=None):
       * detect R peaks
       * apply some cleaning to remove too small ECG interval
 
+    See :ref:`handling_parameters` for parameters details.
+
     Parameters
     ----------
     raw_ecg: np.array

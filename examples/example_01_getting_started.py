@@ -70,6 +70,7 @@ ax.set_xlim(185, 225)
 #    * `parameter_preset` : a string specifying the type of respiratory data, which determines the set of parameters used for processing. Can be one of: `human_airflow`, `human_co2`, `human_belt`,  `rat_plethysmo`, or `rat_etisens_belt`.
 #
 # When called, :py:func:`~physio.compute_respiration` performs the following:
+#
 #    * Preprocesses the respiratory signal (returns a NumPy array: `resp`)
 #    * Computes cycle-by-cycle features (returns a pd.DataFrame: `resp_cycles`)
 #

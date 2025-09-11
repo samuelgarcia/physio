@@ -15,7 +15,7 @@ def test_deform_traces_to_cycle_template():
     # test with resp deform iself
     times = np.arange(raw_resp.size) / srate
 
-    resp, resp_cycles = compute_respiration(raw_resp, srate)
+    resp, resp_cycles = compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
 
     # one segment
     cycle_times = resp_cycles[['inspi_time', 'next_inspi_time']].values

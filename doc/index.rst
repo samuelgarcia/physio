@@ -39,11 +39,19 @@ Features
    :caption: Contents:
 
    overview
-   api
+   examples/example_01_getting_started.rst
+   examples/example_02_respiration.rst
+   examples/example_03_ecg.rst
+   examples/example_04_cyclic_deformation.rst
+   examples/example_05_resphrv.rst
+   examples/example_06_cardio_respiratory_synchronization.rst
    handling_parameters
+   api
    release_notes
 
-.. include:: examples/index.rst
+
+..
+   .. include:: examples/index.rst
 
 
 Installation

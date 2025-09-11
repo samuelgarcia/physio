@@ -64,7 +64,6 @@ def test_detect_respiration_cycles_co2():
 
     resp, resp_cycles = compute_respiration(raw_resp4, srate4_co2, parameter_preset='human_co2')
 
-
     parameters = dict(
         sensor_type='co2',
         preprocess=dict(band=10., btype='lowpass', ftype='bessel', order=5, normalize=False),

@@ -3,7 +3,7 @@ import pandas as pd
 
 from .tools import get_empirical_mode, compute_median_mad, detect_peak
 from .preprocess import preprocess, smooth_signal
-from .parameters import get_respiration_parameters, recursive_update
+from .parameters import get_respiration_parameters, recursive_update, possible_resp_preset_txt
 
 import warnings
 
@@ -18,8 +18,6 @@ def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None,
       * clean cycles
       * compute metrics cycle by cycle
     
-    
-      
     This function 3 types of sensors : airflow, belt and co2.
     Depending this parameters, 3 differents algo will be internatlly used.
     So the `parameters` dict must contain `sensor_type`
@@ -37,6 +35,7 @@ def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None,
     parameter_preset: str or None
         Name of parameters set 'human_airflow'
         This use the automatic parameters you can also have with get_respiration_parameters('human')
+        Possible presets : {}
     parameters : dict or None
         When not None this update the parameter set.
 
@@ -124,12 +123,19 @@ def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None,
     return resp, resp_cycles
 
 
+
+compute_respiration.__doc__ = compute_respiration.__doc__.format(possible_resp_preset_txt)
+
+
 def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None):
     """
     Get respiration baseline = respiration mid point.
+
     This is used for:
+
       * detect_respiration_cycles() for crossing zero
       * compute_respiration_cycle_features() for volume integration
+    
     Parameters
     ----------
 
@@ -222,7 +228,11 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
         How to compute the baseline for zero crossings.
     baseline: float or None
         External baseline when baseline_mode='manual'
-    inspration_ajust_on_derivative: bool (default False)
+    epsilon_factor1: float, default 10.
+
+    epsilon_factor2: float, default 5.
+    
+    inspration_ajust_on_derivative: bool, default False
         For the inspiration detection, the zero crossing can be refined to auto-detect the inflection point.
         This can be useful when expiration ends with a long plateau.
     Returns
@@ -333,6 +343,7 @@ def detect_respiration_cycles_min_max(resp, srate, exclude_sweep_ms=50.):
     srate: float
         Sampling rate
     exclude_sweep_ms: 
+
     Returns
     -------
     cycles: np.array

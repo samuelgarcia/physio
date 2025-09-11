@@ -5,13 +5,13 @@ from .tools import compute_median_mad
 
 import warnings
 
-def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', order=5, normalize=True):
+def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', order=5, normalize=False):
     """
     Apply simple filter using scipy
     
     For ECG bessel 5-50Hz and order 5 is maybe a good choice.
 
-    By default also normalize the signal using median and mad.
+    Optionally also normalize the signal using median and mad.
 
 
     Parameters
@@ -28,7 +28,7 @@ def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', 
         The filter type used to generate coefficient using scipy.signal.iirfilter
     order: int (default 5)
         The order
-    normalize: cool (default True)
+    normalize: bool (default False)
         Apply or not normalization
     Returns
     -------
