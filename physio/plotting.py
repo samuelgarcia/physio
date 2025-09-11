@@ -14,8 +14,11 @@ def plot_cyclic_deformation(data, segment_ratios=None, two_cycles=True, ax=None)
         Plot 2 consecutive cycles.
     ax: None or matplotlib axes
         Use it to plot on an external ax
+    
     Returns
     -------
+
+    None
 
     """
     if ax is None:
