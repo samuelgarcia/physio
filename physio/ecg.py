@@ -23,22 +23,24 @@ def compute_ecg(raw_ecg, srate, parameter_preset='human_ecg', parameters=None):
 
     Parameters
     ----------
+
     raw_ecg: np.array
-        Raw traces of ECG signal
+        Raw ECG signal
     srate: float
         Sampling rate
     parameter_preset: str or None
-        Name of parameters set like 'human_ecg'
-        This use the automatic parameters you can also have with get_ecg_parameters('human_ecg')
+        Can be : 'human_ecg' | 'rat_ecg'
+        This recruites parameters automatically through the use of physio.get_ecg_parameters(preset) where preset stands for what you chose.
     parameters : dict or None
-        When not None this overwrite the parameter set.
+        When not None this overwrites the parameter set.
         
     Returns
     -------
+
     clean_ecg: np.array
         preprocess and normalized ecg traces
     ecg_peaks: pd.DataFrame
-        dataframe with indices of R peaks, times of R peaks.
+        dataframe with indices and timings of detected R peaks.
     """
     if parameter_preset is None:
         params = {}
@@ -78,21 +80,26 @@ def compute_ecg(raw_ecg, srate, parameter_preset='human_ecg', parameters=None):
 
 def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400., max_clean_loop=4):
     """
-    Clean peak with ultra simple idea: remove short interval.
+    Clean peaks with simple idea: remove short interval.
 
 
     Parameters
     ----------
+
     ecg: np.array
         preprocess traces of ECG signal
     srate: float
         Sampling rate
     raw_peak_inds: np.array
         Array of peaks indices to be cleaned
-    min_interval_ms: float (dfault 400ms)
+    min_interval_ms: float (default 400ms)
         Minimum interval for cleaning
+    max_clean_loop: int
+        Cleaning is iterated by looping in the range() of this value.
+
     Returns
     -------
+
     peak_inds: np.array
         Cleaned array of peaks indices 
     """
@@ -134,6 +141,7 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
 
     Parameters
     ----------
+
     ecg_peaks: pd.DataFrame
         DataFrame containing ecg R peaks.
     min_interval_ms: float (default 500ms)
@@ -142,10 +150,12 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
         Maximum interval inter R peak
     verbose: bool (default False)
         Control verbosity
+
     Returns
     -------
+
     metrics: pd.Series
-        A table containing metrics
+        A table containing HRV metrics
     """
     
     peak_ms = ecg_peaks['peak_time'].values * 1000.
@@ -193,6 +203,7 @@ def compute_instantaneous_rate(ecg_peaks, new_times, limits=None, units='bpm', i
 
     Parameters
     ----------
+
     ecg_peaks: pd.DataFrame
         DataFrame containing ecg R peaks.
     new_times : np.array
@@ -204,6 +215,12 @@ def compute_instantaneous_rate(ecg_peaks, new_times, limits=None, units='bpm', i
         Set the units of the output. Can be interval (ms or s) or rate (Hz or bpm).
     interpolation_kind : str
         'linear' or 'cubic'
+
+    Returns
+    -------
+    
+    instantaneous_rate : np.array
+        Instaneous rate of the shape of new_times because reinterpolated according ti this time basis
 
     """
     peak_times = ecg_peaks['peak_time'].values
@@ -262,18 +279,31 @@ def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
     
     Parameters
     ----------
-    ecg_peaks: pr.DataFrame
-        Datfarame containing ecg R peaks.
 
-    
-    sample_rate=100.
-    
-    limits=None
-    
-    units='bpm'
+    ecg_peaks: pd.DataFrame
+        DataFrame containing ecg R peaks.
+    sample_rate: float
+        Sampling rate of the interpolated instantanous heart rate
+    limits: None or List
+        If list, ex [30, 200], RR intervals correspond out of this range (here bpm) are removed before interpolation.
+    units : str
+        Can be : 'bpm' / 'Hz' / 'ms' / 's'.
+        Set the units of the interpolated instantaneous heart rate.
+    frequency_bands : dict
+        Defines the frequency band of interest
+    window_s : float
+        Size of the Welch's window for PSD computation. Should be long enough to contain at least 5 iterations of the slowest frequency of intereset.
+    interpolation_kind : str
+        'linear' or 'cubic'
 
-    interpolation_kind
-    
+    Returns
+    -------
+    psd_freqs : np.array
+        Frequency vector of the PSD
+    psd : np.arrat
+        Power Spectral Density vector
+    metrics : pd.Series
+        Power of the set frequency bands, obtained using trapezoïdal rule.
     """
     
     ecg_duration_s = ecg_peaks['peak_time'].values[-1] - ecg_peaks['peak_time'].values[0]
