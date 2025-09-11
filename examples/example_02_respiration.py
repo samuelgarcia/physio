@@ -250,7 +250,7 @@ pprint(resp_cycles.columns.to_list())
 raw_resp_belt = np.load('resp_belt3.npy') # load respi belt
 srate = 1000. # our example signals have been recorded at 1000 Hz
 
-times = np.arange(raw_resp.size) / srate # build time vector
+times = np.arange(raw_resp_belt.size) / srate # build time vector
 
 
 # the easiest way is to use predefined parameters
@@ -274,5 +274,59 @@ ax.set_xlim(195, 215)
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Amplitude (AU)')
 ax.set_title('Respiratory cycle detection on a belt signal (min-max signal)')
+ax.legend(loc = 'upper right')
+
+
+
+##############################################################################
+#
+# Quick example with respiration recorded using a CO2 sensor
+# ----------------------------------------------------------
+#
+# For this tutorial, we will use an internal file already stored in NumPy 
+# format for demonstration purposes. This file corresponds to 5 minutes of 
+# signal recorded with a CO2 sensor at 60 Hz from a human subject. 
+#
+# In the upper airways, CO2 concentration decreases during inspiration 
+# and increases during exhalation, and so does the recorded signal.
+#
+# Therefore, the detection method does not rely on a "baseline-crossing" 
+# approach, but rather on a dedicated "co2" method. This method is 
+# activated via the `parameter_preset` specific to this situation.
+#
+# Let's run a short example.
+#
+
+
+
+
+raw_resp_co2 = np.load('resp_CO2_4.npy') # load respi co2
+srate = 60. # our example signals have been recorded at 60 Hz
+
+times = np.arange(raw_resp_co2.size) / srate # build time vector
+
+
+# the easiest way is to use predefined parameters
+resp_co2, resp_cycles_co2 = physio.compute_respiration(raw_resp_co2, srate, parameter_preset='human_co2')  # set 'human_co2' as preset because example resp is an airflow from humans
+
+# print human_co2 params
+pprint(physio.get_respiration_parameters('human_co2'))
+
+# resp_cycles_co2 is a dataframe containing all cycles and related features (duration, timing, etc...). In the case of belt, volumes and amplitudes are not computed.
+print(resp_cycles_co2)
+
+inspi_ind = resp_cycles_co2['inspi_index'].values # get index of inspiration start points
+expi_ind = resp_cycles_co2['expi_index'].values # get index of expiration start points
+
+fig, ax = plt.subplots()
+ax.plot(times, raw_resp_co2)
+ax.plot(times, resp_co2)
+ax.scatter(times[inspi_ind], resp_co2[inspi_ind], color='green', label = 'inspiration start')
+ax.scatter(times[expi_ind], resp_co2[expi_ind], color='red', label = 'expiration start')
+ax.set_xlim(95, 110)
+ax.set_ylim(-1, 40)
+ax.set_xlabel('Time (s)')
+ax.set_ylabel('Amplitude (mmHg)')
+ax.set_title('Respiratory cycle detection on a CO2 signal')
 ax.legend(loc = 'upper right')
 
