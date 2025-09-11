@@ -338,6 +338,7 @@ Default parameters dictionary for `human_ecg`:
         'preprocess': {
             'band': [5.0, 45.0],
             'ftype': 'bessel',
+            'normalize':True,
             'order': 5
         }
     }
@@ -351,6 +352,7 @@ Several subkeys control this filtering:
   - `band`: The cutoff frequencies of the filter. Set to [5.0, 45.0] Hz by default. The aim of this frequency band is to increase the signal-to-noise ratio, where the signal corresponds to the R peaks and the noise is the rest. The 5–45 Hz range isolates the human R-peak frequency band, facilitating subsequent R-peak detection.  
   - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
+  - `normalize`: Default = True. Normalize the signal : (sig - Median(sig)) / MAD(sig) where MAD is the median absolute deviation. Useful for peak detection.
   
 - `peak_detection`:
 """""""""""""""""""
@@ -389,6 +391,7 @@ Default parameters dictionary for `rat_ecg`:
         'preprocess': {
             'band': [5.0, 200.0],
             'ftype': 'bessel',
+            'normalize':True,
             'order': 5
         }
     }
@@ -402,6 +405,7 @@ Several subkeys control this filtering:
   - `band`: The cutoff frequencies of the filter. Set to [5.0, 200.0] Hz by default. The aim of this frequency band is to increase the signal-to-noise ratio, where the signal corresponds to the R peaks and the noise is the rest. The 5-200 Hz range isolates the rat R-peak frequency band, facilitating subsequent R-peak detection.  
   - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is slightly less steep in frequency cutoff.  
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
+  - `normalize`: Default = True. Normalize the signal : (sig - Median(sig)) / MAD(sig) where MAD is the median absolute deviation. Useful for peak detection.
 
 - `peak_detection`:
 """""""""""""""""""
