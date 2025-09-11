@@ -1,3 +1,5 @@
+.. _handling_parameters:
+
 Handling parameters
 ===================
 

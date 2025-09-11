@@ -18,6 +18,16 @@ def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None,
       * clean cycles
       * compute metrics cycle by cycle
     
+    
+      
+    This function 3 types of sensors : airflow, belt and co2.
+    Depending this parameters, 3 differents algo will be internatlly used.
+    So the `parameters` dict must contain `sensor_type`
+    Note that the `resp_cycles`dataframe will contains cycles boundaries and features.
+    Features will depend on sensor type.
+
+    See :ref:`handling_parameters` for parameters details.
+
     Parameters
     ----------
     raw_resp: np.array
@@ -28,13 +38,13 @@ def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None,
         Name of parameters set 'human_airflow'
         This use the automatic parameters you can also have with get_respiration_parameters('human')
     parameters : dict or None
-        When not None this overwrite the parameter set.
+        When not None this update the parameter set.
 
     Returns
     -------
     resp: np.array
         A preprocess traces
-    cycles: pd.Dataframe
+    resp_cycles: pd.Dataframe
         Table that contain all  cycle information : inspiration/expiration indexes, 
         amplitudes, volumes, durations, ...
     """
