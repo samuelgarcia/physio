@@ -404,10 +404,12 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
     # import matplotlib.pyplot as plt
     # fig, axs = plt.subplots(nrows=2, sharex=True)
     # ax = axs[0]
+    # ax.set_title('CO2 signal')
     # ax.plot(co2_raw)
     # ax.scatter(ind_insp, co2_raw[ind_insp], color='g')
     # ax.scatter(ind_exp, co2_raw[ind_exp], color='r')
     # ax = axs[1]
+    # ax.set_title('CO2 derivative signal')
     # ax.plot(co2_gradient)
     # ax.axhline(thresh_inspi, color='g', label=f"thresh_inspi_factor={thresh_inspi_factor}")
     # ax.axhline(thresh_expi, color='r', label=f"thresh_expi_factor={thresh_expi_factor}")
