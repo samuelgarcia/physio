@@ -56,7 +56,7 @@ def compute_ecg(raw_ecg, srate, parameter_preset='human_ecg', parameters=None):
 
     params_detection = params['peak_detection']
     if params_detection.get('thresh', None) == 'auto':
-        # automatic threhold = half of the 99 pecentile (=max less artifcat)
+        # automatic threshold = half of the 99 percentile (=max less artifact)
         # empirical and naive but work more or less
         params_detection = copy.copy(params_detection)
         thresh = np.quantile(clean_ecg, 0.99) / 2.
