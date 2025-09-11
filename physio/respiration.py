@@ -18,8 +18,8 @@ def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None,
       * clean cycles
       * compute metrics cycle by cycle
     
-    This function 3 types of sensors : airflow, belt and co2.
-    Depending this parameters, 3 differents algo will be internatlly used.
+    This function works with 3 types of possible sensors : airflow, belt and co2.
+    Depending on these parameters, 3 differents algo will be internatlly used.
     So the `parameters` dict must contain `sensor_type`
     Note that the `resp_cycles`dataframe will contains cycles boundaries and features.
     Features will depend on sensor type.
@@ -28,24 +28,25 @@ def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None,
 
     Parameters
     ----------
+
     raw_resp: np.array
-        Raw traces of respiratory signal
+        Raw respiratory signal
     srate: float
-        Sampling rate
+        Sampling rate of the raw respiratory signal
     parameter_preset: str or None
-        Name of parameters set 'human_airflow'
-        This use the automatic parameters you can also have with get_respiration_parameters('human')
-        Possible presets : {}
+        Possible presets are : {}
+        This string specifies the type of respiratory data, which determines the set of parameters used for processing.
+        This set equivalent of the one you get using physio.get_respiration_parameters(preset) with preset being the same one.
     parameters : dict or None
-        When not None this update the parameter set.
+        When not None this updates the parameter set.
 
     Returns
     -------
+
     resp: np.array
-        A preprocess traces
+        A preprocess respiratory trace
     resp_cycles: pd.Dataframe
-        Table that contain all  cycle information : inspiration/expiration indexes, 
-        amplitudes, volumes, durations, ...
+        resp_cycles is a dataframe containing one row per respiratory cycle and one column per feature (timings, durations, amplitudes, volumnes ...).
     """
     if parameter_preset is None and parameters is None:
         raise ValueError("compute_respiration(): you must give either parameter_preset or parameters (or both!)")
@@ -147,10 +148,12 @@ def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None)
         How to compute the baseline for zero crossings.
     baseline: float or None
         External baseline when baseline_mode='manual'
+
     Returns
     -------
     
-    
+    baseline: float
+        Value of the computed baseline level
     """
     if baseline_mode == 'manual':
         assert baseline is not None
@@ -174,7 +177,7 @@ def get_respiration_baseline(resp, srate, baseline_mode='manual', baseline=None)
 
 def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_kwargs):
     """
-    Detect respiration with several methods:
+    Detect respiration with several possible methods:
       * "crossing_baseline": method used when the respiratory signal is airflow
         internally uses detect_respiration_cycles_crossing_baseline()
       * "min_max" : method used when the respiratory signal is volume
@@ -186,11 +189,11 @@ def detect_respiration_cycles(resp, srate, method="crossing_baseline", **method_
     Parameters
     ----------
     resp: np.array
-        Preprocess traces of respiratory signal.
+        Preprocessed respiratory signal.
     srate: float
         Sampling rate
-    method: 'crossing_baseline' / 'co2'
-        Which method for respiration.
+    method: 'crossing_baseline' | 'co2' | 'min_max'
+        Which method is used for respiratory cycle detection respiration.
     **method_kwargs: 
         All other options are routed to the sub-function.
     Returns
@@ -220,6 +223,7 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
 
     Parameters
     ----------
+
     resp: np.array
         Preprocess traces of respiratory signal.
     srate: float
@@ -229,14 +233,18 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     baseline: float or None
         External baseline when baseline_mode='manual'
     epsilon_factor1: float, default 10.
-
+        Defines a horizontal confidence zone just below the true baseline, where the low part = 
+        baseline - `epsilon` * `epsilon_factor1`, with `epsilon` = (baseline - np.quantile(resp, 0.1)) / 100.
     epsilon_factor2: float, default 5.
-    
-    inspration_ajust_on_derivative: bool, default False
+        Defines the higher part of the confidence zone: baseline - `epsilon` * `epsilon_factor2`. `epsilon_factor1` 
+        is higher than `epsilon_factor2` to search the upper part of the confidence zone.
+    inspiration_adjust_on_derivative: bool, default False
         For the inspiration detection, the zero crossing can be refined to auto-detect the inflection point.
-        This can be useful when expiration ends with a long plateau.
+        This can be useful when expiration ends with a long and shortly drifting plateau.
+
     Returns
     -------
+
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle, 3)
         with [index_inspi, index_expi, index_next_inspi]
@@ -338,14 +346,17 @@ def detect_respiration_cycles_min_max(resp, srate, exclude_sweep_ms=50.):
 
     Parameters
     ----------
+
     resp: np.array
         Preprocess traces of respiratory signal.
     srate: float
         Sampling rate
-    exclude_sweep_ms: 
+    exclude_sweep_ms: float
+        Duration in milliseconds of a window sept on the signal to remove too narrow peaks (transition points) in term of horizontal distance.
 
     Returns
     -------
+
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle, 3)
         with [index_inspi, index_expi, index_next_inspi]
@@ -377,6 +388,7 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
 
     Parameters
     ----------
+
     co2_raw: np.array
         Preprocess traces of respiratory signal.
     srate: float
@@ -390,6 +402,7 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
 
     Returns
     -------
+
     cycles: np.array
         Indices of inspiration and expiration. shape=(num_cycle, 3)
         with [index_inspi, index_expi, index_next_inspi]
@@ -495,6 +508,7 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
 
     Parameters
     ----------
+
     resp: np.array
         Preprocess traces of respiratory signal.
     srate: float
@@ -503,8 +517,12 @@ def compute_respiration_cycle_features(resp, srate, cycles, baseline=None, senso
         Indices of inspiration and expiration. shape=(num_cycle + 1, 2)
     baseline: float or None
         If not None then the baseline is subtracted to resp to compute amplitudes and volumes.
+    sensor_type: str
+        The sensor type. Can be one of : 'airflow' | 'belt' | 'co2' 
+
     Returns
     -------
+
     resp_cycles: pd.Dataframe
         Features of all cycles.
     """
@@ -652,6 +670,7 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_n
 
     Parameters
     ----------
+    
     resp: np.array
         Preprocess traces of respiratory signal.
     srate: float
@@ -666,8 +685,10 @@ def clean_respiration_cycles(resp, srate, resp_cycles, baseline=None, variable_n
         Used to compute low limit with "limit = med - mad * low_limit_log_ratio"
     sensor_type: 'airflow' | 'belt' | 'co2'
         sensor type
+
     Returns
     -------
+
     cleaned_cycles: 
         Clean version of cycles.
     """
