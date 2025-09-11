@@ -10,7 +10,7 @@ import warnings
 
 _possible_sensor_type = ('airflow', 'co2', 'belt') 
 
-def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', parameters=None, ):
+def compute_respiration(raw_resp, srate, parameter_preset=None, parameters=None, ):
     """
     Function for respiration that:
       * preprocess the signal
@@ -38,11 +38,14 @@ def compute_respiration(raw_resp, srate, parameter_preset='human_airflow', param
         Table that contain all  cycle information : inspiration/expiration indexes, 
         amplitudes, volumes, durations, ...
     """
-    
+    if parameter_preset is None and parameters is None:
+        raise ValueError("compute_respiration(): you must give either parameter_preset or parameters (or both!)")
+
     if parameter_preset is None:
         params = {}
     else:
         params = get_respiration_parameters(parameter_preset)
+    
     if parameters is not None:
         recursive_update(params, parameters)
     
