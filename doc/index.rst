@@ -40,8 +40,8 @@ Features
 
    overview
    api
-   release_notes
    handling_parameters
+   release_notes
 
 .. include:: examples/index.rst
 

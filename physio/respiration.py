@@ -235,12 +235,12 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     ind_dw, = np.nonzero((resp0 >= baseline_dw) & (resp1 < baseline_dw))
     
     ind_insp, = np.nonzero((resp0 >= baseline_insp) & (resp1 < baseline_insp))
-    ind_insp_no_clean = ind_insp.copy()
+    # ind_insp_no_clean = ind_insp.copy()
     keep_inds = np.searchsorted(ind_insp, ind_dw, side='right')
     keep_inds = keep_inds[keep_inds > 0]
     ind_insp = ind_insp[keep_inds - 1]
     ind_insp = np.unique(ind_insp)
-    ind_insp_no_clean2 = ind_insp.copy()
+    # ind_insp_no_clean2 = ind_insp.copy()
     ind_exp, = np.nonzero((resp0 < baseline) & (resp1 >= baseline))
     
     
@@ -248,18 +248,31 @@ def detect_respiration_cycles_crossing_baseline(resp, srate, baseline_mode='manu
     ind_insp, ind_exp = interleave_insp_exp(ind_insp, ind_exp, remove_first_insp=False, remove_first_exp=False)
 
     # import matplotlib.pyplot as plt
-    # fig, ax = plt.subplots()
-    # ax.plot(resp)
-    # ax.scatter(ind_dw, resp[ind_dw], color='k', marker='*')
-    # # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='k', marker='^')
-    # ax.scatter(ind_insp_no_clean2, resp[ind_insp_no_clean2], color='m', marker='*', s=80)
-    # ax.scatter(ind_insp, resp[ind_insp], color='g')
-    # ax.scatter(ind_exp, resp[ind_exp], color='r')
-    # ax.axhline(baseline_dw, color='C2', label='baseline_insp (esp1)')
-    # ax.axhline(baseline_insp, color='C1', label='baseline_insp (esp2)')
-    # ax.axhline(baseline, color='C0', label='baseline')
-    # ax.legend()
-    # plt.show()
+    # myparams = {
+    #     'axes.titlesize' : 14,
+    #     'axes.labelsize' : 14,
+    #     'xtick.labelsize' : 14,
+    #     'ytick.labelsize' : 14
+    # }
+    # import matplotlib as mpl
+    # with mpl.rc_context(myparams):
+    #     fig, ax = plt.subplots()
+    #     ax.plot(resp, color='black', lw=3)
+    #     ax.axhline(baseline_dw, color='C2', label='epsilon 1', lw=3)
+    #     ax.axhline(baseline_insp, color='C1', label='epsilon 2', lw=3)
+    #     ax.axhline(baseline, color='C0', label='baseline', lw=3)
+    #     # ax.axhspan(baseline, baseline_insp, color='C1', alpha=0.3 )
+    #     ax.axhspan(baseline, baseline_dw, color='C2', alpha=0.2 )
+    #     ax.scatter(ind_exp, resp[ind_exp], color='r', s=120, zorder=100)
+    #     ax.scatter(ind_dw, resp[ind_dw], color="#00BD1F", marker='^', s=120, zorder=100)
+    #     # ax.scatter(ind_insp_no_clean, resp[ind_insp_no_clean], color='k', marker='^')
+    #     ax.scatter(ind_insp_no_clean2, resp[ind_insp_no_clean2], color='m', marker='*', s=120, zorder=100)
+    #     ax.scatter(ind_insp, resp[ind_insp], color='g', s=120, zorder=100)
+    #     ax.set_xticks([])
+    #     ax.set_yticks([])
+
+    #     ax.legend(fontsize=14)
+    #     plt.show()
     
 
     if inspiration_adjust_on_derivative:
