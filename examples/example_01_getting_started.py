@@ -64,7 +64,7 @@ ax.set_xlim(185, 225)
 # To use this function, you must provide:
 #    * `raw_resp` : the raw respiratory signal as a NumPy array.
 #    * `srate` : the sampling rate of the respiratory signal
-#    * `parameter_preset` : a string specifying the type of respiratory data, which determines the set of parameters used for processing. Can be one of: `human_airflow`, `human_co2`, `rat_plethysmo`, or `rat_etisens_belt`.
+#    * `parameter_preset` : a string specifying the type of respiratory data, which determines the set of parameters used for processing. Can be one of: `human_airflow`, `human_co2`, `human_belt`,  `rat_plethysmo`, or `rat_etisens_belt`.
 # When called, :py:func:`~physio.compute_respiration` performs the following:
 #    * Preprocesses the respiratory signal (returns a NumPy array: `resp`)
 #    * Computes cycle-by-cycle features (returns a pd.DataFrame: `resp_cycles`)
