@@ -402,13 +402,13 @@ def detect_respiration_cycles_co2(co2_raw, srate, thresh_inspi_factor=0.08, thre
     # fig, axs = plt.subplots(nrows=2, sharex=True)
     # ax = axs[0]
     # ax.plot(co2_raw)
-    # ax.plot(smoothed_co2)
-    # ax.scatter(ind_insp, smoothed_co2[ind_insp], color='g')
-    # ax.scatter(ind_exp, smoothed_co2[ind_exp], color='r')
+    # ax.scatter(ind_insp, co2_raw[ind_insp], color='g')
+    # ax.scatter(ind_exp, co2_raw[ind_exp], color='r')
     # ax = axs[1]
     # ax.plot(co2_gradient)
-    # ax.axhline(thresh_inspi, color='g')
-    # ax.axhline(thresh_expi, color='r')
+    # ax.axhline(thresh_inspi, color='g', label=f"thresh_inspi_factor={thresh_inspi_factor}")
+    # ax.axhline(thresh_expi, color='r', label=f"thresh_expi_factor={thresh_expi_factor}")
+    # ax.legend(fontsize=14)
     # plt.show()
 
     cycles = np.zeros((ind_insp.size - 1, 3), dtype='int64')

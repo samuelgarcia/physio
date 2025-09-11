@@ -64,6 +64,18 @@ def test_detect_respiration_cycles_co2():
 
     resp, resp_cycles = compute_respiration(raw_resp4, srate4_co2, parameter_preset='human_co2')
 
+
+    parameters = dict(
+        sensor_type='co2',
+        preprocess=dict(band=10., btype='lowpass', ftype='bessel', order=5, normalize=False),
+        smooth=dict(win_shape='gaussian', sigma_ms=40.0),
+        cycle_detection=dict(method="co2", thresh_inspi_factor=0.10, thresh_expi_factor=0.09, clean_by_mid_value=True),
+        baseline=dict(baseline_mode='median'),
+        cycle_clean=None, # no clean because no volume
+    )
+    resp, resp_cycles = compute_respiration(raw_resp4, srate4_co2, parameters=parameters)
+
+
     # inspi_inds = resp_cycles['inspi_index'].values
     # expi_inds = resp_cycles['expi_index'].values
     # import matplotlib.pyplot as plt
