@@ -224,7 +224,7 @@ This key controls how already detected timepoints are cleaned.
 Small oscillations in a noisy signal can cause very small cycles to be detected. Subkeys specify criteria for identifying these outliers:  
 
   - `variable_names`: Names of respiratory features used to detect outliers. Default = ['inspi_amplitude', 'expi_amplitude']. Amplitudes are chosen because they capture cycles that are too small in both time and amplitude.  
-  - `low_limit_log_ratio`: Features are often non-normally distributed and are log-transformed before threshold estimation. The outlier threshold is computed as median - MAD * `low_limit_log_ratio`. Higher `low_limit_log_ratio` → smaller detected cycles → fewer outliers detected. See Fig X.  
+  - `low_limit_log_ratio`: Features are often non-normally distributed and are log-transformed before threshold estimation. The outlier threshold is computed as median - MAD * `low_limit_log_ratio`. Higher `low_limit_log_ratio` → smaller detected cycles → fewer outliers detected. See figure titled "log inspi_volume" of this tutorial.  
 
 - `baseline`:
 """""""""""""  
@@ -291,7 +291,7 @@ This key controls how the main timepoints (inspiration and expiration) are detec
   - `method`: `co2` in this case, meaning a dedicated method (not a true `min_max`). The goal is to detect transitions from expiration to inspiration at the end of the expiration plateau, and transitions from inspiration to expiration at the end of the inspiration plateau, using the first derivative of the signal.  
   - `thresh_expi_factor`: To detect expiration timepoints, we search for crossings in the first derivative just above 0 using a threshold. Indeed, nspiration–expiration transitions appear as upward-oriented peaks in the derivative. The threshold is computed as `thresh_expi = max_ * thresh_expi_factor`, where `max_` is the maximum of the derivative signal. Thus, `thresh_expi_factor` defines the fraction of the maximum derivative used to set the threshold. See red horizontal line on the figure below.  
   - `thresh_inspi_factor`: To detect inspiration timepoints, we search for crossings in the first derivative just below 0 using a threshold. Indeed, expiration–inspiration transitions appear as downward-oriented peaks in the derivative. The threshold is computed as `thresh_inspi = min_ * thresh_inspi_factor`, where `min_` is the minimum of the derivative signal. Thus, `thresh_inspi_factor` defines the fraction of the minimum derivative used to set the threshold.  See green horizontal line on the figure below.  
-  - `clean_by_mid_value`: Occasionally, abnormal cycles are detected where expiration points are too high to be real transitions. To correct this, a cleaning step computes `mid_value = (np.median(insp_values) + np.median(exp_values)) / 2`. If the expiration point lies above this value, the cycle is removed. Default = True. See Fig X.  
+  - `clean_by_mid_value`: Occasionally, abnormal cycles are detected where expiration points are too high to be real transitions. To correct this, a cleaning step computes `mid_value = (np.median(insp_values) + np.median(exp_values)) / 2`. If the expiration point lies above this value, the cycle is removed. Default = True.  
 
 .. image:: img/fig_params_co2_thresh.png
 
