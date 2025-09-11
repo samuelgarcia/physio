@@ -16,6 +16,7 @@ def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', 
 
     Parameters
     ----------
+
     traces: np.array
         Input signal.
     srate: float
@@ -30,8 +31,10 @@ def preprocess(traces, srate, band=[5., 45.], btype='bandpass', ftype='bessel', 
         The order
     normalize: bool (default False)
         Apply or not normalization
+
     Returns
     -------
+    
     traces_clean: np.array
         The preprocess traces
     """
@@ -57,6 +60,7 @@ def smooth_signal(trace, srate, win_shape='gaussian', sigma_ms=5.0):
 
     Parameters
     ----------
+
     traces: np.array
         Input signal.
     srate: float
@@ -65,8 +69,10 @@ def smooth_signal(trace, srate, win_shape='gaussian', sigma_ms=5.0):
         The shape of the kernel
     sigma_ms: float (default 5ms)
         The length of the kernel. Sigma for the gaussian case.
+
     Returns
     -------
+
     trace_smooth: np.array
         The smoothed traces
     """
