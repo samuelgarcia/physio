@@ -6,12 +6,15 @@ def compute_median_mad(data, axis=0):
 
     Parameters
     ----------
+
     data: np.array
         An array
     axis: int (default 0)
         The axis 
+
     Returns
     -------
+
     med: 
         The median
     mad: 
@@ -28,6 +31,7 @@ def detect_peak(traces, srate, thresh=5, abs_threshold=None, exclude_sweep_ms=4.
 
     Parameters
     ----------
+
     traces: np.array
         An array
     srate: float
@@ -44,9 +48,11 @@ def detect_peak(traces, srate, thresh=5, abs_threshold=None, exclude_sweep_ms=4.
         ceil threhold that peaks must not exced, this is to remove big artifact
         This is relative to mad
     abs_thresh_artifact: float, None
-        Same as abs_thresh_artifact but absolut
+        Same as abs_thresh_artifact but absolute
+
     Returns
     -------
+
     inds: np.array
         Indices on the peaks
     """
@@ -87,12 +93,15 @@ def get_empirical_mode(traces, nbins=200):
 
     Parameters
     ----------
+
     traces: np.array
         The traces
     nbins: int (default 200)
         Number of bins for the histogram
+
     Returns
     -------
+    
     mode: float
         The empirical mode.
     """
