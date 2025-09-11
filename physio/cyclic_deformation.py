@@ -15,10 +15,10 @@ def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=4
     Parameters
     ----------
 
-    data:
-        ND array time axis must always be 0
-    times:
-        real timestamps associated to data
+    data: nd.array
+        Axis of the time must always be 0, meaning of shape (n_times,...).
+    times: np.array
+        Time vector of the data. Shape = (n_times,)
     cycle_times: np.array
         Array with shape(num_cycle, num_segment + 1).
         Typically for respiration n cycles array with 3 columns (inspi time + expi time + next inspi time) will
@@ -29,10 +29,15 @@ def deform_traces_to_cycle_template(data, times, cycle_times, points_per_cycle=4
         number of respi phase per cycle
     segment_ratios: None or float or list of float
         If multi segment deformation then a list of segmetn ratio must provived.
-    output_mode: 'stacked' / 'unstacked' / 'unstacked_full'
+    output_mode: str
+        'stacked' / 'unstacked' / 'unstacked_full'
+        Format of the outputs. Stacked -> 2D matrix : cycles / points per cycle. Unstacked -> 1D matrix : flattened version of the stacked. Unstacked_full returns extra-outputs.
+    progress_bar : bool
+        To display or not a progress bar
 
     Returns
     -------
+
     If mode == 'stacked'
     
     deformed_data_stacked: 
@@ -136,13 +141,17 @@ def time_to_cycle(times, cycle_times,  segment_ratios = 0.4):
     
     Parameters
     ----------
-
+    times: np.array
+        Timings of the timepoints
+    cycle_times: np.array
+        Timings of the cycle points
     segment_ratios: None or float or list of float
         If multi segment deformation then a list of segment ratio must be provived.
 
     Returns
     -------
-
+    cycles : np.array
+        Timepoints transformed to relative position in the cycles
     """
     if cycle_times.ndim == 1:
         cycle_times_1d = cycle_times
