@@ -246,6 +246,9 @@ pprint(resp_cycles.columns.to_list())
 # In addition, some participants may present paradoxical respiration, with the 
 # trunk retracting during inspiration and dilating during expiration. In such 
 # cases, the metrics returned in `resp_cycles_belt` will not be meaningful.
+#
+# Further note that in case of a `belt`, volumes can't be computed and amplitudes are no the same ones than in 
+# `airflow`. In this case this a `max` - `min` measure related to a circumference, while in case of an `airflow` this is a vertical distance to the baseline... meaning an instantaneous flow. 
 # 
 # Let's run a short example.
 # 
@@ -298,6 +301,8 @@ ax.legend(loc = 'upper right')
 # Therefore, the detection method does not rely on a "baseline-crossing" 
 # approach, but rather on a dedicated "co2" method. This method is 
 # activated via the `parameter_preset` specific to this situation.
+#
+# Note that for `co2`, amplitude and volumes are not computed. 
 #
 # Let's run a short example.
 #
