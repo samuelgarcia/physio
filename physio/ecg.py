@@ -128,14 +128,15 @@ def clean_ecg_peak(ecg, srate, raw_peak_inds, min_interval_ms=400., max_clean_lo
 def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., verbose = False):
     """
     Compute metrics from ecg peaks: 
-    - HRV_Mean : Mean of RR intervals
-    - HRV_SD : Standard-Deviation of RR intervals
-    - HRV_Median : Median of RR intervals
-    - HRV_Mad : Median Absolute Deviation (MAD) of RR intevals. MAD is more robust to outliers than a classic standard-deviation.
-    - HRV_CV : HRV_SD / HRV_Mean = Coefficient of Variation = Normalized SD
-    - HRV_MCV : HRV_Mad / HRV_Median = MAD Coefficient of Variation = Robust version of Coefficient of Variation
-    - HRV_Asymmetry = HRV_Median - HRV_Mean = Difference between Median and Mean that diverges from 0 in case of outliers / non normal distribution of RR intervals.
-    - HRV_RMSSD = Root-Mean Square of Successive Differences ~ like a 2nd derivative of RR intervals. Sensitive to fine variations of RR intervals but also very sensitive to outliers.
+
+    * HRV_Mean : Mean of RR intervals (Warning: this is not a measure of variability but a measure of central tendency ...)
+    * HRV_SD : Standard-Deviation of RR intervals
+    * HRV_Median : Median of RR intervals (Warning: this is not a measure of variability but a measure of central tendency ...)
+    * HRV_Mad : Median Absolute Deviation (MAD) of RR intevals. MAD is more robust to outliers than a classic standard-deviation.
+    * HRV_CV : HRV_SD / HRV_Mean = Coefficient of Variation = Normalized SD
+    * HRV_MCV : HRV_Mad / HRV_Median = MAD Coefficient of Variation = Robust version of Coefficient of Variation
+    * HRV_Asymmetry = HRV_Median - HRV_Mean = Difference between Median and Mean that diverges from 0 in case of outliers / non normal distribution of RR intervals.
+    * HRV_RMSSD = Root-Mean Square of Successive Differences ~ like a 2nd derivative of RR intervals. Sensitive to fine variations of RR intervals but also very sensitive to outliers.
 
     These metrics are a bit more robust than others toolboxes because are computed after a cleaning of RR intervals based on min and max intervals as set.
 
@@ -300,7 +301,7 @@ def compute_hrv_psd(ecg_peaks, sample_rate=100., limits=None, units='bpm',
     -------
     psd_freqs : np.array
         Frequency vector of the PSD
-    psd : np.arrat
+    psd : np.array
         Power Spectral Density vector
     metrics : pd.Series
         Power of the set frequency bands, obtained using trapezoïdal rule.
