@@ -21,28 +21,44 @@ Organization
 ------------
 
 This tutorial is organized into two major sections, each of which is divided into multiple subsections:
-  * Respiration parameters
+  1. Respiration parameters
+
      - sentor_type = airflow
+
         - preprocess
         - smooth
         - cycle_detection
         - cycle_clean
         - baseline
+
      - sentor_type = belt
+
         - preprocess
         - smooth
         - cycle_detection
         - cycle_clean
         - baseline
+
      - sentor_type = co2
+     
         - preprocess
         - smooth
         - cycle_detection
         - baseline
         - cycle_clean
-  * ECG parameters
+
+  2. ECG parameters
+
      - human
+
+        - preprocess
+        - peak_detection
+        - peak_clean
      - rat
+
+        - preprocess
+        - peak_detection
+        - peak_clean
 
 
 1. Respiration Parameters
@@ -94,6 +110,7 @@ In the case of `rat_plethysmo`, our description is not detailed because the appr
     }
 
 - `preprocess`:
+"""""""""""""""
 
 The `preprocess` key controls how the raw respiratory signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
 Several subkeys relate to controlling this filtering:
@@ -173,6 +190,7 @@ In the case of `rat_etisens_belt`, our description is not detailed because the a
     }
 
 - `preprocess`:  
+"""""""""""""""
 
 The `preprocess` key controls how the raw respiratory signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
 Several subkeys control this filtering:  
@@ -182,7 +200,8 @@ Several subkeys control this filtering:
   - `ftype`: The filter type. For example, `bessel` (default) or `butter`. We recommend `bessel` because it preserves time-domain fidelity, although it is less steep in frequency cutoff.  
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but with increased risk of phase distortion.  
 
-- `smooth`:  
+- `smooth`:
+""""""""""" 
 
 The `smooth` key controls how the filtered respiratory signal is smoothed again using convolution with a kernel.  
 Subkeys define the size and shape of this kernel:  
@@ -190,7 +209,8 @@ Subkeys define the size and shape of this kernel:
   - `win_shape`: Default = `gaussian`. The kernel shape is Gaussian. It can be set to `rect` for a rectangular kernel, but we recommend `gaussian` because it reduces temporal discontinuities, even if its frequency response is less steep than `rect`.  
   - `sigma_ms`: Kernel size in milliseconds. Higher → smoother; lower → less smooth. Default = 40 ms.  
 
-- `cycle_detection`:  
+- `cycle_detection`:
+"""""""""""""""""""" 
 
 This key controls how the main timepoints (inspiration and expiration) are detected:  
 
@@ -198,6 +218,7 @@ This key controls how the main timepoints (inspiration and expiration) are detec
   - `exclude_sweep_ms`: Time window in milliseconds swept along the signal to prevent detecting multiple peaks (maxima and minima) in noisy data. Higher = risk of losing true peaks and cycles; lower = risk of detecting spurious small outlier cycles.  
 
 - `cycle_clean`:  
+""""""""""""""""
 
 This key controls how already detected timepoints are cleaned.  
 Small oscillations in a noisy signal can cause very small cycles to be detected. Subkeys specify criteria for identifying these outliers:  
@@ -205,7 +226,8 @@ Small oscillations in a noisy signal can cause very small cycles to be detected.
   - `variable_names`: Names of respiratory features used to detect outliers. Default = ['inspi_amplitude', 'expi_amplitude']. Amplitudes are chosen because they capture cycles that are too small in both time and amplitude.  
   - `low_limit_log_ratio`: Features are often non-normally distributed and are log-transformed before threshold estimation. The outlier threshold is computed as median - MAD * `low_limit_log_ratio`. Higher `low_limit_log_ratio` → smaller detected cycles → fewer outliers detected. See Fig X.  
 
-- `baseline`:  
+- `baseline`:
+"""""""""""""  
 
 `None`, because this is not a `crossing_baseline` signal.  
 
@@ -219,9 +241,7 @@ Default parameters dictionary for `co2` sensor:
 ::
 
    {
-       'baseline': {
-           'baseline_mode': 'median'
-       },
+       'baseline':None,
        'cycle_clean': None,
        'cycle_detection': {
            'clean_by_mid_value': True,
@@ -244,6 +264,7 @@ Default parameters dictionary for `co2` sensor:
 
 
 - `preprocess`:
+"""""""""""""""
 
 The `preprocess` key controls how the raw respiratory signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
 Several subkeys control this filtering:
@@ -254,6 +275,7 @@ Several subkeys control this filtering:
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
 
 - `smooth`:
+"""""""""""
 
 The `smooth` key controls how the filtered respiratory signal is further smoothed using convolution with a kernel.  
 Subkeys define the size and shape of this kernel:
@@ -262,6 +284,7 @@ Subkeys define the size and shape of this kernel:
   - `sigma_ms`: Kernel size in milliseconds. Higher → smoother; lower → less smooth. Default = 40 ms.  
 
 - `cycle_detection`:
+""""""""""""""""""""
 
 This key controls how the main timepoints (inspiration and expiration) are detected:
 
@@ -273,18 +296,18 @@ This key controls how the main timepoints (inspiration and expiration) are detec
 .. image:: img/fig_params_co2_thresh.png
 
 - `cycle_clean`:
+""""""""""""""""
 
 None. We did not develop a dedicated `cycle_clean` method for CO2 signals, because they are generally clean enough, and partial cleaning is already performed in the `cycle_detection` step. Moreover, volumes are not computed for this type of signal and therefore cannot be used as criteria for cleaning.  
 
 - `baseline`:
+"""""""""""""
 
-Controls how the baseline of the signal is computed:  
-
-  - `baseline_mode`: Default = `median`. why ??
-
+None. No need for baseline in CO2 context.
 
 
-1. ECG parameters
+
+2. ECG parameters
 -----------------
 
 For now, we have developed capabilities in :py:mod:`physio` to process ECG recordings from two species: `human` and `rat`.  
@@ -298,6 +321,7 @@ This section details the parameter settings for each of the two species predefin
 
 
 a. `human`
+^^^^^^^^^^
 
 Default parameters dictionary for `human_ecg`:
 
@@ -319,6 +343,7 @@ Default parameters dictionary for `human_ecg`:
     }
 
 - `preprocess`:
+"""""""""""""""
 
 The `preprocess` key controls how the raw ECG signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
 Several subkeys control this filtering:
@@ -328,6 +353,7 @@ Several subkeys control this filtering:
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
   
 - `peak_detection`:
+"""""""""""""""""""
 
 The `peak_detection` key controls the methods by which R peaks are detected. The idea is to set a threshold above which peaks (hopefully R peaks) are detected.  
 The two questions are: "which threshold?" and "how to remove extra peaks that are above the threshold but are not R peaks?".  
@@ -337,6 +363,7 @@ Subkeys address these questions:
   - `exclude_sweep_ms`: Default = 4 milliseconds. Time window in milliseconds swept along the signal to prevent detecting multiple noisy peaks. Higher = risk of losing true R peaks; lower = risk of detecting extra non-R peaks.  
 
 - `peak_clean`:
+"""""""""""""""
 
 This key controls post-cleaning of detected R peaks by setting a minimum horizontal distance between R peaks (RR intervals) below which RR intervals are removed.  
 The only subkey is:
@@ -345,6 +372,7 @@ The only subkey is:
 
 
 b. `rat`
+^^^^^^^^
 
 Default parameters dictionary for `rat_ecg`:
 
@@ -366,6 +394,7 @@ Default parameters dictionary for `rat_ecg`:
     }
 
 - `preprocess`:
+"""""""""""""""
 
 The `preprocess` key controls how the raw ECG signal is filtered. This is done using `scipy.signal.iirfilter` (see: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirfilter.html).  
 Several subkeys control this filtering:
@@ -375,6 +404,7 @@ Several subkeys control this filtering:
   - `order`: The filter order. Default = 5. Higher order → steeper frequency cutoff but increases the risk of phase distortion.  
 
 - `peak_detection`:
+"""""""""""""""""""
 
 The `peak_detection` key controls the methods by which R peaks are detected. The idea is to set a threshold above which peaks (hopefully R peaks) are detected.  
 The two questions are: "which threshold?" and "how to remove extra peaks that are above the threshold but are not R peaks?".  
@@ -384,6 +414,7 @@ Subkeys address these questions:
   - `exclude_sweep_ms`: Default = 4 milliseconds. Time window in milliseconds swept along the signal to prevent detecting multiple noisy peaks. Higher = risk of losing true R peaks; lower = risk of detecting extra non-R peaks.  
 
 - `peak_clean`:
+"""""""""""""""
 
 This key controls post-cleaning of detected R peaks by setting a minimum horizontal distance between R peaks (RR intervals) below which RR intervals are removed.  
 The only subkey is:
