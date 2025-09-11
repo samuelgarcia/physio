@@ -145,7 +145,7 @@ print(cyclic_cardiac_rate.shape)
 #    * `decay_slope`: (units = `bpm/s` by default) Slope of the decrease in heart rate, 
 #      defined as `decay_amplitude` / `decay_duration`.
 #
-# .. image:: ../_static/images/resphrv_features_doc_physio.png
+# .. image:: ./img/resphrv_features_doc_physio.png
 #    :alt: RespHRV features
 #    :align: center
 #    :scale: 70%
