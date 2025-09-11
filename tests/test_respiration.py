@@ -5,9 +5,9 @@ from physio import compute_respiration, detect_respiration_cycles, preprocess
 
 # read signals
 example_folder = Path(__file__).parents[1] / 'examples'
-raw_resp1 = np.load(example_folder / 'resp_airflow1.npy')
-raw_resp2 = np.load(example_folder / 'resp_airflow2.npy')
-raw_resp3 = np.load(example_folder / 'resp_belt3.npy')
+raw_resp1 = np.load(example_folder / 'resp1_airflow.npy')
+raw_resp2 = np.load(example_folder / 'resp2_airflow.npy')
+raw_resp3 = np.load(example_folder / 'resp3_belt.npy')
 srate = 1000.
 
 

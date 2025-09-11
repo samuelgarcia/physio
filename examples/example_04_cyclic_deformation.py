@@ -36,7 +36,7 @@ import physio
 # the capabilities of :py:mod:`physio` for reading raw data formats.
 
 
-raw_resp = np.load('resp_airflow1.npy') # load respi
+raw_resp = np.load('resp1_airflow.npy') # load respi
 raw_ecg = np.load('ecg1.npy') # load ecg
 srate = 1000. # our example signals have been recorded at 1000 Hz
 

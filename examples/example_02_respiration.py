@@ -34,7 +34,7 @@ import physio
 # 
 # For this tutorial, we will use an internal file already stored in NumPy format for demonstration purposes.
 
-raw_resp = np.load('resp_airflow1.npy') # load respi
+raw_resp = np.load('resp1_airflow.npy') # load respi
 srate = 1000. # our example signals have been recorded at 1000 Hz
 
 times = np.arange(raw_resp.size) / srate # build time vector
@@ -247,7 +247,7 @@ pprint(resp_cycles.columns.to_list())
 
 
 
-raw_resp_belt = np.load('resp_belt3.npy') # load respi belt
+raw_resp_belt = np.load('resp3_belt.npy') # load respi belt
 srate = 1000. # our example signals have been recorded at 1000 Hz
 
 times = np.arange(raw_resp_belt.size) / srate # build time vector
@@ -300,7 +300,7 @@ ax.legend(loc = 'upper right')
 
 
 
-raw_resp_co2 = np.load('resp_CO2_4.npy') # load respi co2
+raw_resp_co2 = np.load('resp4_CO2.npy') # load respi co2
 srate = 60. # our example signals have been recorded at 60 Hz
 
 times = np.arange(raw_resp_co2.size) / srate # build time vector
