@@ -165,6 +165,35 @@ Default parameters dictionary for `belt` sensor:
 
 c. `CO2`
 
+Default parameters dictionary for `co2` sensor:
+
+::
+
+   {
+       'baseline': {
+           'baseline_mode': 'median'
+       },
+       'cycle_clean': None,
+       'cycle_detection': {
+           'clean_by_mid_value': True,
+           'method': 'co2',
+           'thresh_expi_factor': 0.05,
+           'thresh_inspi_factor': 0.08
+       },
+       'preprocess': {
+           'band': 10.0,
+           'btype': 'lowpass',
+           'ftype': 'bessel',
+           'normalize': False,
+           'order': 5
+       },
+       'sensor_type': 'co2',
+       'smooth': {
+           'sigma_ms': 40.0,
+           'win_shape': 'gaussian'
+       }
+   }
+
 
 1) ECG parameters
 -------------------------
