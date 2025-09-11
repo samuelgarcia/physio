@@ -49,14 +49,21 @@ Features
 Installation
 ------------
 
-Installation from pypi:
+Installation from pypi (releases only):
 
 .. code-block:: bash
 
    pip install physio
 
 
-Installation from sources:
+Installation from (github) sources (more up-to-date):
+
+.. code-block:: bash
+   
+   pip install https://github.com/samuelgarcia/physio/archive/main.zip
+
+
+Installation with local clone of sources (for dev mode):
 
 .. code-block:: bash
 
@@ -64,16 +71,12 @@ Installation from sources:
    cd physio
    pip install -e .
 
-Update from source:
+Update local sources:
 
 .. code-block:: bash
 
    cd physio
    git pull origin main
-
-
-
-
 
 
 
