@@ -21,12 +21,16 @@ import physio
 #
 # The fastest way to process respiration with :py:mod:`physio` is to use :py:func:`~physio.compute_respiration` which is a high-level wrapper function that simplifies respiratory signal analysis.
 # To use this function, you must provide:
+#
 #    * `raw_resp` : the raw respiratory signal as a NumPy array.
 #    * `srate` : the sampling rate of the respiratory signal
 #    * `parameter_preset` : a string specifying the type of respiratory data, which determines the set of parameters used for processing. Can be one of: `human_airflow`, `human_co2`, `human_belt`, `rat_plethysmo`, or `rat_etisens_belt`.
+#
 # When called, :py:func:`~physio.compute_respiration` performs the following:
+#
 #    * Preprocesses the respiratory signal (returns a NumPy array: `resp`)
 #    * Computes cycle-by-cycle features (returns a pd.DataFrame: `resp_cycles`)
+#
 # **Warning:** The orientation of the `raw_resp` trace is important (multiply it by -1 for reversing it if necessary). 
 # Inspiration must point downward for `human_airflow` or `human_co2`, 
 # because downward deflections are interpreted by :py:func:`~physio.compute_respiration` as inspiration. 
@@ -88,7 +92,8 @@ pprint(parameters) # pprint to "pretty print"
 # Such variability may make some predefined parameters of :py:mod:`physio` inappropriate. 
 # 
 # In this situation, you can tune certain parameters by re-assigning values to the keys of the `parameters` dictionary.
-# You may also tune multiple parameters at once if necessary. 
+# You may also tune multiple parameters at once if necessary.
+#
 # **To fine-tune parameters properly, a good understanding of each parameter's role is required. 
 # For this reason, we have dedicated a whole section to this topic — see the "Parameters" section.**
 # 
@@ -212,7 +217,7 @@ plt.show()
 #      `sensor_type` = `airflow`). Equivalent to the sum of the green + red areas
 #      in the figure below.
 #
-# .. image:: ./img/resp_features_doc_physio.png
+# .. image:: ../img/resp_features_doc_physio.png
 #    :alt: Respiration Parameters
 #    :align: center
 #    :scale: 70%

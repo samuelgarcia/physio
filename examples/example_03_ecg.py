@@ -15,15 +15,17 @@ import physio
 ##############################################################################
 # 
 # Detect ECG R peaks. The faster way: using `parameter_preset`.
-# ------------------------------------------
+# -------------------------------------------------------------
 #
 # The fastest way to process ECG with :py:mod:`physio` is to use :py:func:`~physio.compute_ecg` which is a high-level wrapper function that simplifies ECG signal analysis.
 # To use this function, you must provide:
+#
 #    * `raw_ecg` : the raw ECG signal as a NumPy array
 #    * `srate` : the sampling rate of the ECG signal
 #    * `parameter_preset` : a string specifying the type of ECG data, which determines the set of parameters used for processing. Can be one of: `human_ecg` or `rat_ecg`.
 #
 # When called, :py:func:`~physio.compute_ecg` performs the following:
+#
 #    * Preprocesses the ECG signal (returns a NumPy array: `ecg`). By default, `ecg` is normalized.
 #    * Detects R peaks (returns a pd.DataFrame: `ecg_peaks`)
 # 
@@ -69,7 +71,7 @@ ax.set_xlim(95, 125)
 ##############################################################################
 # 
 # What is `parameter_preset` ?
-# ---------------------------
+# ----------------------------
 # 
 # Using `parameter_preset` tells :py:func:`~physio.compute_ecg` to process ECG
 # according to a predefined set of parameters already optimized by :py:mod:`physio`.
@@ -85,7 +87,7 @@ pprint(parameters) # pprint to "pretty print"
 ##############################################################################
 # 
 # Tuning parameters if unsatisfied
-# ---------------------------------
+# --------------------------------
 # 
 # Variability during data acquisition (subject, acquisition system) can affect the recorded ECG signal.
 # Such variability may make some predefined parameters of :py:mod:`physio` inappropriate. 
@@ -96,6 +98,7 @@ pprint(parameters) # pprint to "pretty print"
 # For this reason, we have dedicated a whole section to this topic — see the "Parameters" section.**
 # 
 # For example, here we modify 3 parameters: 
+#
 #    * the amplitude above which R peak can be detected
 #    * the minimum possible duration in milliseconds between two consecutive R peaks
 #    * the frequency band of the filter
@@ -125,20 +128,24 @@ ax.set_xlim(95, 125)
 ##############################################################################
 # 
 # Heart Rate Variability metrics (time-domain)
-# ---------------------------------------------
+# --------------------------------------------
+#
 # :py:func:`~physio.compute_ecg_metrics` is a high-level wrapper function that computes 
 # time-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
 # To use this function, you must provide the previously detected R peaks, `ecg_peaks`:
+#
 #    * `ecg_peaks`: pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
 #    * `min_interval_ms`: float, minimum RR interval in milliseconds (optional, default = 500 ms)
 #    * `max_interval_ms`: float, maximum RR interval in milliseconds (optional, default = 2000 ms)
 #
 # When called, :py:func:`~physio.compute_ecg_metrics` performs the following:
+#
 #    * Computes the time differences between successive RR intervals.
 #    * Cleans the RR intervals according to `min_interval_ms` and `max_interval_ms`.
 #    * Computes HRV time-domain metrics from the cleaned RR intervals.
 #
 # Computed metrics are:
+#
 #    * `HRV_Mean`: (units = `ms` for `milliseconds`) Mean of the RR intervals. Note that the "HRV" terminology can be misleading here,
 #      as it is inspired by other toolboxes and does not strictly measure variability, but rather
 #      an estimation of the position in the distribution.
@@ -195,11 +202,13 @@ print(ecg_metrics)
 ##############################################################################
 # 
 # Heart Rate Variability metrics (frequency-domain)
-# ---------------------------------------------
+# -------------------------------------------------
+#
 # :py:func:`~physio.compute_hrv_psd` is a high-level wrapper function that computes 
 # frequency-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
 # 
 # To use this function, you must provide the previously detected R peaks (`ecg_peaks`) along with other optional parameters:
+#
 #    * `ecg_peaks`: pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
 #    * `sample_rate`: float, sampling frequency of the reconstructed instantaneous heart rate (IHR) vector 
 #      through interpolation (optional, default = 100 Hz). This vector is used internally by the function, so 
@@ -219,6 +228,7 @@ print(ecg_metrics)
 #      the power spectrum due to differences in harmonic content.
 #    
 # When called, :py:func:`~physio.compute_hrv_psd` performs the following:
+#
 #    * Compute an instantaneous heart rate vector from ecg peaks and compute a Fourier transform using Welch method (returns two NumPy arrays: `psd_freqs` and `psd` giving frequency vector and power vector, respectively).
 #    * Compute HRV frequency metrics by getting power for each frequency band using trapezoïdal rule (returns a pd.Series: `psd_metrics`, with units in the set units² / Hz)
 # 

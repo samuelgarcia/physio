@@ -29,7 +29,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 # html_theme = 'alabaster'
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 
 # for sphinx gallery plugin
@@ -56,7 +56,7 @@ try:
     import sphinx_rtd_theme
 
     html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+    # html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 except ImportError:
     print("RTD theme not installed, using default")
     html_theme = 'alabaster'

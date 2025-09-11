@@ -1,5 +1,5 @@
 Handling parameters
-=======================
+===================
 
 Why such a section ?
 --------------------
@@ -43,7 +43,7 @@ This tutorial is organized into two major sections, each of which is divided int
      - rat
 
 
-1) Respiration Parameters
+1. Respiration Parameters
 -------------------------
 
 For now, we have developed capabilities in :py:mod:`physio` to process respiration recorded with three types of sensors: `airflow`, `belt`, and `co2`.  
@@ -57,6 +57,7 @@ This section will detail the parameter settings for each of these sensor types.
 
 
 a. `airflow`
+^^^^^^^^^^^^
 
 Default parameters dictionary for `airflow` sensor (for `human` species). 
 In the case of `rat_plethysmo`, our description is not detailed because the approach is the same; only the parameters are optimized to match the rat’s respiratory frequency.
@@ -117,6 +118,9 @@ This key controls how the main timepoints (inspiration and expiration) are detec
   - `epsilon_factor2`: Defines the higher part of the confidence zone: baseline - `epsilon` * `epsilon_factor2`. `epsilon_factor1` is higher than `epsilon_factor2` to search the low part of the confidence zone. See Fig X.  
   - `inspiration_adjust_on_derivative`: Sometimes the end-of-expiration plateau drifts downward, causing premature detection of inspiration. Activating this parameter adjusts detection using the slope's minimum (second derivative). Default = False.  
 
+.. image:: img/fig_params_espilon.png
+
+
 - `cycle_clean`:
 
 This key controls how already detected timepoints are cleaned.  
@@ -125,13 +129,18 @@ Small oscillations in a noisy signal can cause very small cycles to be detected 
   - `variable_names`: Names of respiratory features used to detect outliers. Default = ['inspi_volume', 'expi_volume']. Volumes are chosen because they capture cycles that are too small both in time and amplitude.  
   - `low_limit_log_ratio`: Features are often non-normally distributed and are log-transformed before threshold estimation. The threshold for outliers is computed as median - MAD * `low_limit_log_ratio`. Higher `low_limit_log_ratio` → smaller detected cycles → fewer outliers detected. See Fig X.  
 
+.. image:: img/fig_params_log_ratio_clean.png
+
 - `baseline`:
 
 Controls how the baseline of the signal is computed:
 
   - `baseline_mode`: Default = `median`, meaning the baseline is the median level of the signal (robust and efficient). Alternatives: `zero` (baseline = 0) or `mode` (mode of the signal distribution).  
 
+
+
 b. `belt`
+^^^^^^^^^
 
 Default parameters dictionary for `belt` sensor:
 In the case of `rat_etisens_belt`, our description is not detailed because the approach is the same; only the parameters are optimized to match the rat’s respiratory frequency.
@@ -201,6 +210,7 @@ Small oscillations in a noisy signal can cause very small cycles to be detected.
 
 
 c. `CO2`
+^^^^^^^^
 
 Default parameters dictionary for `co2` sensor:
 
@@ -258,6 +268,8 @@ This key controls how the main timepoints (inspiration and expiration) are detec
   - `thresh_inspi_factor`: To detect inspiration timepoints, we search for crossings in the first derivative just below 0 using a threshold. Indeed, expiration–inspiration transitions appear as downward-oriented peaks in the derivative. The threshold is computed as `thresh_inspi = min_ * thresh_inspi_factor`, where `min_` is the minimum of the derivative signal. Thus, `thresh_inspi_factor` defines the fraction of the minimum derivative used to set the threshold. See Fig X.  
   - `clean_by_mid_value`: Occasionally, abnormal cycles are detected where expiration points are too high to be real transitions. To correct this, a cleaning step computes `mid_value = (np.median(insp_values) + np.median(exp_values)) / 2`. If the expiration point lies above this value, the cycle is removed. Default = True. See Fig X.  
 
+.. image:: img/fig_params_co2_thresh.png
+
 - `cycle_clean`:
 
 None. We did not develop a dedicated `cycle_clean` method for CO2 signals, because they are generally clean enough, and partial cleaning is already performed in the `cycle_detection` step. Moreover, volumes are not computed for this type of signal and therefore cannot be used as criteria for cleaning.  
@@ -270,8 +282,8 @@ Controls how the baseline of the signal is computed:
 
 
 
-2) ECG parameters
--------------------------
+1. ECG parameters
+-----------------
 
 For now, we have developed capabilities in :py:mod:`physio` to process ECG recordings from two species: `human` and `rat`.  
 The species type determines many of the preprocessing parameters, mainly because the expected heart rate is much higher in rodents than in humans.  

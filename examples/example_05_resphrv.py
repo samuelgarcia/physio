@@ -31,7 +31,7 @@ import physio
 ##############################################################################
 # 
 # Read data
-# ----------
+# ---------
 #  
 # For this tutorial, we will use an internal file stored in NumPy format for demonstration purposes.
 # See :ref:`sphx_glr_examples_example_01_getting_started.py`, first section, for a description of 
@@ -61,11 +61,12 @@ ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg'
 ##############################################################################
 # 
 # Compute RespHRV
-# -----------
+# ---------------
 #  
 # :py:func:`~physio.compute_resphrv` is a high-level wrapper function that computes 
 # RespHRV metrics from previously detected R peaks (`ecg_peaks`) and respiratory cycles (`resp_cycles`).
 # To use this function, you must provide the previously detected R peaks and respiratory cycles, along with other optional parameters:
+#
 #    * `resp_cycles`: `pd.DataFrame`, output of the function :py:func:`~physio.compute_respiration`
 #    * `ecg_peaks`: `pd.DataFrame`, output of the function :py:func:`~physio.compute_ecg`
 #    * `srate`: `int` or `float`. (optional) Sampling rate used for interpolation to get an instantaneous heart rate vector from RR intervals. 100 Hz is safe for both animal and human.
@@ -99,7 +100,7 @@ print(cyclic_cardiac_rate.shape)
 ##############################################################################
 # 
 # RespHRV Features / Metrics
-# ---------------------------------
+# --------------------------
 # 
 # `resphrv_cycles` is a dataframe containing one row per respiratory cycle and one
 # column per heart rate related feature.
@@ -145,7 +146,7 @@ print(cyclic_cardiac_rate.shape)
 #    * `decay_slope`: (units = `bpm/s` by default) Slope of the decrease in heart rate, 
 #      defined as `decay_amplitude` / `decay_duration`.
 #
-# .. image:: ./img/resphrv_features_doc_physio.png
+# .. image:: ../img/resphrv_features_doc_physio.png
 #    :alt: RespHRV features
 #    :align: center
 #    :scale: 70%
@@ -156,7 +157,7 @@ pprint(resphrv_cycles.columns.to_list())
 ##############################################################################
 # 
 # Plot RespHRV Amplitude Over Time
-# ----------------------
+# --------------------------------
 # 
 # Using the `decay_amplitude` feature as a marker of cycle-by-cycle RespHRV amplitude, 
 # we can plot the dynamics of RespHRV across respiratory cycles or over time 
@@ -196,7 +197,7 @@ ax.legend(loc = 'upper right', framealpha = 1)
 ##############################################################################
 # 
 # Plot Heart Rate Dynamics According to Respiratory Phase
-# ----------------------
+# -------------------------------------------------------
 # 
 # The function :py:func:`~physio.compute_resphrv` internally uses 
 # :py:func:`~physio.deform_traces_to_cycle_template` to deform the instantaneous 
@@ -242,7 +243,7 @@ plt.show()
 ##############################################################################
 # 
 # Plot heart rate dynamic according to time and respiratory phase
-# ----------------------
+# ---------------------------------------------------------------
 # 
 # A nice way of seeing RespHRV can be a 2D plot showing evolution along time / resp cycles of the heart rate dynamics along each respiratory cycle
 
@@ -275,7 +276,7 @@ plt.show()
 ##############################################################################
 # 
 # Explore Covariations Between RespHRV and Respiratory Features
-# ----------------------
+# -------------------------------------------------------------
 # 
 # `resp_cycles` and `resphrv_cycles` contain the same number of rows, 
 # since they describe respiratory and heart rate features for each respiratory cycle 

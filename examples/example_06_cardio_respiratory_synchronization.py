@@ -22,7 +22,7 @@ import physio
 ##############################################################################
 # 
 # Read data
-# ----------
+# ---------
 #  
 # For this tutorial, we will use an internal file stored in NumPy format for demonstration purposes.
 # See :ref:`sphx_glr_examples_example_01_getting_started.py`, first section, for a description of 
@@ -39,7 +39,7 @@ times = np.arange(raw_resp.size) / srate # build time vector
 ##############################################################################
 # 
 # Get respiratory cycles and ECG peaks using `parameter_preset`, and compute instantaneous heart rate
-# -----------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------
 #  
 # See :ref:`sphx_glr_examples_example_02_respiration.py` and 
 # :ref:`sphx_glr_examples_example_03_ecg.py` for a detailed explanation of how to use 
@@ -53,7 +53,7 @@ ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg'
 ##############################################################################
 # 
 # A first plot to explore the question
-# ----------------------------------
+# ------------------------------------
 #  
 # 
 
@@ -80,12 +80,13 @@ ax.set_xlim(0,  40)
 ##############################################################################
 # 
 # Phase synchronization : from ECG peak times to respiratory phase
-# ----------------------------------------
+# ----------------------------------------------------------------
 #  
 # :py:func:`~physio.time_to_cycle` is the key function that transforms
 # the times of ECG R peaks into phases of respiratory cycles.
 # 
 # To use this function, you must provide:
+#
 #   * `times`: np.array. Timings in seconds of ECG R peaks 
 #     (ecg_peaks['peak_time'].values).
 #   * `cycle_times`: np.ndarray. Respiratory cycle times 
@@ -93,9 +94,11 @@ ax.set_xlim(0,  40)
 #     See :ref:`sphx_glr_examples_example_02_respiration.py` for details on 
 #     detected respiratory cycle features.
 #   * `segment_ratios`: None, float, or list of floats.  
+#
 #       - None → 1 segment.  
 #       - Float or list of floats → 2 segments.  
 #       - List of floats → more than 2 segments.  
+#
 #     This defines the ratio (between 0 and 1) at which the cycle is divided. 
 #     In practice, this is the phase ratio of the inhalation-to-exhalation 
 #     transition. It can be computed, for example, with 
@@ -103,6 +106,7 @@ ax.set_xlim(0,  40)
 # 
 # The function returns `rpeak_phase`, the R peak times converted to 
 # respiratory phases as floats:
+#
 #   * Example: 4.32 means that the current R peak occurred during the 4th 
 #     respiratory cycle at 32% of its duration.
 # 
@@ -142,7 +146,7 @@ ax.set_xlim(-0.01, 1.01)
 ##############################################################################
 # 
 # Time synchronization : Cross-correlogram between expiration/inspiration times and ECG peak times
-# -------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------
 # 
 # Another way to explore the preferential clustering of R peaks is to compare 
 # their timing to specific respiratory cycle times, such as inspiration or 
@@ -150,6 +154,7 @@ ax.set_xlim(-0.01, 1.01)
 # 
 # The key function is :py:func:`~physio.crosscorrelogram`.
 # To use this function, you must provide:
+#
 #   * `a`: R peak times (ecg_peaks['peak_time'].values).
 #   * `b`: Respiratory times. Use resp_cycles['expi_time'].values to compare 
 #     R peak times to expiration times, or resp_cycles['inspi_time'].values 
@@ -158,6 +163,7 @@ ax.set_xlim(-0.01, 1.01)
 #     and span a range of seconds approximately equal to cycle durations.
 # 
 # When called, this function:
+#
 #   * Computes the combinatorial differences between all R peak times and all 
 #     given respiratory times.  
 #   * Binarizes the obtained time differences according to the provided bins.

@@ -29,7 +29,7 @@ import physio
 ##############################################################################
 # 
 # Read data
-# ----------
+# ---------
 #  
 # For this tutorial, we will use an internal file stored in NumPy format for demonstration purposes.
 # See :ref:`sphx_glr_examples_example_01_getting_started.py`, first section, for a description of 
@@ -46,7 +46,7 @@ times = np.arange(raw_resp.size) / srate # build time vector
 ##############################################################################
 # 
 # Get respiratory cycles and ECG peaks using `parameter_preset`, and compute instantaneous heart rate
-# -----------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------
 #  
 # See :ref:`sphx_glr_examples_example_02_respiration.py` and 
 # :ref:`sphx_glr_examples_example_03_ecg.py` for a detailed explanation of how to use 
@@ -64,6 +64,7 @@ instantaneous_heart_rate = physio.compute_instantaneous_rate(
 )
 
 ##############################################################################
+#
 # Cyclic deformation
 # ------------------
 # 
@@ -129,7 +130,7 @@ print(cyclic_resp_2seg.shape, cycle_times.shape)
 ##############################################################################
 # 
 # Example of a summary figure explaining cyclic deformation of heart rate by respiration
-# ------------
+# --------------------------------------------------------------------------------------
 # 
 # A lot of messy matplotlib code for a fairly clear figure... 
 # essentially the one from the toolbox paper!

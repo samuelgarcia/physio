@@ -18,11 +18,13 @@ import physio
 # :py:mod:`physio` aims to process physiological signals in NumPy format.
 # Therefore, the first step is to load your data into a NumPy array.
 # :py:mod:`physio` provides utility functions for reading certain formats, such as:
+#
 #    * micromed
 #    * brainvision
 #
 # For example, cardiac activity recorded by a BrainVision system with the channel name "ECG" can be read using
 # :py:func:`~physio.read_one_channel` by specifying: 
+#
 #    * the path to the file ("/path/to/the/file.vhdr")
 #    * the format ("brainvision")
 #    * the channel name ("ECG").
@@ -62,12 +64,15 @@ ax.set_xlim(185, 225)
 # 
 # :py:func:`~physio.compute_respiration` is a high-level wrapper function that simplifies respiratory signal analysis.
 # To use this function, you must provide:
+#
 #    * `raw_resp` : the raw respiratory signal as a NumPy array.
 #    * `srate` : the sampling rate of the respiratory signal
 #    * `parameter_preset` : a string specifying the type of respiratory data, which determines the set of parameters used for processing. Can be one of: `human_airflow`, `human_co2`, `human_belt`,  `rat_plethysmo`, or `rat_etisens_belt`.
+#
 # When called, :py:func:`~physio.compute_respiration` performs the following:
 #    * Preprocesses the respiratory signal (returns a NumPy array: `resp`)
 #    * Computes cycle-by-cycle features (returns a pd.DataFrame: `resp_cycles`)
+#
 # **Warning:** The orientation of the `raw_resp` trace is important (multiply it by -1 for reversing it if necessary). 
 # Inspiration must point downward for `human_airflow` or `human_co2`, 
 # because downward deflections are interpreted by :py:func:`~physio.compute_respiration` as inspiration. 
@@ -92,7 +97,7 @@ ax.legend(loc = 'upper right')
 ##############################################################################
 # 
 # Respiration cycles and features
-# ------------------------------
+# -------------------------------
 #
 # `resp_cycles` is a pd.DataFrame where each row corresponds to a respiratory cycle.
 # Columns contain cycle-specific features such as duration, amplitude, volume, etc ... 
@@ -141,13 +146,16 @@ ax.legend(loc = 'upper right')
 # 
 # Analyze ECG
 # -----------
+#
 # :py:func:`~physio.compute_ecg` is a high-level wrapper function that simplifies ECG signal analysis.
 # To use this function, you must provide:
+#
 #    * `raw_ecg` : the raw ECG signal as a NumPy array
 #    * `srate` : the sampling rate of the ECG signal
 #    * `parameter_preset` : a string specifying the type of ECG data, which determines the set of parameters used for processing. Can be one of: `human_ecg` or `rat_ecg`.
 #
 # When called, :py:func:`~physio.compute_ecg` performs the following:
+#
 #    * Preprocesses the ECG signal (returns a NumPy array: `ecg`). By default, `ecg` is normalized.
 #    * Detects R peaks (returns a pd.DataFrame: `ecg_peaks`)
 # 
@@ -186,8 +194,10 @@ ax.set_xlabel('Time (s)')
 # 
 # Heart Rate Variability metrics (time-domain)
 # ---------------------------------------------
+#
 # :py:func:`~physio.compute_ecg_metrics`  is a high-level wrapper function that computes time-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
 # To use this function, you must provide the previously detected R peaks, `ecg_peaks`:
+#
 #    * `ecg_peaks` : pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
 #
 # We can visualize these metrics and the RR interval distribution. See :ref:`sphx_glr_examples_example_03_ecg.py` for a complete description of the metrics.
@@ -214,13 +224,16 @@ print(ecg_metrics)
 ##############################################################################
 # 
 # Heart Rate Variability metrics (frequency-domain)
-# ---------------------------------------------
+# -------------------------------------------------
+#
 # :py:func:`~physio.compute_hrv_psd`  is a high-level wrapper function that computes frequency-domain Heart Rate Variability (HRV) metrics from previously detected R peaks (`ecg_peaks`).
 # To use this function, you must provide the previously detected R peaks, `ecg_peaks`:
+#
 #    * `ecg_peaks` : pd.DataFrame, output of the function :py:func:`~physio.compute_ecg`
 # 
 # Many others parameters can be set for this function (frequency bands, size of the Welch's window, etc...). See :ref:`sphx_glr_examples_example_03_ecg.py` for more information about these.
 # When called, :py:func:`~physio.compute_hrv_psd` performs the following:
+#
 #    * Compute an instantaneous heart rate vector from ecg peaks and compute a Fourier transform using Welch method (returns two NumPy arrays: `psd_freqs` and `psd` giving frequency vector and power vector, respectively).
 #    * Compute HRV frequency metrics by getting power for each frequency band using trapezoïdal rule (returns a pd.Series: `psd_metrics`)
 # 
@@ -252,6 +265,7 @@ ax.set_title('HRV Power Spectral Density\n-> Frequency-Domain metrics')
 # This is helpful to explore if features of a signal are driven by a cyclic phenomenon like respiration.
 # 
 # To use this function, you must provide:
+#
 #    * `data` : nd.array. Axis of the time must always be 0, meaning of shape (n_times,...).
 #    * `times` : np.array. Time vector of the data. Shape = (n_times,)
 #    * `cycle_times` : nd.array with shape (n_cycles, n_segments + 1). Typically, for respiration, `cycle_times` is an array with 3 columns (inspi_time + expi_time + next_inspi_time) that will make deformation with 2 segments. If cycle_times is 1D, then it is converted to shape (size-1, 2). The end of every cycles must match the start of the next cycle.
