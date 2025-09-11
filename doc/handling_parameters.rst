@@ -163,7 +163,7 @@ Default parameters dictionary for `belt` sensor:
     }
 
 
-c. co2
+c. `CO2`
 
 
 1) ECG parameters
