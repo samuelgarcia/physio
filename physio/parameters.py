@@ -20,13 +20,38 @@ def recursive_update(d, u):
 def get_respiration_parameters(parameter_preset):
     """
     Get parameters nested dict for a given predefined parameter preset.
+
+    Parameters
+    ----------
+
+    parameter_preset : str
+        Possible presets are : 'human_airflow' | 'human_belt' | 'human_co2' | 'rat_etisens_belt' | 'rat_plethysmo'
+
+    Returns
+    -------
+
+    preset : dict
+        Dictionary of predefined parameters
     """
     return copy.deepcopy(_resp_parameters[parameter_preset])
 
+# get_respiration_parameters.__doc__ = get_respiration_parameters.__doc__.format(possible_resp_preset_txt)
 
 def get_ecg_parameters(parameter_preset):
     """
     Get parameters nested dict for a given predefined parameter preset.
+
+    Parameters
+    ----------
+
+    parameter_preset : str
+        Possible presets are : 'human_ecg' | 'rat_ecg'
+
+    Returns
+    -------
+    
+    preset : dict
+        Dictionary of predefined parameters
     """
     return copy.deepcopy(_ecg_parameters[parameter_preset])
 
