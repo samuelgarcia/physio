@@ -94,6 +94,7 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
         resphrv_cycles.at[c, 'peak_time'] = t0 + ind_max / srate
         resphrv_cycles.at[c, 'trough_time'] = t0 + ind_min / srate
 
+    resphrv_cycles = resphrv_cycles.astype({'peak_index': 'int64','trough_index': 'int64'})
     resphrv_cycles['peak_value'] = instantaneous_cardiac_rate[resphrv_cycles['peak_index'].values]
     resphrv_cycles['trough_value'] = instantaneous_cardiac_rate[resphrv_cycles['trough_index'].values]
 
