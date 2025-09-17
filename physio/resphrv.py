@@ -44,9 +44,11 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
     """
     
 
-    duration_s = resp_cycles['next_inspi_time'].values[-1]
+    t0, t1 = resp_cycles['inspi_time'].values[0], resp_cycles['next_inspi_time'].values[-1]
 
-    times = np.arange(0,  duration_s + 1 / srate, 1 / srate)
+    times = np.arange(t0,  t1 + 1 / srate, 1 / srate)
+    i0_ref = int(t0 * srate)
+
     instantaneous_cardiac_rate = compute_instantaneous_rate(ecg_peaks, times, limits=limits,
                                                             units=units, interpolation_kind='linear')    
     
@@ -80,6 +82,8 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
     for c, cycle in resp_cycles.iterrows():
         t0, t1 = cycle['inspi_time'], cycle['next_inspi_time']
         i0, i1 = int(t0 * srate), int(t1 * srate)
+        i0 -= i0_ref
+        i1 -= i0_ref
         chunk = instantaneous_cardiac_rate[i0:i1]
 
         ind_max = np.argmax(chunk)
