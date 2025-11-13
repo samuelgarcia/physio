@@ -103,7 +103,8 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
         resphrv_cycles.at[c, 'peak_time'] = ecg_peak_times[ind_max]
         resphrv_cycles.at[c, 'peak_value'] = hrate[ind_max]
 
-        resphrv_cycles.at[c, 'ptp'] = np.ptp(hrate[ind0:ind1])
+        if ind1 - ind0 >= 2:
+            resphrv_cycles.at[c, 'ptp'] = np.ptp(hrate[ind0:ind1])
 
 
     for c, cycle in resp_cycles.iloc[:-1].iterrows():
@@ -112,10 +113,10 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
 
         if np.isnan(t0) or np.isnan(t1):
             continue
-        
+
         ind0, ind1 =  np.searchsorted(ecg_peak_times, [t0, t1])
         ind0 += 1
-        if ind0 == ind1:
+        if ind0+1 >= ind1:
             continue
 
         ind_min = np.argmin(hrate[ind0:ind1]) + ind0
@@ -125,6 +126,11 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
 
     resphrv_cycles['decay_amplitude'] = resphrv_cycles['peak_value'] - resphrv_cycles['trough_value']
     resphrv_cycles['rising_amplitude'].values[1:] = resphrv_cycles['peak_value'].values[1:] - resphrv_cycles['trough_value'].values[:-1]
+
+    mask = resphrv_cycles['decay_amplitude'] < 0
+    resphrv_cycles.loc[mask,'decay_amplitude'] = np.nan
+    mask = resphrv_cycles['rising_amplitude'] < 0
+    resphrv_cycles.loc[mask,'rising_amplitude'] = np.nan
 
     resphrv_cycles['rising_duration'].values[1:] = resphrv_cycles['peak_time'].values[1:] - resphrv_cycles['trough_time'].values[:-1]
     resphrv_cycles['decay_duration'] = resphrv_cycles['trough_time'] - resphrv_cycles['peak_time']
