@@ -96,6 +96,8 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
         t0, t1 = cycle['inspi_time'], cycle['next_inspi_time']
 
         ind0, ind1 =  np.searchsorted(ecg_peak_times, [t0, t1])
+        if ind0 == ind1:
+            continue
 
         ind_max = np.argmax(hrate[ind0:ind1]) + ind0
         resphrv_cycles.at[c, 'peak_time'] = ecg_peak_times[ind_max]
@@ -108,6 +110,9 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
         t0 = resphrv_cycles.loc[c, 'peak_time']
         t1 = resphrv_cycles.loc[c+1, 'peak_time']
 
+        if np.isnan(t0) or np.isnan(t1):
+            continue
+        
         ind0, ind1 =  np.searchsorted(ecg_peak_times, [t0, t1])
         ind0 += 1
         if ind0 == ind1:
