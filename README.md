@@ -1,6 +1,8 @@
 # physio
 
-Simple python toolbox to analyse physio signals (Respiration, ECG, and RSA)
+Simple python toolbox to analyse physio signals (Respiration, ECG, and RespHRV)
+
+[](./doc/img/logo_physio.png)
 
 **Please jump to documentation now https://physio.readthedocs.io**
 
@@ -16,7 +18,7 @@ This work has been published at eNeuro : https://www.eneuro.org/content/10/10/EN
   * simple preprocess on signal : filter using scipy and smoothing
   * ecg peak detection
   * ecg/hrv metrics (time domain and freq domain)
-  * rsa : new approach to get cycle-per-cycle metrics
+  * RespHRV : new approach to get cycle-per-cycle metrics
   * cyclic deformation machinery : a simple strecher of any signal to cycle template
   * simple reader of micromed and brainvision using neo
   * "automagic" parameters for differents species

@@ -1,3 +1,7 @@
+.. image::
+   img/logo_physio.png
+
+
 Documentation of toolbox physio
 ==============================
 
