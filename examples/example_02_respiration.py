@@ -146,7 +146,7 @@ expi_ind = resp_cycles['expi_index'].values # get index of expiration start poin
 fig, ax = plt.subplots()
 ax.plot(times, resp, label = 'preprocessed resp signal')
 ax.scatter(times[inspi_ind], resp[inspi_ind], marker='o', color='green', label = 'inspiration start')
-ax.scatter(times[expi_ind], resp[expi_ind], marker='o', color='red', label = 'inspiration start')
+ax.scatter(times[expi_ind], resp[expi_ind], marker='o', color='red', label = 'expiration start')
 ax.axhline(baseline, color='Coral', label = 'baseline', ls = '--', alpha = 0.9)
 ax.set_ylabel('Amplitude (AU)')
 ax.set_xlabel('Time (s)')

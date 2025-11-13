@@ -45,10 +45,10 @@ def detect_peak(traces, srate, thresh=5, abs_threshold=None, exclude_sweep_ms=4.
         Zone to exclude multiple peak detection when noisy.
         If several peaks or detected in the same sweep the best is the winner.
     thresh_artifact: float, default None
-        ceil threhold that peaks must not exced, this is to remove big artifact
-        This is relative to mad
+        Ceil threshold that peaks must not exceed, this aims to remove big artifact
+        This is relative to mad : abs_threshold = med + thresh_artifact * mad
     abs_thresh_artifact: float, None
-        Same as abs_thresh_artifact but absolute
+        Same as thresh_artifact but absolute
 
     Returns
     -------
