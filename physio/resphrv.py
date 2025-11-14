@@ -25,15 +25,18 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
     ecg_peaks : pd.DataFrame
         DataFrame of detected ecg R peaks
     srate : int or float
-        Sampling rate used for interpolation to get an instantaneous heart rate vector. 
+        Sampling rate used for interpolation to get an instantaneous heart rate vector, to compute cyclic_cardiac_rate. 
         100 is safe for both animal and human. For human 10 also works.
     units : str
         bpm / Hz
     limits : list or None
-        Limits for removing outliers. To set according to the units parameter. Ex : [30, 200] to remove RR intervals out of this range set in bpm.
+        Limits for removing outliers. To set according to the units parameter. Ex : [30, 200] to remove heart rates (in bpm) out of this range.
     two_segment : bool
-        True or False
+        True or False (default = True). Deform instantaneous heart rate by respiratory phase using one segment (inspi_time to next_inspi_time) or two segments (inspi_time to expi_time and expi_time to next_inspi_time), to compute cyclic_cardiac_rate.
     points_per_cycle : int
+        Number of respiratory phase points per cycle, used in deform_traces_to_cycle_template() to build cyclic_cardiac_rate matrix
+    return_cyclic_cardiac_rate : bool
+        If True, returns both outputs (resphrv_cycles and cyclic_cardiac_rate), else computes and returns only resphrv_cycles and not cyclic_cardiac_rate
 
     Returns
     -------
@@ -43,7 +46,7 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
         2D Matrix (respiratory cycle * respiratory phase) with instantaneous heart rate at each resp cycle and phase point.
     """
     
-    assert units in ('Hz', 'bpm'), "For RespHRV units must be bpm or Hz"
+    assert units in ('Hz', 'bpm'), "For RespHRV, units must be bpm or Hz"
 
 
     if return_cyclic_cardiac_rate:
@@ -71,7 +74,7 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
 
     columns=['peak_time', 'trough_time',
              'peak_value', 'trough_value',
-             'ptp',
+             'min_max_amplitude',
              'rising_amplitude', 'decay_amplitude',
              'rising_duration', 'decay_duration',
              'rising_slope', 'decay_slope',
@@ -90,7 +93,10 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
     else:
         raise ValueError(f'Bad units {units}')
 
-    
+    if not limits is None:
+        mask = (hrate > limits[0]) & (hrate < limits[1])
+        hrate = hrate[mask]
+        ecg_peak_times = ecg_peak_times[mask]
     
     for c, cycle in resp_cycles.iterrows():
         t0, t1 = cycle['inspi_time'], cycle['next_inspi_time']
@@ -104,7 +110,7 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
         resphrv_cycles.at[c, 'peak_value'] = hrate[ind_max]
 
         if ind1 - ind0 >= 2:
-            resphrv_cycles.at[c, 'ptp'] = np.ptp(hrate[ind0:ind1])
+            resphrv_cycles.at[c, 'min_max_amplitude'] = np.ptp(hrate[ind0:ind1])
 
 
     for c, cycle in resp_cycles.iloc[:-1].iterrows():
@@ -114,7 +120,7 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
         if np.isnan(t0) or np.isnan(t1):
             continue
 
-        ind0, ind1 =  np.searchsorted(ecg_peak_times, [t0, t1])
+        ind0, ind1 = np.searchsorted(ecg_peak_times, [t0, t1])
         ind0 += 1
         if ind0+1 >= ind1:
             continue
