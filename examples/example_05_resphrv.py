@@ -69,11 +69,12 @@ ecg, ecg_peaks = physio.compute_ecg(raw_ecg, srate, parameter_preset='human_ecg'
 #
 #    * `resp_cycles`: `pd.DataFrame`, output of the function :py:func:`~physio.compute_respiration`
 #    * `ecg_peaks`: `pd.DataFrame`, output of the function :py:func:`~physio.compute_ecg`
-#    * `srate`: `int` or `float`. (optional) Sampling rate used for interpolation to get an instantaneous heart rate vector from RR intervals. 100 Hz is safe for both animal and human.
-#    * `units` : `str` (`bpm` / `s` / `ms` / `Hz`), sets the output units (optional, default = 'bpm').
-#    * `limits` : `list` or `None`, (optional) range in the chosen units for removing outliers (e.g., [30, 200] to exclude bpm values outside this range). Default is None, meaning no cleaning..
-#    * `two_segment` : `bool`, (optional, default = `True`), `True` or `False`, to perform cyclical deformation deviding each respiratory cycle in 2 (if `True`) segments (with the mean `cycle_ratio` of the respiratory cycles as a `segment_ratios`) or 1 (if `False`).  See :ref:`sphx_glr_examples_example_04_cyclic_deformation.py` for more informations.
+#    * `srate`: `int` or `float`. (optional) Sampling rate used for interpolation to get an instantaneous heart rate vector from RR intervals (to compute cyclic_cardiac_rate). 100 Hz is safe for both animal and human.
+#    * `units` : `str` (`bpm` / `Hz`), sets the output units (optional, default = 'bpm').
+#    * `limits` : `list` or `None`, (optional) range in the chosen units for removing outliers (e.g., [30, 200] to exclude bpm values outside this range). Default is None, meaning no cleaning.
+#    * `two_segment` : `bool`, (optional, default = `True`), `True` or `False`, to perform cyclical deformation (to compute cyclic_cardiac_rate) dividing each respiratory cycle in 2 (if `True`) segments (with the mean `cycle_ratio` of the respiratory cycles as a `segment_ratios`) or 1 (if `False`).  See :ref:`sphx_glr_examples_example_04_cyclic_deformation.py` for more informations.
 #    * `points_per_cycle` : `int`, (optional, default = 50), number of points per cycle used for linear resampling during cyclical deformation (see :ref:`sphx_glr_examples_example_04_cyclic_deformation.py`).
+#    * `return_cyclic_cardiac_rate` : `bool`, (optional, default = True), If True, returns both outputs (resphrv_cycles and cyclic_cardiac_rate), else computes and returns only resphrv_cycles and not cyclic_cardiac_rate. It may be useful to set this to False to reduce computing resource requirements and/or if you do not need the cyclic_cardiac_rate matrix.
 #
 # When called, :py:func:`~physio.compute_resphrv` performs the following:
 #    * Computes instantaneous heart rate (IHR) vector from RR intervals computed from `ecg_peaks`.
@@ -87,8 +88,9 @@ resphrv_cycles, cyclic_cardiac_rate = physio.compute_resphrv(
      ecg_peaks, # give ecg_peaks
      srate=100., # 100 Hz is safe for both animal and human.
      limits = [30, 200], # 30 to 200 bpm is a normal range for a human quietly sitting
-     two_segment=True, # perform cyclical deformation deviding each respiratory cycle in 2 segments
+     two_segment=True, # perform cyclical deformation dividing each respiratory cycle in 2 segments
      points_per_cycle=points_per_cycle, # set number of points per cycle
+     return_cyclic_cardiac_rate = True, # returns both resphrv_cycles and cyclic_cardiac_rate
 )
 
 print('RespHRV features :')
@@ -105,18 +107,12 @@ print(cyclic_cardiac_rate.shape)
 # `resphrv_cycles` is a dataframe containing one row per respiratory cycle and one
 # column per heart rate related feature.
 # 
-# Some features are related to the position (index) or time of specific points
-# within the cycle (see figure below for a graphical view of these timepoints/metrics):
+# Some features are related to the time of specific points
+# of a respiratory related heart rate oscillation induced by the current respiratory cycle  (see figure below for a graphical view of these timepoints/metrics):
 # 
-#    * `peak_index`: Index of the maximum heart rate during the current respiratory cycle `n` 
-#      (usually during inspiration). The index refers to the sequential position of the sample 
-#      in the entire instantaneous heart rate time series.
-#    * `trough_index`: Index of the minimum heart rate during the current respiratory cycle `n` 
-#      (usually during expiration).
 #    * `peak_time`: Time in seconds of the maximum heart rate during the current respiratory cycle `n` 
 #      (usually during inspiration).
-#    * `trough_time`: Time in seconds of the minimum heart rate during the current respiratory cycle `n` 
-#      (usually during expiration).
+#    * `trough_time`: Time in seconds of the minimum heart rate of the current respiratory heart rate related oscillation, that could fall in respiratory cycle `n` (most of the time and usually during expiration) or `n+1`.
 # 
 # From these points, several derived features of interest (e.g., for statistical analysis) are computed. 
 # Note that they are based on the expected heart rate dynamics under physiological conditions: 
@@ -124,16 +120,18 @@ print(cyclic_cardiac_rate.shape)
 # and a decrease in heart rate during expiration (usually at the transition from inspiration to expiration).
 # 
 #    * `peak_value`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
-#      Instantaneous heart rate at `peak_index` / `peak_time`, i.e., the maximum heart rate 
+#      Instantaneous heart rate at `peak_time`, i.e., the maximum heart rate 
 #      during the ongoing respiratory cycle (usually during inspiration). 
 #    * `trough_value`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
-#      Instantaneous heart rate at `trough_index` / `trough_time`, i.e., the minimum heart rate 
-#      during the ongoing respiratory cycle (usually during expiration).
+#      Instantaneous heart rate at `trough_time`, i.e., the minimum heart rate during the ongoing respiratory cycle (usually during expiration). In non-physiological conditions, where the peak time can be delayed toward expiration, this trough value can be measured at a trough time detected in the beginning of the next respiratory cycle `n+1`.
+#    * `min_max_amplitude`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
+#      Difference in heart rate between the maximum heart rate during respiratory cycle `n` and the minimum heart rate during the same respiratory cycle `n`.
+#      (see figure below).
 #    * `rising_amplitude`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
 #      Difference in heart rate between the maximum of cycle `n` and the minimum of cycle `n-1` 
 #      (see figure below).
 #    * `decay_amplitude`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
-#      Difference in heart rate between the maximum and the minimum of cycle `n` (see figure below).  
+#      Difference in heart rate between the maximum and the minimum of cycle `n`. Note that in non-physiological conditions, where the peak time can be delayed toward expiration, the trough value can be measured at a trough time detected in the beginning of the next respiratory cycle `n+1`, so that the `decay_amplitude` is computed between a peak value of respiratory cycle `n` and a trough value detected in respiratory cycle `n+1` (see figure below).  
 #      **This corresponds to "how much the heart rate decreases during the current respiratory cycle," 
 #      usually at the transition from inspiration to expiration of cycle `n`. Under physiological 
 #      conditions, this is considered the primary measure of RespHRV, but here it is computed for each cycle.**
@@ -144,7 +142,15 @@ print(cyclic_cardiac_rate.shape)
 #    * `rising_slope`: (units = `bpm/s` by default) Slope of the increase in heart rate, 
 #      defined as `rising_amplitude` / `rising_duration`.
 #    * `decay_slope`: (units = `bpm/s` by default) Slope of the decrease in heart rate, 
-#      defined as `decay_amplitude` / `decay_duration`.
+#      defined as `decay_amplitude` / `decay_duration`.*
+# 
+# In physiological conditions, we recommend using `decay_amplitude` as a measure of
+# respiratory heart-rate variability. However, in non-physiological situations—
+# where the heart-rate maximum may be delayed toward the end of the respiratory
+# cycle and/or the RespHRV amplitude is expected to be very low (< 1 bpm)—
+# it is safer to use `min_max_amplitude`. This metric simply measures the
+# peak-to-peak heart-rate difference strictly within respiratory cycle `n`,
+# without considering when within the cycle the peak or trough occurs, this latter point being considered by `decay_amplitude` or `rising_amplitude` but becoming (very) noisy when almost no RespHRV exist.
 #
 # .. image:: ../img/resphrv_features_doc_physio.png
 #    :alt: RespHRV features
@@ -293,6 +299,29 @@ plt.show()
 # In this example, only 5 minutes of respiration and ECG signals were recorded 
 # in a quiet resting state. Therefore, variability and the number of cycles 
 # are limited. Nevertheless, we perform such an analysis here for demonstration purposes.
+# 
+# Note that a well-established statistical association between respiratory cycle
+# duration and RespHRV amplitude is expected, as shown by Hirsh & Bishop (1981)
+# in *Respiratory sinus arrhythmia in humans: how breathing pattern modulates
+# heart rate* (DOI: 10.1152/ajpheart.1981.241.4.H620).
+# 
+# In general, the longer the respiratory cycle duration (i.e., the lower the
+# respiratory rate), the greater the RespHRV amplitude (i.e., higher
+# `decay_amplitude` / `rising_amplitude` / `min_max_amplitude`), up to a certain
+# limit (~7.2 cycles per minute / 0.11 Hz / 8.5 seconds per cycle). Below a
+# breathing rate of 0.11 Hz, no further association is expected.
+#
+# Thus, when the respiratory rate decreases for experimental reasons,
+# an accompanying increase in RespHRV amplitude is “normal.” This is partly why
+# Hirsh & Bishop (1981) proposed “normalizing” RespHRV amplitude by respiratory
+# rate in order to theoretically isolate the true effect of an experimental
+# manipulation on RespHRV amplitude, independent of the influence of respiratory
+# rate itself.
+#
+# Using the cycle-by-cycle analysis of both respiration and heart rate
+# (`resp_cycles` and `resphrv_cycles`) provided by `physio` may allow users to
+# normalize RespHRV amplitude by respiratory rate, for example by applying a
+# linear mixed-effects model that adjusts for respiratory rate, or the methods described in Hirsh & Bishop (1981).
 
 
 alpha = 0.05 # regression line will be plotted if the regression fit p-value is lower than this alpha threshold
@@ -311,7 +340,7 @@ def filter_outliers(x, y):
    return x[and_keep], y[and_keep]
 
 resp_sel_metrics = ['inspi_amplitude','expi_amplitude','inspi_duration','expi_duration','cycle_duration'] # select some respiratory features to study
-resphrv_sel_metrics = ['decay_amplitude','rising_amplitude','decay_duration','rising_duration'] # select some RespHRV features to study
+resphrv_sel_metrics = ['min_max_amplitude','decay_amplitude','rising_amplitude','decay_duration','rising_duration'] # select some RespHRV features to study
 
 nrows = len(resphrv_sel_metrics)
 ncols = len(resp_sel_metrics)

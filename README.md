@@ -2,7 +2,7 @@
 
 Simple python toolbox to analyse physio signals (Respiration, ECG, and RespHRV)
 
-[](./doc/img/logo_physio.png)
+[](doc/img/logo_physio.png)
 
 **Please jump to documentation now https://physio.readthedocs.io**
 
