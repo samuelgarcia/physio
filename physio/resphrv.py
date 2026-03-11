@@ -131,14 +131,14 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
 
 
     resphrv_cycles['decay_amplitude'] = resphrv_cycles['peak_value'] - resphrv_cycles['trough_value']
-    resphrv_cycles['rising_amplitude'].values[1:] = resphrv_cycles['peak_value'].values[1:] - resphrv_cycles['trough_value'].values[:-1]
+    resphrv_cycles.loc[resphrv_cycles.index[1:] ,'rising_amplitude'] = resphrv_cycles['peak_value'].values[1:] - resphrv_cycles['trough_value'].values[:-1]
 
     mask = resphrv_cycles['decay_amplitude'] < 0
     resphrv_cycles.loc[mask,'decay_amplitude'] = np.nan
     mask = resphrv_cycles['rising_amplitude'] < 0
     resphrv_cycles.loc[mask,'rising_amplitude'] = np.nan
 
-    resphrv_cycles['rising_duration'].values[1:] = resphrv_cycles['peak_time'].values[1:] - resphrv_cycles['trough_time'].values[:-1]
+    resphrv_cycles.loc[resphrv_cycles.index[1:] ,'rising_duration'] = resphrv_cycles['peak_time'].values[1:] - resphrv_cycles['trough_time'].values[:-1]
     resphrv_cycles['decay_duration'] = resphrv_cycles['trough_time'] - resphrv_cycles['peak_time']
 
     resphrv_cycles['rising_slope'] = resphrv_cycles['rising_amplitude'] / resphrv_cycles['rising_duration']
