@@ -1,12 +1,13 @@
 [project]
 name = "physio"
-version = "0.3.1"
+version = "0.3.2"
 authors = [
   { name="Samuel Garcia", email="sam.garcia.die@gmail.com" },
+  { name="Valentin Ghibaudo", email="vaghibaudo@gmail.com" },
 ]
-description = "Simple python toolbox to analyse physio signals (respi and ECG)"
+description = "Simple python toolbox to analyse physio signals (Resp, ECG, RespHRV)"
 readme = "README.md"
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.10,<4.0"
 classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "License :: OSI Approved :: MIT License",
