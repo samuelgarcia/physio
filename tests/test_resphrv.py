@@ -17,8 +17,8 @@ def test_compute_resphrv():
     
     resp, resp_cycles = compute_respiration(raw_resp, srate, parameter_preset='human_airflow')
     ecg, ecg_peaks = compute_ecg(raw_ecg, srate, parameter_preset='human_ecg')
-    
-    
+
+
 
     resphrv_cycles, cyclic_cardiac_rate = compute_resphrv(resp_cycles, ecg_peaks, srate=10., two_segment=True)
     print(resphrv_cycles)
