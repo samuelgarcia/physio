@@ -114,10 +114,16 @@ print(cyclic_cardiac_rate.shape)
 #      (usually during inspiration).
 #    * `trough_time`: Time in seconds of the minimum heart rate of the current respiratory heart rate related oscillation, that could fall in respiratory cycle `n` (most of the time and usually during expiration) or `n+1`.
 # 
-# From these points, several derived features of interest (e.g., for statistical analysis) are computed. 
-# Note that they are based on the expected heart rate dynamics under physiological conditions: 
-# an increase in heart rate during inspiration (which already begins during the previous respiratory cycle) 
-# and a decrease in heart rate during expiration (usually at the transition from inspiration to expiration).
+# Important note: computing the difference in heart rate within a respiratory cycle provides an absolute measure of RespHRV.
+# However, as discussed by Jerzy Sacha in 2014 (https://doi.org/10.3389/fphys.2013.00306),
+# heart rate variability depends on the average heart rate level.
+# Moreover, since RR intervals and heart rate are non-linearly related (inversely in this case),
+# RespHRV estimated from RR intervals in seconds tends to negatively correlate with average heart rate,
+# whereas RespHRV estimated from heart rate signals (i.e. in bpm) tends to positively correlate with average heart rate.
+# This inverse relationship due to unit choice is nicely illustrated in Figure 1 of the referenced article (Jerzy Sacha, 2014).
+# To avoid misinterpretation due to unit choice and local average heart rate,
+# it is recommended to normalize the absolute RespHRV measurements by the local average heart rate.
+# Accordingly, both absolute and relative RespHRV metrics are provided in the computed features:
 # 
 #    * `peak_value`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
 #      Instantaneous heart rate at `peak_time`, i.e., the maximum heart rate 
@@ -125,16 +131,22 @@ print(cyclic_cardiac_rate.shape)
 #    * `trough_value`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
 #      Instantaneous heart rate at `trough_time`, i.e., the minimum heart rate during the ongoing respiratory cycle (usually during expiration). In non-physiological conditions, where the peak time can be delayed toward expiration, this trough value can be measured at a trough time detected in the beginning of the next respiratory cycle `n+1`.
 #    * `min_max_amplitude`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
-#      Difference in heart rate between the maximum heart rate during respiratory cycle `n` and the minimum heart rate during the same respiratory cycle `n`.
+#      Difference between the maximum (`max_HR`) and minimum (`min_HR`) heart rate within respiratory cycle `n`, i.e `min_max_amplitude` = `max_HR` - `max_HR`
 #      (see figure below).
+#    * `relative_min_max_amplitude`: (units = None, but scaled from to 0 to 1) 
+#      Normalized version of `min_max_amplitude`, i.e : `relative_min_max_amplitude` = `min_max_amplitude` / (`max_HR` + `min_HR`)
 #    * `rising_amplitude`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
-#      Difference in heart rate between the maximum of cycle `n` and the minimum of cycle `n-1` 
+#      Difference in heart rate between the maximum of cycle `n+1` and the minimum of cycle `n` 
 #      (see figure below).
+#    * `relative_rising_amplitude`: (units = None, but scaled from to 0 to 1) 
+#      Normalized version of `rising_amplitude`, i.e : `relative_rising_amplitude` = `rising_amplitude` / (`max_HRn+1` + `min_HRn`)
 #    * `decay_amplitude`: (units = those set in :py:func:`~physio.compute_resphrv`, default = `bpm`) 
 #      Difference in heart rate between the maximum and the minimum of cycle `n`. Note that in non-physiological conditions, where the peak time can be delayed toward expiration, the trough value can be measured at a trough time detected in the beginning of the next respiratory cycle `n+1`, so that the `decay_amplitude` is computed between a peak value of respiratory cycle `n` and a trough value detected in respiratory cycle `n+1` (see figure below).  
 #      **This corresponds to "how much the heart rate decreases during the current respiratory cycle," 
 #      usually at the transition from inspiration to expiration of cycle `n`. Under physiological 
 #      conditions, this is considered the primary measure of RespHRV, but here it is computed for each cycle.**
+#    * `relative_decay_amplitude`: (units = None, but scaled from to 0 to 1) 
+#      Normalized version of `decay_amplitude`, i.e : `relative_decay_amplitude` = `decay_amplitude` / (`max_HRn` + `min_HRn`)
 #    * `rising_duration`: (units = `s`) Duration of the `rising_amplitude` period, i.e., 
 #      (`peak_time` of cycle `n` – `trough_time` of cycle `n-1`). 
 #    * `decay_duration`: (units = `s`) Duration of the `decay_amplitude` period, i.e., 
@@ -145,10 +157,11 @@ print(cyclic_cardiac_rate.shape)
 #      defined as `decay_amplitude` / `decay_duration`.*
 # 
 # In physiological conditions, we recommend using `decay_amplitude` as a measure of
-# respiratory heart-rate variability. However, in non-physiological situations—
+# respiratory heart-rate variability, or even better, its normalized version, `relative_decay_amplitude`.
+# However, in non-physiological situations—
 # where the heart-rate maximum may be delayed toward the end of the respiratory
 # cycle and/or the RespHRV amplitude is expected to be very low (< 1 bpm)—
-# it is safer to use `min_max_amplitude`. This metric simply measures the
+# it is safer to use `min_max_amplitude` (or `relative_min_max_amplitude`). This metric simply measures the
 # peak-to-peak heart-rate difference strictly within respiratory cycle `n`,
 # without considering when within the cycle the peak or trough occurs, this latter point being considered by `decay_amplitude` or `rising_amplitude` but becoming (very) noisy when almost no RespHRV exist.
 #
