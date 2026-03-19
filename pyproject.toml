@@ -1,6 +1,6 @@
 [project]
 name = "physio"
-version = "0.3.2"
+version = "0.3.3"
 authors = [
   { name="Samuel Garcia", email="sam.garcia.die@gmail.com" },
   { name="Valentin Ghibaudo", email="vaghibaudo@gmail.com" },

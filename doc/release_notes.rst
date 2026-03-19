@@ -4,6 +4,27 @@
 Release notes
 =============
 
+Version 0.3.3
+=============
+
+2026-03-19
+
+ * respHRV relative amplitude
+
+
+Version 0.3.2
+=============
+
+2026-03-12
+
+ * compatibility with pandas 3
+
+Version 0.3.1
+=============
+
+2025-12-02
+
+ * More robust respHRV amplitude
 
 Version 0.3.0
 =============
