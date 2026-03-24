@@ -48,7 +48,7 @@ sphinx_gallery_conf = {
     #                                    '../examples/example_02_respiration.py',
     #                                    ]),
     'within_subsection_order': FileNameSortKey,
-    'filename_pattern' : '/example_',
+    'filename_pattern' : 'example_',
 
     'ignore_pattern': '/generate_',
     'download_all_examples': False,
