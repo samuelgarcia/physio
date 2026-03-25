@@ -204,7 +204,7 @@ def time_to_cycle(times, cycle_times,  segment_ratios = 0.4):
     # put nan when some times are in missing cycles
     if num_seg_phase == 2:
         ind_missing, = np.nonzero(np.isnan(cycle_times[:, 1]))
-        in_missing = np.in1d(np.floor(cycles), ind_missing.astype(cycles.dtype))
+        in_missing = np.isin(np.floor(cycles), ind_missing.astype(cycles.dtype))
         cycles[in_missing] = np.nan
     
     
