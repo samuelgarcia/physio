@@ -203,7 +203,7 @@ def compute_resphrv_rate_period(resp_cycles, ecg_peaks, srate=100., bpm_limits=N
     rate_limits = bpm_limits
 
     if not rate_limits is None:
-        period_limits = (60000 / rate_limits[0], 60000 / rate_limits[1])
+        period_limits = (60000 / rate_limits[1], 60000 / rate_limits[0])
     else:
         period_limits = None
 

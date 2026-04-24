@@ -37,7 +37,8 @@ def test_compute_resphrv():
     # print(resphrv_cycles['decay_amplitude_bpm'].values)
     # print(np.ptp(cyclic_cardiac_rate, axis = 1))
 
-    resphrv_cycles, cyclic_cardiac_rate, cyclic_cardiac_period = compute_resphrv_rate_period(resp_cycles, ecg_peaks, return_cyclic_cardiac_rate = True, return_cyclic_cardiac_period = True)
+    bpm_limits = (30, 90)
+    resphrv_cycles, cyclic_cardiac_rate, cyclic_cardiac_period = compute_resphrv_rate_period(resp_cycles, ecg_peaks, bpm_limits=bpm_limits, return_cyclic_cardiac_rate = True, return_cyclic_cardiac_period = True)
     print(resphrv_cycles)
     print(cyclic_cardiac_rate)
     # print(resphrv_cycles['decay_amplitude_bpm'].values)
