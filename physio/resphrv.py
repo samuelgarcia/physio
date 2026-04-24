@@ -159,13 +159,12 @@ def compute_resphrv(resp_cycles, ecg_peaks, srate=100., units='bpm', limits=None
     
 def compute_resphrv_rate_period(resp_cycles, ecg_peaks, srate=100., bpm_limits=None, two_segment=True, points_per_cycle=50, return_cyclic_cardiac_rate=True, return_cyclic_cardiac_period = True):
     """
-    RSA = Respiratory Sinus Arrhythmia (or Respiratory Heart Rate Variability / RespHRV)
+    RespHRV = Respiratory Heart Rate Variability (or RespHRV, ex. Respiratory Sinus Arrhythmia (RSA))
 
-    Compute the RSA cycle-by-cycle : 
-      * compute instantaneous heart rate
-      * on resp cycle basis compute peak-to-trough
-
-    Also compute the cyclic deformation of the instantaneous heart rate
+    Compute the RespHRV/RSA cycle-by-cycle using as a rate unit the beats per minute (bpm) and as a time period unit the milliseconds (ms) and does it : 
+      * On a respiratory cycle basis, i.e. compute RespHRV using peak-to-trough framework
+      * Can compute instantaneous heart rate in bpm and deform it cyclically based on respiratory time basis to get it at each resp cycle and phase point
+      * Can compute instantaneous heart period in ms and deform it cyclically based on respiratory time basis to get it at each resp cycle and phase point
 
     Parameters
     ----------
@@ -177,23 +176,25 @@ def compute_resphrv_rate_period(resp_cycles, ecg_peaks, srate=100., bpm_limits=N
     srate : int or float
         Sampling rate used for interpolation to get an instantaneous heart rate vector, to compute cyclic_cardiac_rate. 
         100 is safe for both animal and human. For human 10 also works.
-    units : str
-        bpm / Hz
-    limits : list or None
-        Limits for removing outliers. To set according to the units parameter. Ex : [30, 200] to remove heart rates (in bpm) out of this range.
+    bpm_limits : list or None
+        Limits for removing outliers. To set according in beats per minute as a unit. Ex : [30, 200] to remove heart rates in bpm out of this range.
     two_segment : bool
         True or False (default = True). Deform instantaneous heart rate by respiratory phase using one segment (inspi_time to next_inspi_time) or two segments (inspi_time to expi_time and expi_time to next_inspi_time), to compute cyclic_cardiac_rate.
     points_per_cycle : int
         Number of respiratory phase points per cycle, used in deform_traces_to_cycle_template() to build cyclic_cardiac_rate matrix
     return_cyclic_cardiac_rate : bool
-        If True, returns both outputs (resphrv_cycles and cyclic_cardiac_rate), else computes and returns only resphrv_cycles and not cyclic_cardiac_rate
+        If True, returns as additional output cyclic_cardiac_rate, i.e. the heart rate in bpm according to the respiratory phase of each resp cycle
+    return_cyclic_cardiac_period : bool
+        If True, returns as additional output cyclic_cardiac_period, i.e. the heart period in ms according to the respiratory phase of each resp cycle
 
     Returns
     -------
     resphrv_cycles : pd.DataFrame
         Cycle-by-cycle features of Heart Rate dynamics. Ex : decay_amplitude gives the by-cycle peak-to-trough amplitude.
     cyclic_cardiac_rate : nd.array
-        2D Matrix (respiratory cycle * respiratory phase) with instantaneous heart rate at each resp cycle and phase point.
+        2D Matrix (respiratory cycle * respiratory phase) with instantaneous heart rate in bpm at each resp cycle and phase point.
+    cyclic_cardiac_period : nd.array
+        2D Matrix (respiratory cycle * respiratory phase) with instantaneous heart period in ms at each resp cycle and phase point.
     """
     rate_units = 'bpm'
     period_units = 'ms'
