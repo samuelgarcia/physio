@@ -196,6 +196,7 @@ def compute_resphrv_rate_period(resp_cycles, ecg_peaks, srate=100., bpm_limits=N
     cyclic_cardiac_period : nd.array
         2D Matrix (respiratory cycle * respiratory phase) with instantaneous heart period in ms at each resp cycle and phase point.
     """
+    # Force units to be in beats per minute for rate and in milliseconds for periods
     rate_units = 'bpm'
     period_units = 'ms'
 
