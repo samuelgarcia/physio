@@ -167,6 +167,23 @@ ax.set_xlim(95, 125)
 #      the square root of the mean of the squared differences between successive RR intervals.
 #      Conceptually, it is similar to a second derivative of the RR intervals (if RR intervals are considered as a
 #      first derivative). RMSSD is very sensitive to outliers, which can artificially increase its value.
+#    * `HRV_pNN50`: (units = `%`) Percentage of successive RR interval differences greater than 50 ms.
+#      It is sensitive to outliers and ectopic beats.
+#    * `HRV_pNN20`: (units = `%`) Percentage of successive RR interval differences greater than 20 ms.
+#      It is sensitive to outliers and ectopic beats.
+#    * `HRV_SD1`: (units = `ms`) Standard deviation of (RR[n] - RR[n+1]) / sqrt(2).
+#      This metric is computed from successive differences between RR intervals.
+#      It is mathematically related to RMSSD by a constant scaling factor.
+#    * `HRV_SD2`: (units = `ms`) Standard deviation of (RR[n] + RR[n+1]) / sqrt(2).
+#      This metric is computed from successive sums of RR intervals.
+#    * `HRV_SD1SD2`: (units = `AU`) Ratio of `HRV_SD1` to `HRV_SD2`.
+#      This dimensionless metric compares variability derived from successive differences
+#      to variability derived from successive sums of RR intervals.
+#    * `HRV_S`: (units = `ms^2`) Area of the ellipse defined by `HRV_SD1` and `HRV_SD2`
+#      (computed as pi * SD1 * SD2). This scalar combines both SD1 and SD2 into a single
+#      dispersion measure.
+#    * `HRV_ShannonEntropy`: (units = `AU`) Shannon entropy of the probability distribution
+#      of RR intervals estimated using histogram binning.
 #
 # Some of these metrics can be visualized on the RR interval distribution below, which provides
 # a simple way to identify potential outliers in the detection.
@@ -177,6 +194,10 @@ ax.set_xlim(95, 125)
 #    3) By interpreting results using robust metrics such as `HRV_Median`, `HRV_Mad`, or `HRV_MCV`
 #
 # While these three steps can reduce the impact of outliers, careful ECG data recording is no substitute for quality optimization.
+#
+# WARNING : Many of the metrics (e.g. `HRV_Mean`, `HRV_SD`, `HRV_RMSSD`, `HRV_pNN50`, `HRV_pNN20`, `HRV_SD1`, `HRV_SD2`, `HRV_S`, `HRV_ShannonEntropy`) are highly sensitive to outliers and artifacts in RR interval sequences.
+# Furthermore, the physiological interpretability of these metrics remains limited and should be considered with caution.
+
 
 
 
