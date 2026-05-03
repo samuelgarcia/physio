@@ -4,7 +4,7 @@ import pandas as pd
 
 import scipy.interpolate
 
-from .tools import detect_peak, compute_median_mad
+from .tools import detect_peak, compute_median_mad, sd1_sd2_hrv, Shannon_Entropy
 from .preprocess import preprocess
 from .parameters import get_ecg_parameters, recursive_update
 
@@ -137,6 +137,13 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
     * HRV_MCV : HRV_Mad / HRV_Median = MAD Coefficient of Variation = Robust version of Coefficient of Variation
     * HRV_Asymmetry = HRV_Median - HRV_Mean = Difference between Median and Mean that diverges from 0 in case of outliers / non normal distribution of RR intervals.
     * HRV_RMSSD = Root-Mean Square of Successive Differences ~ like a 2nd derivative of RR intervals. Sensitive to fine variations of RR intervals but also very sensitive to outliers.
+    * HRV_pNN50 : Percentage of successive RR interval differences greater than 50 ms. Very sensitive to outliers.
+    * HRV_pNN20 : Percentage of successive RR interval differences greater than 20 ms. Very sensitive to outliers.
+    * HRV_SD1 : Standard deviation of (RR[n] - RR[n+1]) / sqrt(2). Quantifies variability based on successive differences between RR intervals. Directly related to RMSSD by a constant scaling factor.
+    * HRV_SD2 : Standard deviation of (RR[n] + RR[n+1]) / sqrt(2). Quantifies variability along the sum of consecutive RR intervals.
+    * HRV_SD1SD2 : Ratio HRV_SD1 / HRV_SD2. Compares the dispersion of successive differences to the dispersion of successive sums of RR intervals. Dimensionless metric derived from SD1 and SD2
+    * HRV_S : Area of the ellipse defined by SD1 and SD2 (pi * SD1 * SD2). Derived scalar combining SD1 and SD2. Expresses dispersion of RR intervals in the SD1 to SD2 representation.
+    * HRV_ShannonEntropy : Shannon entropy computed from histogram-based probability distribution of RR intervals. Could measures uncertainty of the RR interval distribution.
 
     These metrics are a bit more robust than others toolboxes because are computed after a cleaning of RR intervals based on min and max intervals as set.
 
@@ -174,12 +181,7 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
 
     
     delta_ms = np.diff(peak_ms)
-    
-    # keep = delta_ms < max_interval_ms
-    
-    # delta_ms = delta_ms[keep]
-    
-    
+       
     metrics = pd.Series(dtype=float)
     
     metrics['HRV_Mean'] = np.nanmean(delta_ms)
@@ -190,10 +192,22 @@ def compute_ecg_metrics(ecg_peaks, min_interval_ms=500., max_interval_ms=2000., 
     metrics['HRV_Asymmetry'] = metrics['HRV_Median'] - metrics['HRV_Mean']
 
     
-    # TODO
-    metrics['HRV_RMSSD'] = np.sqrt(np.nanmean(np.diff(delta_ms)**2))
+    # TO DO : more robust outlier mask while working on diff_delta_ms
+    diff_delta_ms = np.diff(delta_ms)
+    metrics['HRV_RMSSD'] = np.sqrt(np.nanmean(diff_delta_ms**2))
+    metrics["HRV_pNN50"] = np.sum(np.abs(diff_delta_ms) > 50) / (len(diff_delta_ms) + 1) * 100
+    metrics["HRV_pNN20"] = np.sum(np.abs(diff_delta_ms) > 20) / (len(diff_delta_ms) + 1) * 100
 
-    # return pd.DataFrame(metrics).T
+    # poincare
+    sd1, sd2, sd1_sd2, s = sd1_sd2_hrv(delta_ms)
+    metrics['HRV_SD1'] = sd1
+    metrics['HRV_SD2'] = sd2
+    metrics['HRV_SD1SD2'] = sd1_sd2
+    metrics['HRV_S'] = s
+
+    # entropy 
+    metrics['HRV_ShannonEntropy'] = Shannon_Entropy(delta_ms)
+
     return metrics
 
 
