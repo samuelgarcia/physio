@@ -129,8 +129,31 @@ def crosscorrelogram(a, b, bins):
     count, bins = np.histogram(diff, bins)
     return count, bins
 
+def sd1_sd2_hrv(rr_intervals):
+    rri_n = rr_intervals[:-1]
+    rri_plus = rr_intervals[1:]
 
+    x1 = (rri_n - rri_plus) / np.sqrt(2) 
+    x2 = (rri_n + rri_plus) / np.sqrt(2)
+    sd1 = np.std(x1, ddof=1)
+    sd2 = np.std(x2, ddof=1)
+    sd1_sd2 = sd1 / sd2
+    s = np.pi * sd1 * sd2 # Area of ellipse described by SD1 and SD2
+    return sd1, sd2, sd1_sd2, s
 
+def Shannon_Entropy(signal):
+    signal = np.asarray(signal)
+
+    n_bins = int(np.sqrt(len(signal)))
+
+    hist, _ = np.histogram(signal, bins=n_bins, density=False)
+
+    prob = hist / np.sum(hist)
+    prob = prob[prob > 0]
+
+    entropy = -np.sum(prob * np.log(prob))
+
+    return entropy
 
 # convolution stuff to keep in mind
 # sweep = np.arange(-60, 60)
